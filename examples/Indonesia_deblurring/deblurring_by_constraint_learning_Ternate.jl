@@ -3,7 +3,6 @@
 # We will use a VERY simple learning appraoch to obtain 'good' constraints. This
 # learing works with just a few even <10 training examples.
 
-@everywhere SetIntersectionProjection.jl
 @everywhere using SetIntersectionProjection
 @everywhere using MAT
 @everywhere using PyPlot
