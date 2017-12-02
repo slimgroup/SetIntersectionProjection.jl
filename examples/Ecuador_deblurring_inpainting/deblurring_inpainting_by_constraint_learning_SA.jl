@@ -1,14 +1,13 @@
-# test projections onto intersection for julia for image inpainting/matrix completion
+# test projections onto intersection for julia for simultaneous image inpainting&deblurring
 # as set theoretical image recovery problem (a feasibility problem)
 # We will use a VERY simple learning appraoch to obtain 'good' constraints. This
 # learing works with just a few even <10 training examples.
 # South America dataset
 
-@everywhere include("../src/SetIntersectionProjection.jl")
 @everywhere using SetIntersectionProjection
 @everywhere using MAT
 @everywhere using PyPlot
-#using LatexStrings
+
 
 @everywhere type compgrid
   d :: Tuple
@@ -25,28 +24,33 @@ elseif FL==32
   TI = Int32
 end
 
+#data directory for loading and writing results
+data_dir = "/data/slim/bpeters/SetIntersection_data_results"
+
 #load a very small data set (12 images only) (Mablab files for compatibility with matlab only solvers for comparison...)
-file = matopen("SA_patches.mat")
-mtrue=read(file, "SA_patches")
-mtrue=convert(Array{TF,3},mtrue)
+file  = matopen(joinpath(data_dir,"SA_patches.mat"))
+mtrue = read(file, "SA_patches")
+mtrue = convert(Array{TF,3},mtrue)
 
 #split data tensor in a training and evaluation data
 #patches have been randomized already in matlab
-m_train = mtrue[1:35,:,:]
+m_train      = mtrue[1:35,:,:]
 m_evaluation = mtrue[36:39,:,:]
-m_est = zeros(TF,size(m_evaluation))
+m_est        = zeros(TF,size(m_evaluation))
 
 #plot training images
 figure();title("training image", fontsize=10)
-for i=1:size(m_train,1)
-  subplot(7,5,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); #title("training image", fontsize=10)
+for i=1:16
+  subplot(4,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig("training_data_all.pdf",bbox_inches="tight")
+savefig(joinpath(data_dir,"training_data_all.pdf"),bbox_inches="tight")
+savefig(joinpath(data_dir,"training_data_all.png"),bbox_inches="tight")
 
 for i=1:35
   figure();title(string("training image", i), fontsize=10)
   imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
-  savefig(string("training_data_", i,".pdf"),bbox_inches="tight")
+  savefig(joinpath(data_dir,string("training_data_", i,".pdf")),bbox_inches="tight")
+  savefig(joinpath(data_dir,string("training_data_", i,".png")),bbox_inches="tight")
 end
 
 #computational grid for the training images (all images assumed to be on the same grid here)
@@ -55,15 +59,16 @@ comp_grid = compgrid((1, 1),(size(m_evaluation,2), size(m_evaluation,3)))
 comp_grid=compgrid( ( convert(TF,comp_grid.d[1]),convert(TF,comp_grid.d[2]) ), comp_grid.n )
 
 #create true observed data by blurring and setting pixels to zero
-d_obs = zeros(TF,size(m_evaluation,1),comp_grid.n[1]-25,comp_grid.n[2])
+bkl = 25; #blurring kernel length
+
 n1=comp_grid.n[1]
-Bx=speye(n1)./25
-for i=1:25
-temp=  spdiagm(ones(n1)./25,i)
-temp=temp[1:n1,1:n1];
-Bx+= temp;
+Bx=speye(n1)./bkl
+for i=1:bkl
+  temp=  spdiagm(ones(n1)./bkl,i)
+  temp=temp[1:n1,1:n1];
+  Bx+= temp;
 end
-Bx=Bx[1:end-25,:]
+Bx=Bx[1:end-bkl,:]
 Iz=speye(TF,comp_grid.n[2]);
 BF=kron(Iz,Bx);
 BF=convert(SparseMatrixCSC{TF,TI},BF);
@@ -77,12 +82,11 @@ mask[zero_ind].=0.0f0
 mask = spdiagm(mask,0)
 FWD_OP = convert(SparseMatrixCSC{TF,TI},mask*BF)
 
-#blur and subsample
+#blur and subsample to create observed data
+d_obs = zeros(TF,size(m_evaluation,1),comp_grid.n[1]-blk,comp_grid.n[2])
 for i=1:size(d_obs,1)
-  d_obs[i,:,:] = reshape(FWD_OP*vec(m_evaluation[i,:,:]),comp_grid.n[1]-25,comp_grid.n[2])
+  d_obs[i,:,:] = reshape(FWD_OP*vec(m_evaluation[i,:,:]),comp_grid.n[1]-bkl,comp_grid.n[2])
 end
-
-
 
 #"train" by observing constraints on the data images in training data set
 observations = constraint_learning_by_obseration(comp_grid,m_train)
@@ -188,9 +192,9 @@ constraint["card_2"]=convert(TI,round(quantile(vec(observations["TV_card_095"]),
 #PARSDMM options:
 options=PARSDMM_options()
 options=default_PARSDMM_options(options,options.FL)
-options.evol_rel_tol=1f-6
-options.feas_tol=0.001f0
-options.obj_tol=0.0002f0
+options.evol_rel_tol = 1f-6
+options.feas_tol     = 0.001f0
+options.obj_tol      = 0.0002f0
 options.adjust_gamma           = true
 options.adjust_rho             = true
 options.adjust_feasibility_rho = true
@@ -203,16 +207,11 @@ options.parallel             = true
 options.zero_ini_guess       = true
 BLAS.set_num_threads(2)
 
-multi_level=false
-n_levels=2
-coarsening_factor=2.0
-#(m_est,mask_save)=ICLIP_inpainting(FWD_OP,d_obs,m_evaluation,constraint,comp_grid,options,multi_level,n_levels,coarsening_factor)
-
 (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
 
 #add the mask*blurring filer sparse matrix as a transform domain matrix
 push!(TD_OP,FWD_OP)
-push!(TD_Prop.AtA_offsets,convert(Vector{TI},0:25))
+push!(TD_Prop.AtA_offsets,convert(Vector{TI},0:bkl))
 push!(TD_Prop.ncvx,false)
 push!(TD_Prop.banded,true)
 push!(TD_Prop.AtA_diag,true)
@@ -230,10 +229,9 @@ dummy=zeros(TF,size(BF,2))
 
 for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
-  @time (x,log_PARSDMM) = PARSDMM(dummy,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-  println("SNR:", SNR(vec(m_evaluation[i,:,:]),x))
+  @time (x,log_PARSDMM) = PARSDMM(dummy,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options)
   m_est[i,:,:]=reshape(x,comp_grid.n)
-
+  println("SNR:", round(SNR(vec(m_evaluation[i,(bkl+1):end-(bkl+1),:]),vec(m_est[i,(bkl+1):end-(bkl+1),:])),2))
   if i+1<=size(d_obs,1)
     data = vec(d_obs[i+1,:,:])
     LBD=data.-2.0;  LBD=convert(Vector{TF},LBD);
@@ -246,13 +244,15 @@ end
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 
 for i=1:size(m_est,1)
-    figure();imshow(d_obs[i,26:end-26,:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(string("deblurring_observed",i,".pdf"),bbox_inches="tight")
-    figure();imshow(m_est[i,26:end-26,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,26:end-26,:]),vec(m_est[i,26:end-26,:])),2)))
-    savefig(string("PARSDMM_deblurring",i,".pdf"),bbox_inches="tight")
-    figure();imshow(m_evaluation[i,26:end-26,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(string("deblurring_evaluation",i,".pdf"),bbox_inches="tight")
-
+    figure();imshow(d_obs[i,(bkl+1):end-(bkl+1),:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
+    savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".png")),bbox_inches="tight")
+    figure();imshow(m_est[i,(bkl+1):end-(bkl+1),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,(bkl+1):end-(bkl+1),:]),vec(m_est[i,(bkl+1):end-(bkl+1),:])),2)))
+    savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".png")),bbox_inches="tight")
+    figure();imshow(m_evaluation[i,(bkl+1):end-(bkl+1),:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
+    savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".png")),bbox_inches="tight")
 end
 
 #test TV and bounds only, to see if all the other constraints contribute anything in reconstructuion quality
@@ -276,27 +276,27 @@ end
 #   subplot(3,1,3);imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
 # end
 
-#
-# file = matopen("m_evaluation.mat", "w")
-# write(file, "m_evaluation", convert(Array{Float64,3},m_evaluation))
-# close(file)
-#
-# file = matopen("m_train.mat", "w")
-# write(file, "m_train", convert(Array{Float64,3},m_train))
-# close(file)
 
-file = matopen("d_obs.mat", "w")
+file = matopen(joinpath(data_dir,"m_est.mat"), "w")
+write(file, "m_est", convert(Array{Float64,3},m_est))
+close(file)
+
+file = matopen("m_evaluation.mat", "w")
+write(file, "m_evaluation", convert(Array{Float64,3},m_evaluation))
+close(file)
+
+file = matopen(joinpath(data_dir,"m_train.mat"), "w")
+write(file, "m_train", convert(Array{Float64,3},m_train))
+close(file)
+
+file = matopen(joinpath(data_dir,"d_obs.mat"), "w")
 write(file, "d_obs", convert(Array{Float64,3},d_obs))
 close(file)
 
-file = matopen("FWD_OP.mat", "w")
+file = matopen(joinpath(data_dir,"FWD_OP.mat"), "w")
 write(file, "FWD_OP", convert(SparseMatrixCSC{Float64,Int64},FWD_OP))
 close(file)
 
-# (TV_OP, dummy1, dummy2, dummy3)=get_TD_operator(comp_grid,"TV",TF)
-# file = matopen("TV_OP.mat", "w")
-# write(file, "TV_OP", convert(SparseMatrixCSC{Float64,Int64},TV_OP))
-# close(file)
 #
 #load TFOCS matlab results and plot
 # file = matopen("x_TFOCS_tv_save_SA.mat")

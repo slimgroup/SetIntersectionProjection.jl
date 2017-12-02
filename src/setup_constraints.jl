@@ -221,8 +221,8 @@ function setup_transform_domain_bound_constraints(ind,P_sub,TD_OP,TD_Prop,comp_g
     TD_Prop.dense[ind]      = false
     TD_Prop.TD_n[ind]       = comp_grid.n
     TD_Prop.banded[ind]     = true
-    P_sub[ind]              =  x -> copy!(x,A'*project_bounds!(A*x,TD_LB,TD_UB))
-    TD_OP[ind]              = speye(TF,prod(comp_grid.n))
+    P_sub[ind]              = x -> copy!(x,A'*project_bounds!(A*x,TD_LB,TD_UB))
+    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(prod(comp_grid.n)))
   else
     P_sub[ind]              =  x -> project_bounds!(x,TD_LB,TD_UB)
     TD_OP[ind]              = A

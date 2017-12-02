@@ -41,12 +41,14 @@ figure();title("training image", fontsize=10)
 for i=1:16
   subplot(4,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig("training_data_all.pdf",bbox_inches="tight")
+savefig(joinpath(data_dir,"training_data_all.pdf"),bbox_inches="tight")
+savefig(joinpath(data_dir,"training_data_all.png"),bbox_inches="tight")
 
 for i=1:16
   figure();title(string("training image", i), fontsize=10)
   imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
-  savefig(string("training_data_", i,".pdf"),bbox_inches="tight")
+  savefig(joinpath(data_dir,string("training_data_", i,".pdf")),bbox_inches="tight")
+  savefig(joinpath(data_dir,string("training_data_", i,".png")),bbox_inches="tight")
 end
 
 
@@ -60,9 +62,9 @@ bkl = 50; #blurring kernel length
 n1=comp_grid.n[1]
 Bx=speye(n1)./bkl
 for i=1:bkl
-temp=  spdiagm(ones(n1)./bkl,i)
-temp=temp[1:n1,1:n1];
-Bx+= temp;
+  temp=  spdiagm(ones(n1)./bkl,i)
+  temp=temp[1:n1,1:n1];
+  Bx+= temp;
 end
 Bx=Bx[1:end-bkl,:]
 Iz=speye(TF,comp_grid.n[2]);
@@ -85,7 +87,7 @@ constraint["use_bounds"]=true
 constraint["m_min"]=0.0
 constraint["m_max"]=255.0
 
-constraint["use_rank"]=true;
+constraint["use_rank"]=false;
 observations["rank_095"]=sort(vec(observations["rank_095"]))
 constraint["max_rank"] = convert(TI,round(quantile(observations["rank_095"],0.50)))
 
@@ -126,47 +128,47 @@ constraint["use_TD_bounds_2"]=true
 constraint["TDB_operator_2"]="D_z"
 constraint["TD_LB_2"]=convert(TF,quantile(vec(observations["D_z_min"]),0.15))
 constraint["TD_UB_2"]=convert(TF,quantile(vec(observations["D_z_max"]),0.85))
-#
-# constraint["use_TD_bounds_3"]=true
-# constraint["TDB_operator_3"]="DCT"
-# constraint["TD_LB_3"]=observations["DCT_LB"]
-# constraint["TD_UB_3"]=observations["DCT_UB"]
-#
-# constraint["TD_UB_3"]=reshape(constraint["TD_UB_3"],comp_grid.n)
-# constraint["TD_LB_3"]=reshape(constraint["TD_LB_3"],comp_grid.n)
-# temp1=zeros(TF,comp_grid.n)
-# temp2=zeros(TF,comp_grid.n)
-# for j=2:size(constraint["TD_LB_3"],1)-1
-#   for k=2:size(constraint["TD_LB_3"],2)-1
-#     temp1[j,k].=minimum(constraint["TD_LB_3"][j-1:j+1,k-1:k+1]);
-#     temp2[j,k].=maximum(constraint["TD_UB_3"][j-1:j+1,k-1:k+1]);
-#   end
-# end
-# temp1[1,:]=constraint["TD_LB_3"][1,:];
-# temp1[:,1]=constraint["TD_LB_3"][:,1]
-# temp1[end,:]=constraint["TD_LB_3"][end,:]
-# temp1[:,end]=constraint["TD_LB_3"][:,end]
-#
-# temp2[1,:]=constraint["TD_UB_3"][1,:]
-# temp2[:,1]=constraint["TD_UB_3"][:,1]
-# temp2[end,:]=constraint["TD_UB_3"][end,:]
-# temp2[:,end]=constraint["TD_UB_3"][:,end]
-#
-# for j=1:size(constraint["TD_LB_3"],1)-1
-#   for k=1:size(constraint["TD_LB_3"],2)-1
-#     temp1[j,k].=minimum(constraint["TD_LB_3"][j:j+1,k:k+1]);
-#     temp2[j,k].=maximum(constraint["TD_UB_3"][j:j+1,k:k+1]);
-#   end
-# end
-# for j=2:size(constraint["TD_LB_3"],1)
-#   for k=2:size(constraint["TD_LB_3"],2)
-#     temp1[j,k].=minimum(constraint["TD_LB_3"][j-1:j,k-1:k]);
-#     temp2[j,k].=maximum(constraint["TD_UB_3"][j-1:j,k-1:k]);
-#   end
-# end
-#
-# constraint["TD_LB_3"]=vec(temp1)
-# constraint["TD_UB_3"]=vec(temp2)
+
+constraint["use_TD_bounds_3"]=true
+constraint["TDB_operator_3"]="DCT"
+constraint["TD_LB_3"]=observations["DCT_LB"]
+constraint["TD_UB_3"]=observations["DCT_UB"]
+
+constraint["TD_UB_3"]=reshape(constraint["TD_UB_3"],comp_grid.n)
+constraint["TD_LB_3"]=reshape(constraint["TD_LB_3"],comp_grid.n)
+temp1=zeros(TF,comp_grid.n)
+temp2=zeros(TF,comp_grid.n)
+for j=2:size(constraint["TD_LB_3"],1)-1
+  for k=2:size(constraint["TD_LB_3"],2)-1
+    temp1[j,k].=minimum(constraint["TD_LB_3"][j-1:j+1,k-1:k+1]);
+    temp2[j,k].=maximum(constraint["TD_UB_3"][j-1:j+1,k-1:k+1]);
+  end
+end
+temp1[1,:]=constraint["TD_LB_3"][1,:];
+temp1[:,1]=constraint["TD_LB_3"][:,1]
+temp1[end,:]=constraint["TD_LB_3"][end,:]
+temp1[:,end]=constraint["TD_LB_3"][:,end]
+
+temp2[1,:]=constraint["TD_UB_3"][1,:]
+temp2[:,1]=constraint["TD_UB_3"][:,1]
+temp2[end,:]=constraint["TD_UB_3"][end,:]
+temp2[:,end]=constraint["TD_UB_3"][:,end]
+
+for j=1:size(constraint["TD_LB_3"],1)-1
+  for k=1:size(constraint["TD_LB_3"],2)-1
+    temp1[j,k].=minimum(constraint["TD_LB_3"][j:j+1,k:k+1]);
+    temp2[j,k].=maximum(constraint["TD_UB_3"][j:j+1,k:k+1]);
+  end
+end
+for j=2:size(constraint["TD_LB_3"],1)
+  for k=2:size(constraint["TD_LB_3"],2)
+    temp1[j,k].=minimum(constraint["TD_LB_3"][j-1:j,k-1:k]);
+    temp2[j,k].=maximum(constraint["TD_UB_3"][j-1:j,k-1:k]);
+  end
+end
+
+constraint["TD_LB_3"]=vec(temp1)
+constraint["TD_UB_3"]=vec(temp2)
 
 
 constraint["use_TD_card_1"]=false
@@ -217,9 +219,9 @@ dummy=zeros(TF,size(BF,2))
 
 for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
-  @time (x,log_PARSDMM) = PARSDMM(dummy,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-  println("SNR:", SNR(vec(m_evaluation[i,:,:]),x))
+  @time (x,log_PARSDMM) = PARSDMM(dummy,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options)
   m_est[i,:,:]=reshape(x,comp_grid.n)
+  println("SNR:", round(SNR(vec(m_evaluation[i,(bkl+1):end-(bkl+1),:]),vec(m_est[i,(bkl+1):end-(bkl+1),:])),2))
 
   if i+1<=size(d_obs,1)
     data = vec(d_obs[i+1,:,:])
@@ -239,12 +241,14 @@ SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 
 for i=1:size(m_est,1)
     figure();imshow(d_obs[i,(bkl+1):end-(bkl+1),:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(string("deblurring_observed",i,".pdf"),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("deblurring_observed",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("deblurring_observed",i,".png")),bbox_inches="tight")
     figure();imshow(m_est[i,(bkl+1):end-(bkl+1),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,(bkl+1):end-(bkl+1),:]),vec(m_est[i,(bkl+1):end-(bkl+1),:])),2)))
-    savefig(string("PARSDMM_deblurring",i,".pdf"),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("PARSDMM_deblurring",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("PARSDMM_deblurring",i,".png")),bbox_inches="tight")
     figure();imshow(m_evaluation[i,(bkl+1):end-(bkl+1),:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(string("deblurring_evaluation",i,".pdf"),bbox_inches="tight")
-
+    savefig(joinpath(data_dir,string("deblurring_evaluation",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("deblurring_evaluation",i,".png")),bbox_inches="tight")
 end
 
 
