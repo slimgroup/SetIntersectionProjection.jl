@@ -2,7 +2,6 @@
 # with PARSDMM in serial, parallel or multilevel (seria or parallel)
 # Bas Peters, 2017
 
-@everywhere include("../src/SetIntersectionProjection.jl")
 @everywhere using SetIntersectionProjection
 using MAT
 using PyPlot
@@ -11,16 +10,6 @@ type compgrid
   d :: Tuple
   n :: Tuple
 end
-
-file = matopen("compass_velocity.mat")
-m=read(file, "Data")
-close(file)
-m=m[1:341,200:600];
-m=m';
-
-#set up computational grid
-comp_grid = compgrid((25, 6),(size(m,1), size(m,2)))
-m=vec(m)
 
 #PARSDMM options:
 options=PARSDMM_options()
@@ -44,9 +33,16 @@ elseif options.FL==Float32
   TI = Int32
 end
 
-#convert model and computational grid parameters
-comp_grid=compgrid( ( convert(TF,comp_grid.d[1]),convert(TF,comp_grid.d[2]) ),( convert(TI,comp_grid.n[1]),convert(TI,comp_grid.n[2]) ) )
-m=convert(Vector{TF},m)
+#load image to project
+file = matopen("compass_velocity.mat")
+m=read(file, "Data")
+close(file)
+m=m[1:341,200:600];
+m=m';
+
+#set up computational grid (25 and 6 m are the original distances between grid points)
+comp_grid = compgrid((TF(25), TF(6)),(size(m,1), size(m,2)))
+m=convert(Vector{TF},vec(m))
 
 #define axis limits and colorbar limits
 xmax = comp_grid.d[1]*comp_grid.n[1]
@@ -56,6 +52,7 @@ vma=4500
 
 #constraints
 constraint=Dict()
+
 constraint["use_bounds"]=true
 constraint["m_min"]=1500
 constraint["m_max"]=4500
@@ -77,7 +74,24 @@ println("PARSDMM serial (bounds and bounds on D_z):")
 
 #plot
 figure();imshow(reshape(m,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
+savefig("original_model.png",bbox_inches="tight")
 figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (bounds and bounds on D_z)")
+savefig("projected_model.png",bbox_inches="tight")
+
+#plot PARSDMM logs
+figure();
+subplot(3, 3, 3);semilogy(log_PARSDMM.r_pri)          ;title("r primal")
+subplot(3, 3, 4);semilogy(log_PARSDMM.r_dual)         ;title("r dual")
+subplot(3, 3, 1);semilogy(log_PARSDMM.obj)            ;title(L"$ \frac{1}{2} || \mathbf{m}-\mathbf{x} ||_2^2 $")
+subplot(3, 3, 2);semilogy(log_PARSDMM.set_feasibility);title("TD feasibility violation")
+subplot(3, 3, 5);plot(log_PARSDMM.cg_it)              ;title("nr. of CG iterations")
+subplot(3, 3, 6);semilogy(log_PARSDMM.cg_relres)      ;title("CG rel. res.")
+subplot(3, 3, 7);semilogy(log_PARSDMM.rho)            ;title("rho")
+subplot(3, 3, 8);plot(log_PARSDMM.gamma)              ;title("gamma")
+subplot(3, 3, 9);semilogy(log_PARSDMM.evol_x)         ;title("x evolution")
+tight_layout()
+#tight_layout(pad=0.0, w_pad=0.0, h_pad=1.0)
+savefig("PARSDMM_logs.png",bbox_inches="tight")
 
 println("")
 println("PARSDMM parallel (bounds and bounds on D_z):")
@@ -109,18 +123,6 @@ println("PARSDMM multilevel-serial (bounds and bounds on D_z):")
 @time (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
 
 figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (bounds and bounds on D_z)")
-
-#plot PARSDMM logs
-figure();
-subplot(3, 3, 3);semilogy(log_PARSDMM.r_pri)          ;title("r primal")
-subplot(3, 3, 4);semilogy(log_PARSDMM.r_dual)         ;title("r dual")
-subplot(3, 3, 1);semilogy(log_PARSDMM.obj)            ;title(L"$ \frac{1}{2} || \mathbf{m}-\mathbf{x} ||_2^2 $")
-subplot(3, 3, 2);semilogy(log_PARSDMM.set_feasibility);title("TD feasibility violation")
-subplot(3, 3, 5);plot(log_PARSDMM.cg_it)              ;title("nr. of CG iterations")
-subplot(3, 3, 6);semilogy(log_PARSDMM.cg_relres)      ;title("CG rel. res.")
-subplot(3, 3, 7);semilogy(log_PARSDMM.rho)            ;title("rho")
-subplot(3, 3, 8);plot(log_PARSDMM.gamma)              ;title("gamma")
-subplot(3, 3, 9);semilogy(log_PARSDMM.evol_x)         ;title("x evolution")
 
 #now use multi-level with parallel PARSDMM
 options.parallel=true
