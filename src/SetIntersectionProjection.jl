@@ -95,10 +95,10 @@ end
   feas_tol              :: Real = 5e-2
   obj_tol               :: Real = 1e-3
   rho_ini               :: Real = 10.0
-  rho_update_frequency  :: Integer   = 2
+  rho_update_frequency  :: Integer = 2
   gamma_ini             :: Real = 1.0
   adjust_rho            :: Bool    = true
-  adjust_gamma          :: Bool    = false
+  adjust_gamma          :: Bool    = true
   adjust_feasibility_rho:: Bool    = true
   adjust_rho_type       :: String  = "BB"
   Blas_active           :: Bool    = true

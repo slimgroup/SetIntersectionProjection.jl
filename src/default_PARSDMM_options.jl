@@ -17,7 +17,7 @@ function default_PARSDMM_options(options,TF)
   options.rho_update_frequency  = TI(2)
   options.gamma_ini             = TF(1.0)
   options.adjust_rho            = true
-  options.adjust_gamma          = false
+  options.adjust_gamma          = true
   options.adjust_feasibility_rho= true
   options.adjust_rho_type       = "BB"
   options.Blas_active           = true
