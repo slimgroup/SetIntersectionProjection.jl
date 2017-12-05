@@ -78,6 +78,7 @@ m=convert(Vector{TF},vec(m))
 Now we are ready to decide what constraints we want to use. We select bounds constraints (bounds may be scalar or vector valued) as well as bound constraints on the vertical (z-direction) discrete derivative of the image. This also known as a slope constraint and we use it to achieve monotonicity of the pixel values from top to bottom.
 
 We provide scripts to generate projectors and transform-domain operators, but you can build your own as well.
+
 ```julia
 #constraints
 constraint=Dict() #initialize dictionary
@@ -98,6 +99,7 @@ options.parallel             = false
 Once we have projectors and transform-domain operators, we use `PARSDMM_precompute_distribute` to precompute and distribute things, followed by actually projecting `m` and plotting the results.
 
 ```julia
+
 (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
 
 println("")
@@ -129,6 +131,7 @@ subplot(3, 3, 7);semilogy(log_PARSDMM.rho)            ;title("rho")
 subplot(3, 3, 8);plot(log_PARSDMM.gamma)              ;title("gamma")
 subplot(3, 3, 9);semilogy(log_PARSDMM.evol_x)         ;title("x evolution")
 tight_layout()
+
 ```
 ![original_model](docs/images/original_model.png)
 ![projected_model](docs/images/projected_model.png)
