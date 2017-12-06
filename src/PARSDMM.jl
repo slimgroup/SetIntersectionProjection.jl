@@ -68,6 +68,7 @@ l_hat_0,x_0,x_old,r_dual,rhs,s,s_0,Q,prox,log_PARSDMM,l_hat,x_hat,r_pri,d_l_hat,
 d_G_hat,P_sub,Q_offsets,stop,feasibility_initial,set_feas,Ax_out)=PARSDMM_initialize(x,l,y,AtA,TD_OP,TD_Prop,P_sub,comp_grid,maxit,rho_ini,gamma_ini,
 x_min_solver,rho_update_frequency,adjust_gamma,m,parallel,options,zero_ini_guess,linear_inv_prob_flag)
 
+
 if stop==true #stop if feasibility of input is detected by PARSDMM_initialize
   copy!(x,m)
   log_PARSDMM.obj             = log_PARSDMM.obj[[1]]
@@ -211,13 +212,14 @@ for i=1:maxit #main loop
      if parallel==true
         rho=convert(Vector{TF},rho); #gather rho
      end
-     if adjust_feasibility_rho == true && mod(i,10)==TF(0) && norm(rho-log_PARSDMM.rho[i,:])<(100*eps(TF))#only update rho if it is not already updated
+     if adjust_feasibility_rho == true && mod(i,10)==TF(0) && norm(rho-log_PARSDMM.rho[i,:])<(10*eps(TF))#only update rho if it is not already updated
          ## adjust rho feasibility
          #if primal residual for a set is much larger than for the other sets
          #and the feasibility error is also much larger, increase rho to lower
          #primal residual and (hopefully) feasibility error
         (max_set_feas,max_set_feas_ind) = findmax(log_PARSDMM.set_feasibility[counter-1,:]);
-        if i>10  && max_set_feas>TF(2.0)*minimum(log_PARSDMM.set_feasibility[counter-1,:]) #&& log_PARSDMM.r_pri(end,max_set_feas_ind)>2*mean(log_PARSDMM.r_pri(end,:))
+        sort_feas = sort(log_PARSDMM.set_feasibility[counter-1,:]);
+        if i>10 && ( max_set_feas>TF(2.0)*minimum(log_PARSDMM.set_feasibility[counter-1,:]) ||  max_set_feas>TF(2.0)*mean(log_PARSDMM.set_feasibility[counter-1,:]) ||  max_set_feas>TF(2.0)*sort_feas[end-1] )
           rho[max_set_feas_ind]=TF(2.0)*rho[max_set_feas_ind];
         end
      end #end adjust_feasibility_rho

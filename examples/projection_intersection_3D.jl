@@ -71,7 +71,7 @@ constraint["TD_UB_1"]=1e6;
 
 options.parallel             = false
 (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
 
 println("")
 println("PARSDMM serial (bounds and bounds on D_z):")
@@ -124,7 +124,7 @@ println("")
 println("PARSDMM parallel (bounds and bounds on D_z):")
 options.parallel=true
 (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
 
 @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options)
 @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options)

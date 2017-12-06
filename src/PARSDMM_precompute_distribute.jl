@@ -4,6 +4,7 @@ function PARSDMM_precompute_distribute{TF<:Real,TI<:Integer}(
                                       m        ::Vector{TF},
                                       TD_OP    ::Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}},
                                       TD_Prop,
+                                      comp_grid,
                                       options
                                       )
 
@@ -12,6 +13,7 @@ const N           = length(m)
 #add the identity matrix as the operator for the squared distance from the point we want to project
 if options.linear_inv_prob_flag==false
   push!(TD_OP,convert(SparseMatrixCSC{TF,TI},speye(TF,N)));
+  push!(TD_Prop.TD_n,comp_grid.n)
   push!(TD_Prop.AtA_offsets,[0])
   push!(TD_Prop.banded,true)
   push!(TD_Prop.AtA_diag,true)
@@ -26,9 +28,9 @@ AtA=Vector{SparseMatrixCSC{TF,TI}}(p)
 for i=1:p
   if TD_Prop.dense[i]==true
     if TD_Prop.AtA_diag[i]==true
-      AtA[i]=speye(N)
+      AtA[i]=convert(SparseMatrixCSC{TF,TI},speye(TF,N))
     else
-      error("provided a dense non orthogoal transform domaian operator")
+      error("provided a dense non orthogoal transform-domain operator")
     end
   else
     AtA[i] = TD_OP[i]'*TD_OP[i]

@@ -32,7 +32,10 @@ n_levels = length(m_levels)
 i=n_levels
 #(x,log_PARSDMM,l,y) = compute_projection_intersection_PARSDMM(m_levels[i],AtA_levels[i],TD_OP_levels[i],TD_Prop_levels[i],P_sub_levels[i],comp_grid_levels[i],options,FL)
 options.zero_ini_guess = true
+
+#solve coarsest level more accurately
 (x,log_PARSDMM,l,y) = PARSDMM(m_levels[i],AtA_levels[i],TD_OP_levels[i],TD_Prop_levels[i],P_sub_levels[i],comp_grid_levels[i],options,x_ini,l_ini,y_ini)
+options.rho_ini = log_PARSDMM.rho[end,:]
 for i=(n_levels-1):-1:1
 
   # resample x, l & y to a finer grid
@@ -52,18 +55,18 @@ for i=(n_levels-1):-1:1
   (l,y)=interpolate_y_l(l,y,TD_Prop_levels,comp_grid_levels,dim3,i)
 
   #account for distance squared term related to y and l: (always located at the end, and transform-domain operator = Identity)
-  itp_l   = interpolate(reshape(l[end],comp_grid_levels[i+1].n), BSpline(Constant()), OnGrid())
-  itp_y   = interpolate(reshape(y[end],comp_grid_levels[i+1].n), BSpline(Constant()), OnGrid())
-
-  if dim3
-    l_fine = itp_l[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2]), linspace(1,comp_grid_levels[i+1].n[3],comp_grid_levels[i].n[3])]
-    y_fine = itp_y[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2]), linspace(1,comp_grid_levels[i+1].n[3],comp_grid_levels[i].n[3])]
-  else
-    l_fine = itp_l[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2])]
-    y_fine = itp_y[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2])]
-  end
-  l[end]=vec(l_fine)
-  y[end]=vec(y_fine)
+  # itp_l   = interpolate(reshape(l[end],comp_grid_levels[i+1].n), BSpline(Constant()), OnGrid())
+  # itp_y   = interpolate(reshape(y[end],comp_grid_levels[i+1].n), BSpline(Constant()), OnGrid())
+  #
+  # if dim3
+  #   l_fine = itp_l[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2]), linspace(1,comp_grid_levels[i+1].n[3],comp_grid_levels[i].n[3])]
+  #   y_fine = itp_y[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2]), linspace(1,comp_grid_levels[i+1].n[3],comp_grid_levels[i].n[3])]
+  # else
+  #   l_fine = itp_l[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2])]
+  #   y_fine = itp_y[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2])]
+  # end
+  # l[end]=vec(l_fine)
+  # y[end]=vec(y_fine)
 
   if options.parallel==true #for now, gather -> interpolate -> distribute, this is inefficient and need to be updated
     l=distribute(l)
@@ -73,6 +76,7 @@ for i=(n_levels-1):-1:1
   # solve on a finer grid
   options.zero_ini_guess = false
   (x,log_PARSDMM,l,y) = PARSDMM(m_levels[i],AtA_levels[i],TD_OP_levels[i],TD_Prop_levels[i],P_sub_levels[i],comp_grid_levels[i],options,x,l,y)
+  options.rho_ini = log_PARSDMM.rho[end,:]
   #(x,log_PARSDMM,l,y) = compute_projection_intersection_PARSDMM(m_levels[i],AtA_levels[i],TD_OP_levels[i],TD_Prop_levels[i],P_sub_levels[i],comp_grid_levels[i],options,FL,x,l,y)
 end #end for loop over levels
 

@@ -10,7 +10,7 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             P_sub               ::Union{Vector{Any},DistributedArrays.DArray{Any,1,Array{Any,1}}},
                             comp_grid,
                             maxit               ::Integer,
-                            rho_ini             ::TF,
+                            rho_ini             ::Vector{Real},
                             gamma_ini           ::TF,
                             x_min_solver        ::String,
                             rho_update_frequency::Integer,
@@ -44,7 +44,11 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             if linear_inv_prob_flag==true; pp=p; end;
 
                             rho     = Vector{TF}(p);
-                            fill!(rho,rho_ini)
+                            if length(rho_ini)==1
+                              fill!(rho,rho_ini[1])
+                            else
+                              copy!(rho,rho_ini)
+                            end
                             prox = copy(P_sub)
                             if linear_inv_prob_flag==false
                               #define prox for all terms in the sum (projectors onto sets)
@@ -83,7 +87,7 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                               end
                             end
 
-                            if norm(feasibility_initial)<(100*eps(TF)) #accept input as feasible and return
+                            if maximum(feasibility_initial)<options.feas_tol #accept input as feasible and return
                                 println("input to PARSDMM is feasible, returning")
                                 stop=true
                             end

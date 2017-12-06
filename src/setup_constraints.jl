@@ -51,7 +51,7 @@ if haskey(constraint,"use_bounds") && constraint["use_bounds"] == true
         UB = constraint["m_max"];
     end
     P_sub[counter]        = x -> project_bounds!(x,LB,UB)
-    TD_OP[counter]        = convert(SparseMatrixCSC{TF,TI},speye(N))
+    TD_OP[counter]        = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
     TD_Prop.ncvx[counter] = false ;TD_Prop.AtA_diag[counter] = true ; TD_Prop.dense[counter] = false ; TD_Prop.TD_n[counter] = comp_grid.n ; TD_Prop.banded[counter] = true
     TD_Prop.tag[counter]  = ("bounds","identity")
     counter               = counter+1;
@@ -114,7 +114,7 @@ end
 if haskey(constraint,"use_subspace") && constraint["use_subspace"]== true
   P_sub[counter]            = x -> project_subspace!(x,constraint["A"],constraint["subspace_orthogonal"])
   TD_Prop.ncvx[counter]     = false
-  TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(N))
+  TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
   TD_Prop.AtA_diag[counter] = true
   TD_Prop.dense[counter]    = false
   TD_Prop.banded[counter]   = true
@@ -144,7 +144,7 @@ for i in ["x","y","z"]
     end
     P_sub[counter]            = x -> project_nuclear!(reshape(x,comp_grid.n),constraint[string("nuclear_norm_slice_",i)],i)
     TD_Prop.ncvx[counter]     = false
-    TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(N))
+    TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
     TD_Prop.AtA_diag[counter] = true
     TD_Prop.dense[counter]    = false
     TD_Prop.banded[counter]   = true
@@ -161,7 +161,7 @@ if haskey(constraint,"use_rank") && constraint["use_rank"]== true
   end
   P_sub[counter]            = x -> project_rank!(reshape(x,comp_grid.n),constraint["max_rank"])
   TD_Prop.ncvx[counter]     = true
-  TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(N))
+  TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
   TD_Prop.AtA_diag[counter] = true
   TD_Prop.dense[counter]    = false
   TD_Prop.banded[counter]   = true
@@ -178,7 +178,7 @@ for i in ["x","y","z"]
     end
     P_sub[counter]            = x -> project_rank!(reshape(x,comp_grid.n),constraint[string("max_rank_slice_",i)],i)
     TD_Prop.ncvx[counter]     = true
-    TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(N))
+    TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
     TD_Prop.AtA_diag[counter] = true
     TD_Prop.dense[counter]    = false
     TD_Prop.banded[counter]   = true
@@ -216,13 +216,13 @@ function setup_transform_domain_bound_constraints(ind,P_sub,TD_OP,TD_Prop,comp_g
       error("temporality no support for bound constraints in a transform domain that results in complex coefficients (can only choose DCT for now)")
     end
     if TF==Float64; TI=Int64; else; TI=Int32; end
-    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(prod(comp_grid.n)))
+    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
     TD_Prop.AtA_diag[ind]   = true
     TD_Prop.dense[ind]      = false
     TD_Prop.TD_n[ind]       = comp_grid.n
     TD_Prop.banded[ind]     = true
     P_sub[ind]              = x -> copy!(x,A'*project_bounds!(A*x,TD_LB,TD_UB))
-    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(prod(comp_grid.n)))
+    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
   else
     P_sub[ind]              =  x -> project_bounds!(x,TD_LB,TD_UB)
     TD_OP[ind]              = A
@@ -253,7 +253,7 @@ function setup_transform_domain_l1_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid
     #P_sub[ind]              =  x -> (x=A*x; project_l1_Duchi!(x,sigma); x=A'*x; return x)
     P_sub[ind]              =  x -> copy!(x,A'*project_l1_Duchi!(A*x,sigma))
     if TF==Float64; TI=Int64; else; TI=Int32; end
-    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(prod(comp_grid.n)))
+    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
     TD_Prop.AtA_diag[ind]   = true
     TD_Prop.dense[ind]      = false
     TD_Prop.TD_n[ind]       = comp_grid.n
@@ -275,7 +275,7 @@ function setup_transform_domain_l2_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid
   if operator_type in special_operator_list
     P_sub[ind]              =  x -> copy!(x,A'*project_l2!(A*x,sigma))
     if TF==Float64; TI=Int64; else; TI=Int32; end
-    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(prod(comp_grid.n)))
+    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
     TD_Prop.AtA_diag[ind]   = true
     TD_Prop.dense[ind]      = false
     TD_Prop.TD_n[ind]       = comp_grid.n
@@ -297,7 +297,7 @@ function setup_transform_domain_card_constraints(ind,P_sub,TD_OP,TD_Prop,comp_gr
   if operator_type in special_operator_list
     P_sub[ind]              =  x -> copy!(x,A'*project_cardinality!(A*x,convert(Integer,k)))
     if TF==Float64; TI=Int64; else; TI=Int32; end
-    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(prod(comp_grid.n)))
+    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
     TD_Prop.AtA_diag[ind]   = true
     TD_Prop.dense[ind]      = false
     TD_Prop.TD_n[ind]       = comp_grid.n

@@ -3,6 +3,9 @@ SetIntersectionProjection is a Julia 0.6 package developed by Bas Peters that co
 $$
 \mathcal{P}_{\mathcal{V}} (\mathbf{m}) \in \arg\min_{\mathbf{x}} \frac{1}{2} \| \mathbf{x} - \mathbf{m} \|_2^2 \quad \text{subject to} \quad \mathbf{m} \in \bigcap_{i=1}^p \mathcal{V}_i,
 $$
+
+![equation](http://latex.codecogs.com/gif.latex?%24%24%20%5Cmathcal%7BP%7D_%7B%5Cmathcal%7BV%7D%7D%20%28%5Cmathbf%7Bm%7D%29%20%5Cin%20%5Carg%5Cmin_%7B%5Cmathbf%7Bx%7D%7D%20%5Cfrac%7B1%7D%7B2%7D%20%5C%7C%20%5Cmathbf%7Bx%7D%20-%20%5Cmathbf%7Bm%7D%20%5C%7C_2%5E2%20%5Cquad%20%5Ctext%7Bsubject%20to%7D%20%5Cquad%20%5Cmathbf%7Bm%7D%20%5Cin%20%5Cbigcap_%7Bi%3D1%7D%5Ep%20%5Cmathcal%7BV%7D_i%2C%20%24%24)
+
 Performance for non-convex sets is empirical. Our main algorithm, Projection Adaptive Relaxed Simultaneous Direction Method of Multipliers (PARSDMM), solves the projection problem as
 $$
 \min_{\mathbf{x}} \frac{1}{2} \| \mathbf{x} - \mathbf{m} \|_2^2 + \sum_{i=1}^{p-1} \iota_{\mathcal{C}_i}(A_i \mathbf{x}).

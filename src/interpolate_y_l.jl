@@ -9,7 +9,7 @@ function interpolate_y_l{TF<:Real}(
                         i                ::Integer
                         )
 
-  for j=1:(length(l)-1) #loop over the various constraint sets
+  for j=1:length(l) #loop over the various constraint sets
 
 
     if TD_Prop_levels[i].tag[j][2] == "TV" || TD_Prop_levels[i].tag[j][2]=="D2D" || TD_Prop_levels[i].tag[j][2]=="D3D"#this tag contains the transform-domain operator type as a string
@@ -68,6 +68,7 @@ function interpolate_y_l{TF<:Real}(
         y[j]=[vec(y_1_fine);vec(y_2_fine)]
       end
     else #for TD-operator is identity,D_z,D_x , etc
+      
       #compute how many gridpoints more/less the transform-domain 'image' has
       #in each dimension compared to the model grid for x and m
       s = ( comp_grid_levels[i].n .- TD_Prop_levels[i].TD_n[j] )

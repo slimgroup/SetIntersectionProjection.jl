@@ -13,7 +13,7 @@ function default_PARSDMM_options(options,TF)
   options.evol_rel_tol          = TF(1e-4)
   options.feas_tol              = TF(5e-2)
   options.obj_tol               = TF(1e-3)
-  options.rho_ini               = TF(10.0)
+  options.rho_ini               = [TF(10.0)]
   options.rho_update_frequency  = TI(2)
   options.gamma_ini             = TF(1.0)
   options.adjust_rho            = true

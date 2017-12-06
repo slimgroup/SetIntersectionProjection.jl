@@ -15,7 +15,7 @@ elseif TF==Float32
   TI = Int32
 end
 [@spawnat pid comp_grid for pid in workers()]
-  
+
 #detect 2D or 3D
 if length(comp_grid.n)==3 && comp_grid.n[3]>1
   dim3 = true #indicate we are working in 3D
@@ -41,7 +41,7 @@ comp_grid_levels = Vector{Any}(n_levels)
 # set up constraints and matrices on coarse level
 #1st level is the grid corresponding to the original model m (matrix or tensor)
 (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,TF)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
 
 if typeof(AtA)==Vector{Array{TF,2}} #change AtA to CDS
   #AtA=convert(Vector{Array{TF,2}},AtA);
@@ -82,7 +82,7 @@ for i=2:n_levels
 
   #set up constraints on new level
   (P_sub_l,TD_OP_l,TD_Prop_l) = setup_constraints(constraint_level,comp_grid_levels[i],TF)
-  (TD_OP_l,AtA_l,dummy1,dummy2) = PARSDMM_precompute_distribute(m_levels[i],TD_OP_l,TD_Prop_l,options)
+  (TD_OP_l,AtA_l,dummy1,dummy2) = PARSDMM_precompute_distribute(m_levels[i],TD_OP_l,TD_Prop_l,comp_grid_levels[i],options)
 
   #save information
   TD_OP_levels[i]     = TD_OP_l
