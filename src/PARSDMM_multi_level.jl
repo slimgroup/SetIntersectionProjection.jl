@@ -18,7 +18,7 @@ function PARSDMM_multi_level{TF<:Real}(
 #interpolations/subsampling/coarsening is done with nearest neighbour
 #from the "Interpolations" julia package. Change (BSpline(Constant())) for other
 #types of interpolation
-
+rho_orig = deepcopy(options.rho_ini)
 #detect 2D or 3D
 if length(comp_grid_levels[1].n)==3 && comp_grid_levels[1].n[3]>1
   dim3 = true #indicate we are working in 3D
@@ -80,5 +80,6 @@ for i=(n_levels-1):-1:1
   #(x,log_PARSDMM,l,y) = compute_projection_intersection_PARSDMM(m_levels[i],AtA_levels[i],TD_OP_levels[i],TD_Prop_levels[i],P_sub_levels[i],comp_grid_levels[i],options,FL,x,l,y)
 end #end for loop over levels
 
+options.rho_ini = rho_orig
 return x, log_PARSDMM, l, y
 end #end multi_level_PARSDMM

@@ -26,7 +26,7 @@
     constraint["TD_l1_sigma_1"]    = 0.5*norm(TV_OP*x,1)
 
     (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL);
-    (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
+    (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
 
     (x1,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
     result=Vector{typeof(x[1])}(length(x1))
@@ -41,7 +41,7 @@
     options.Blas_active = false
 
     (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL);
-    (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
+    (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
 
     (x2,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
     result=Vector{typeof(x[1])}(length(x2))
@@ -58,7 +58,7 @@
     options.parallel    = false
 
     (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL);
-    (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
+    (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
 
     (x3,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
     result=Vector{typeof(x[1])}(length(x3))
@@ -83,7 +83,7 @@ constraint["TD_l1_operator_1"] = "DFT"
 constraint["TD_l1_sigma_1"]    = 0.5*norm(DFT*x,1)
 
 (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL);
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
 
 (x1,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
 result=Vector{typeof(x[1])}(length(x1))
@@ -105,7 +105,7 @@ constraint["TD_l1_operator_1"] = "curvelet"
 constraint["TD_l1_sigma_1"]    = 0.5*norm(C*x,1)
 
 (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL);
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
 
 (x1,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
 result=Vector{typeof(x[1])}(length(x1))

@@ -57,7 +57,7 @@ default_PARSDMM_options(options,Float64)
 options.parallel    = false
 
 (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL);
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
 
 (x3,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
 result=Vector{typeof(x[1])}(length(x3))

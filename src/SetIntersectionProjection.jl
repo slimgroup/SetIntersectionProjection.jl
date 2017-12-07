@@ -19,6 +19,7 @@ include("update_y_l.jl");
 include("stop_PARSDMM.jl");
 include("PARSDMM_initialize.jl")
 include("Q_update!.jl")
+include("rhs_compose.jl")
 
 #linear algebra functions
 include("cg.jl");

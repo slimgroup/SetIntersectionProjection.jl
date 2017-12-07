@@ -86,34 +86,36 @@ if stop==true #stop if feasibility of input is detected by PARSDMM_initialize
 end
 counter=2
 
+x_solve_tol_ref=TF(1.0) #scalar required to determine tolerance for x-minimization, initial value doesn't matter
+
 log_PARSDMM.T_ini=toq();
 
-x_solve_tol_ref=TF(1.0) #scalar required to determine tolerance for x-minimization, initial value doesn't matter
 for i=1:maxit #main loop
 
   #form right hand side for x-minimization
   tic();
-  if parallel==true
-    rhs = @parallel (+) for ii = 1:p
-    TD_OP[ii]'*(rho[ii].*y[ii].+l[ii])
-    end
-  else
-    fill!(rhs,0);
-    if Blas_active
-      for ii=1:p
-        BLAS.axpy!(TF(1.0), TD_OP[ii]'*(rho[ii].*y[ii].+l[ii]), rhs)
-      end
-    else
-      for ii=1:p
-        rhs = rhs.+TD_OP[ii]'*(rho[ii].*y[ii].+l[ii])
-      end
-    end
-  end #end creating new rhs
+  rhs=rhs_compose(rhs,l,y,rho,TD_OP,p,Blas_active,parallel)
+  # if parallel==true
+  #   rhs = @parallel (+) for ii = 1:p
+  #   TD_OP[ii]'*(rho[ii].*y[ii].+l[ii])
+  #   end
+  # else
+  #   fill!(rhs,0);
+  #   if Blas_active
+  #     for ii=1:p
+  #       BLAS.axpy!(TF(1.0), TD_OP[ii]'*(rho[ii].*y[ii].+l[ii]), rhs)
+  #     end
+  #   else
+  #     for ii=1:p
+  #       rhs = rhs.+TD_OP[ii]'*(rho[ii].*y[ii].+l[ii])
+  #     end
+  #   end
+  # end #end creating new rhs
   log_PARSDMM.T_rhs = log_PARSDMM.T_rhs+toq();
 
   # x-minimization
-  copy!(x_old,x);
   tic()
+  copy!(x_old,x);
   (x,iter,relres,x_solve_tol_ref) = argmin_x(Q,rhs,x,x_min_solver,x_solve_tol_ref,i,log_PARSDMM,Q_offsets,Ax_out)
   log_PARSDMM.cg_it[i]     = iter;#cg_log.iters;
   log_PARSDMM.cg_relres[i] = relres;#cg_log[:resnorm][end];
@@ -212,15 +214,16 @@ for i=1:maxit #main loop
      if parallel==true
         rho=convert(Vector{TF},rho); #gather rho
      end
-     if adjust_feasibility_rho == true && mod(i,10)==TF(0) && norm(rho-log_PARSDMM.rho[i,:])<(10*eps(TF))#only update rho if it is not already updated
+     if adjust_feasibility_rho == true && mod(i,10)==TF(0) #&& norm(rho-log_PARSDMM.rho[i,:])<(10*eps(TF))#only update rho if it is not already updated
          ## adjust rho feasibility
          #if primal residual for a set is much larger than for the other sets
          #and the feasibility error is also much larger, increase rho to lower
          #primal residual and (hopefully) feasibility error
-        (max_set_feas,max_set_feas_ind) = findmax(log_PARSDMM.set_feasibility[counter-1,:]);
+        (max_set_feas,max_set_feas_ind) = findmax(log_PARSDMM.set_feasibility[counter-1,:])
         sort_feas = sort(log_PARSDMM.set_feasibility[counter-1,:]);
-        if i>10 && ( max_set_feas>TF(2.0)*minimum(log_PARSDMM.set_feasibility[counter-1,:]) ||  max_set_feas>TF(2.0)*mean(log_PARSDMM.set_feasibility[counter-1,:]) ||  max_set_feas>TF(2.0)*sort_feas[end-1] )
-          rho[max_set_feas_ind]=TF(2.0)*rho[max_set_feas_ind];
+        if i>10 #&& ( max_set_feas>TF(2.0)*minimum(log_PARSDMM.set_feasibility[counter-1,:]) ||  max_set_feas>TF(2.0)*mean(log_PARSDMM.set_feasibility[counter-1,:]) ||  max_set_feas>TF(2.0)*sort_feas[end-1] )
+          rho[max_set_feas_ind].=TF(2.0).*rho[max_set_feas_ind]
+          #println("adjusting feasibility rho")
         end
      end #end adjust_feasibility_rho
 

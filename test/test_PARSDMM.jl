@@ -23,7 +23,7 @@ constraint= Dict()
   constraint["m_max"]=maximum(vec(x))
 
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(x,TD_OP,TD_Prop,options)
+  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(x,TD_OP,TD_Prop,comp_grid,options)
 
   m=deepcopy(x)
 
@@ -53,7 +53,7 @@ constraint= Dict()
   constraint["TD_l1_sigma_1"]     = 0.5*norm(TD_OP*x,1)
 
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL);
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(x,TD_OP,TD_Prop,options)
+  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(x,TD_OP,TD_Prop,comp_grid,options)
 
   m=deepcopy(x)
 
@@ -200,7 +200,7 @@ constraint= Dict()
     constraint["TD_l1_sigma_1"]     = 1.2*norm(TD_OP*c_l_solution,1)
 
     (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL);
-    (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(x,TD_OP,TD_Prop,options)
+    (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(x,TD_OP,TD_Prop,comp_grid,options)
 
     #solve
     m=deepcopy(x)
@@ -254,7 +254,7 @@ constraint["TD_nuclear_operator_1"]="identity"
   constraint["TD_l1_sigma_1"]     = 0.2*norm(TD_OP*vec(x),1)
 
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL);
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(x,TD_OP,TD_Prop,options)
+  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(x,TD_OP,TD_Prop,comp_grid,options)
 
   #solve
   m=deepcopy(x)
