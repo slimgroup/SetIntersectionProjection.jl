@@ -6,8 +6,6 @@ function get_TD_operator(comp_grid,TD_type,TF)
   # output : TD_OP : transform domain operator as a sparse matrix or matrix-free object
   # Bas Peters
 
-
-
 if TF==Float64
   TI=Int64
 else
@@ -22,21 +20,21 @@ n2 = comp_grid.n[2];
 if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3d version
   h3 = comp_grid.d[3]
   n3 = comp_grid.n[3]
-  (D3D, D3x, D3y, D3z) = get_discrete_Grad(n1,n2,n3,h1,h2,h3);
+  #(D3D, D3x, D3y, D3z) = get_discrete_Grad(n1,n2,n3,h1,h2,h3);
   if TD_type=="TV" || TD_type=="D3D"# anisotropic TV operator
-      TD_OP = D3D
+      TD_OP = get_discrete_Grad(n1,n2,n3,h1,h2,h3,TD_type);
       AtA_diag = false ; dense = false ; TD_n = (n1-1+n1+n1 , n2-1+n2+n2 , n3-1+n3+n3) ; banded=true
   elseif TD_type=="D_z" # vertical derivative operator
-      TD_OP=D3z
+      TD_OP = get_discrete_Grad(n1,n2,n3,h1,h2,h3,TD_type);
       AtA_diag = false ; dense = false ; TD_n = (n1 , n2 , n3-1) ; banded=true
   elseif TD_type=="D_x" # lateral derivative operator
-      TD_OP=D3x
+      TD_OP = get_discrete_Grad(n1,n2,n3,h1,h2,h3,TD_type);
       AtA_diag = false ; dense = false ; TD_n = (n1-1 , n2 , n3) ; banded=true
   elseif TD_type=="D_y" # lateral derivative operator
-      TD_OP=D3y
+      TD_OP = get_discrete_Grad(n1,n2,n3,h1,h2,h3,TD_type);
       AtA_diag = false ; dense = false ; TD_n = (n1 , n2-1 , n3) ; banded=true
   elseif TD_type == "identity"
-      TD_OP = speye(n1*n2*n3)
+      TD_OP = speye(TF,n1*n2*n3)
       AtA_diag = true ; dense = false ; TD_n = (n1,n2,n3) ; banded=true
   elseif TD_type == "DFT"
       error("currently no 3D DFT implemented, needs to be done soon")
@@ -48,18 +46,18 @@ if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3d version
       error("provided an unknown transform domain operator. check function get_TD_operator(comp_grid,TD_type) for options")
   end
 else #use 2d version
-  (D2D, D2x, D2z) = get_discrete_Grad(n1,n2,h1,h2);
+  #(D2D, D2x, D2z) = get_discrete_Grad(n1,n2,h1,h2);
   if TD_type=="TV" || TD_type=="D2D"# anisotropic TV operator
-      TD_OP = D2D
+      TD_OP = get_discrete_Grad(n1,n2,h1,h2,TD_type);
       AtA_diag = false ; dense = false ; TD_n = ( (n1-1)+n1 , n2+(n2-1) ) ; banded=true
   elseif TD_type=="D_z" # vertical derivative operator
-      TD_OP=D2z
+      TD_OP = get_discrete_Grad(n1,n2,h1,h2,TD_type);
       AtA_diag = false ; dense = false ; TD_n = (n1 , n2-1) ; banded=true
   elseif TD_type=="D_x" # lateral derivative operator
-      TD_OP=D2x
+      TD_OP = get_discrete_Grad(n1,n2,h1,h2,TD_type);
       AtA_diag = false ; dense = false ; TD_n = (n1-1 , n2) ; banded=true
   elseif TD_type == "identity"
-    TD_OP = speye(n1*n2)
+    TD_OP = speye(TF,n1*n2)
     AtA_diag = true ; dense = false ; TD_n = (n1,n2) ; banded=true
   elseif TD_type == "DCT"
     TD_OP=joDCT(convert(Int64,n1),convert(Int64,n2);planned=false,DDT=TF,RDT=TF)
@@ -74,6 +72,8 @@ else #use 2d version
       error("provided an unknown transform domain operator. check function get_TD_operator(comp_grid,TD_type) for options")
     end
 end
+
+#see if i can remove this conversion below, it should be redundant
 if typeof(TD_OP)<:SparseMatrixCSC
   TD_OP=convert(SparseMatrixCSC{TF,TI},TD_OP)
 end

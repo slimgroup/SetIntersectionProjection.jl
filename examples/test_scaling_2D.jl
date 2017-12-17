@@ -18,7 +18,7 @@ options=PARSDMM_options()
 options.FL=Float32
 options.evol_rel_tol =10*eps(options.FL)
 set_zero_subnormals(true)
-BLAS.set_num_threads(2)
+BLAS.set_num_threads(3)
 
 #select working precision
 if options.FL==Float64

@@ -19,7 +19,6 @@ options.FL=Float32
 options.evol_rel_tol =10*eps(options.FL)
 set_zero_subnormals(true)
 
-
 #select working precision
 if options.FL==Float64
   TF = Float64
@@ -67,6 +66,8 @@ T_tot_serial_multilevel=Vector{Any}(length(width))
 log_T_parallel_multilevel=Vector{Any}(length(width))
 T_tot_parallel_multilevel=Vector{Any}(length(width))
 
+options.rho_ini = [1.0;100.0;100.0;100.0;1.0]
+
 for i=1:length(width)
   print(i)
 
@@ -80,6 +81,7 @@ for i=1:length(width)
   println("")
   println("serial")
   options.parallel=false
+  #options.rho_ini = [10.0]
   BLAS.set_num_threads(8)
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
   (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
@@ -106,13 +108,13 @@ for i=1:length(width)
   println("")
   println("serial multilevel")
   BLAS.set_num_threads(8)
+  #options.rho_ini = [1000.0]
   options.parallel=false
   n_levels=3
   coarsening_factor=2
   (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
   (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
-  options=default_PARSDMM_options(options,options.FL)
   println(t)
   log_T_serial_multilevel[i]=log_PARSDMM;
   T_tot_serial_multilevel[i]=t;
@@ -127,7 +129,6 @@ for i=1:length(width)
   (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
   (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
-  options=default_PARSDMM_options(options,options.FL)
   println(t)
   log_T_parallel_multilevel[i]=log_PARSDMM;
   T_tot_parallel_multilevel[i]=t;

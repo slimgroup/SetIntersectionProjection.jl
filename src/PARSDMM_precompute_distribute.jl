@@ -52,9 +52,9 @@ y       = Vector{Vector{TF}}(p);
 l       = Vector{Vector{TF}}(p);
 
 for ii=1:p #initialize all rho's, gamma's, y's and l's
-    y[ii]       = zeros(size(TD_OP[ii],1))
+    y[ii]       = zeros(TF,size(TD_OP[ii],1))
     ly          = length(y[ii])
-    l[ii]       = zeros(ly);#0.*y[ii];
+    l[ii]       = zeros(TF,ly);#0.*y[ii];
 end
 
 if options.parallel==true
@@ -62,5 +62,6 @@ if options.parallel==true
   y     = distribute(y)
   l     = distribute(l)
 end
+
 return TD_OP,AtA,l,y
 end

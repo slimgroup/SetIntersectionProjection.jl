@@ -95,7 +95,7 @@ end
   evol_rel_tol          :: Real = 1e-4
   feas_tol              :: Real = 5e-2
   obj_tol               :: Real = 1e-3
-  rho_ini               :: Vector{Real} = [10.0]
+  rho_ini               :: Vector{Real} = [1000.0]
   rho_update_frequency  :: Integer = 2
   gamma_ini             :: Real = 1.0
   adjust_rho            :: Bool    = true

@@ -108,11 +108,11 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             #if y and l are empty, allocate them and fill with zeros
                             if isempty(l)==true
                               l=Vector{Vector{TF}}(p)
-                              for i=1:length(TD_OP); l[i]=zeros(size(TD_OP[i],1)); end
+                              for i=1:length(TD_OP); l[i]=zeros(TF,size(TD_OP[i],1)); end
                             end
                             if isempty(y)==true
                               y=Vector{Vector{TF}}(p)
-                              for i=1:length(TD_OP); y[i]=zeros(size(TD_OP[i],1)); end
+                              for i=1:length(TD_OP); y[i]=zeros(TF,size(TD_OP[i],1)); end
                             end
 
                             gamma   = Vector{TF}(p);
@@ -147,26 +147,29 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             for ii=1:p #initialize all rho's, gamma's, y's and l's
                                 gamma[ii]   = gamma_ini;
 
-                                #y[ii]       = zeros(size(TD_OP[ii],1))
-                                ly          = size(TD_OP[ii],1)
-                                y_0[ii]     = zeros(ly);#copy(y[ii])#zeros(ly);#0.*y[ii];
-                                y_old[ii]   = zeros(ly);#copy(y[ii])#zeros(ly);#0.*y[ii];
+                                #if parallel == false
+                                  ly          = size(TD_OP[ii],1)
+                                #else
+                                #  ly = 1
+                                #end
+                                y_0[ii]     = zeros(TF,ly);#copy(y[ii])#zeros(ly);#0.*y[ii];
+                                y_old[ii]   = zeros(TF,ly);#copy(y[ii])#zeros(ly);#0.*y[ii];
 
-                                l_old[ii]   = zeros(ly);#0.*y[ii];
+                                l_old[ii]   = zeros(TF,ly);#0.*y[ii];
                                 #l[ii]       = zeros(ly);#0.*y[ii];
-                                l_0[ii]     = zeros(ly);#0.*y[ii];
-                                l_hat_0[ii] = zeros(ly);#0.*y[ii];
-                                l_hat[ii]   = zeros(ly)
+                                l_0[ii]     = zeros(TF,ly);#0.*y[ii];
+                                l_hat_0[ii] = zeros(TF,ly);#0.*y[ii];
+                                l_hat[ii]   = zeros(TF,ly)
 
-                                x_hat[ii]   = zeros(ly)
-                                s_0[ii]     = zeros(ly)
-                                s[ii]       = zeros(ly)
-                                r_pri[ii]   = zeros(ly)
+                                x_hat[ii]   = zeros(TF,ly)
+                                s_0[ii]     = zeros(TF,ly)
+                                s[ii]       = zeros(TF,ly)
+                                r_pri[ii]   = zeros(TF,ly)
 
-                                d_l_hat[ii] = zeros(ly)
-                                d_H_hat[ii] = zeros(ly)
-                                d_l[ii]     = zeros(ly)
-                                d_G_hat[ii] = zeros(ly)
+                                d_l_hat[ii] = zeros(TF,ly)
+                                d_H_hat[ii] = zeros(TF,ly)
+                                d_l[ii]     = zeros(TF,ly)
+                                d_G_hat[ii] = zeros(TF,ly)
                             end
 
                             #assemble total transform domain operator as a matrix
@@ -220,6 +223,24 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                               d_l     = distribute(d_l)
                               d_G_hat = distribute(d_G_hat)
                             end
+
+                            # #fill distributed vectors with zeros (from 1 entry to N entries, because this is faster than first fill and then dist. Should be able to do in one go ideally)
+                            # if parallel == true
+                            #   [@spawnat pid y_0[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            #   [@spawnat pid y_old[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            #   [@spawnat pid l_0[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            #   [@spawnat pid l_old[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            #   [@spawnat pid l_hat_0[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            #   [@spawnat pid l_hat[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            #   [@spawnat pid x_hat[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            #   [@spawnat pid s_0[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            #   [@spawnat pid s[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            #   [@spawnat pid r_pri[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            #   [@spawnat pid d_l_hat[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            #   [@spawnat pid d_H_hat[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            #   [@spawnat pid d_l[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            #   [@spawnat pid d_G_hat[:L][1]=zeros(TF,size(TD_OP[:L],1,1)) for pid in y_0.pids]
+                            # end
 
                             #distribute y and l if they are not already distributed
                             if (parallel==true) && (typeof(l)<:DistributedArrays.DArray) == false

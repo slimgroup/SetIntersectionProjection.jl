@@ -1,3 +1,4 @@
+export CDS_MVp_MT
 function CDS_MVp_MT{TF<:Real,TI<:Integer}(
                         N::Integer,
                         ndiags::Integer,
