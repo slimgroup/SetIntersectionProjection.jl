@@ -25,8 +25,8 @@ function stop_PARSDMM{TF<:Real}(
       println("relative evolution to small, exiting PARSDMM (iteration ",i,")")
       stop=true;
     end
-    # fix rho to ensure regular ADMM convergence if primal residual does not decrease over a 50 iteration window
-    if i>10 && adjust_rho==true && log_PARSDMM.r_pri_total[i]>maximum(log_PARSDMM.r_pri_total[(i-1):-1:max((i-50),1)])
+    # fix rho to ensure regular ADMM convergence if primal residual does not decrease over a 20 iteration window
+    if i>20 && adjust_rho==true && log_PARSDMM.r_pri_total[i]>maximum(log_PARSDMM.r_pri_total[(i-1):-1:max((i-50),1)])
       println("no primal residual reduction, fixing PARSDMM rho (iteration ",i,")")
       adjust_rho = false;
       adjust_feasibility_rho = false;

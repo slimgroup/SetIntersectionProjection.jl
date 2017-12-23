@@ -11,11 +11,11 @@ y=zeros(TF,N);
 
 #test structured matrix
 #comp_grid = compgrid( (25, 25),( n1,n2 ) );
-comp_grid = compgrid( (25, 25),( n1,n2 ) );
-(TV_OP, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"TV",TF);
+comp_grid = compgrid( (TF(25), TF(25)),( n1,n2 ) );
+(TV_OP, AtA_diag, dense, TD_n, banded)=get_TD_operator(comp_grid,"TV",TF);
 A=TV_OP'*TV_OP;
 A=convert(SparseMatrixCSC{TF,TI},A);
-(D_z, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"D_z",TF);
+(D_z, AtA_diag, dense, TD_n, banded)=get_TD_operator(comp_grid,"D_z",TF);
 B=D_z'*D_z;
 B=convert(SparseMatrixCSC{TF,TI},B);
 

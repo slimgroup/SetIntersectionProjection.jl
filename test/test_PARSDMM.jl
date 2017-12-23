@@ -1,6 +1,5 @@
 @testset "PARSDMM" begin
 #test PARSDMM
-#TF=Float64
 
 options=PARSDMM_options()
 options.FL                    = Float64

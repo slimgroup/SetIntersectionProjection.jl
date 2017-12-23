@@ -39,7 +39,7 @@ function project_bounds!{TF<:Real}(x::Array{TF,2},LB::Vector{TF},UB::Vector{TF},
       @inbounds x[i,:].=min.(max.(x[i,:],LB),UB)
     end
   end
-  x=vec(x)
+return x
 end
 
 function project_bounds!{TF<:Real}(x::Array{TF,3},LB::Vector{TF},UB::Vector{TF},mode::String)
@@ -68,5 +68,5 @@ function project_bounds!{TF<:Real}(x::Array{TF,3},LB::Vector{TF},UB::Vector{TF},
     end
 
   end
-x=vec(x)
+return x
 end

@@ -23,10 +23,10 @@
     constraint=Dict()
 
     #total variation
-    (TV_OP, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"TV",options.FL)
+    (TV_OP, AtA_diag, dense, TD_n, banded)=get_TD_operator(comp_grid,"TV",options.FL)
     constraint["use_TD_l1_1"]      = true
     constraint["TD_l1_operator_1"] = "TV"
-    constraint["TD_l1_sigma_1"]    = 0.5*norm(TV_OP*x,1)
+    constraint["TD_l1_sigma_1"]    = 0.4*norm(TV_OP*x,1)
 
     (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
 

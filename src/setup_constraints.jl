@@ -243,14 +243,14 @@ function setup_transform_domain_bound_constraints_fiber(mode,ind,P_sub,TD_OP,TD_
 
   if operator_type in special_operator_list
     if operator_type=="DCT"
-      #get 1D DCT
-      if mode=="x"
-        A = joDCT(convert(Int64,comp_grid.n[1]);planned=false,DDT=TF,RDT=TF)
-      elseif mode=="y"
-        A = joDCT(convert(Int64,comp_grid.n[2]);planned=false,DDT=TF,RDT=TF)
-      elseif mode=="z"
-        A = joDCT(convert(Int64,comp_grid.n[3]);planned=false,DDT=TF,RDT=TF)
-      end
+      # #get 1D DCT
+      # if mode=="x"
+      #   A = joDCT(convert(Int64,comp_grid.n[1]);planned=false,DDT=TF,RDT=TF)
+      # elseif mode=="y"
+      #   A = joDCT(convert(Int64,comp_grid.n[2]);planned=false,DDT=TF,RDT=TF)
+      # elseif mode=="z"
+      #   A = joDCT(convert(Int64,comp_grid.n[3]);planned=false,DDT=TF,RDT=TF)
+      # end
     else
       error("temporality no support for bound constraints in a transform domain that results in complex coefficients (can only choose DCT for now)")
     end
@@ -260,7 +260,9 @@ function setup_transform_domain_bound_constraints_fiber(mode,ind,P_sub,TD_OP,TD_
     TD_Prop.dense[ind]      = false
     TD_Prop.TD_n[ind]       = comp_grid.n
     TD_Prop.banded[ind]     = true
-    P_sub[ind]              = x -> copy!(x,A'*project_bounds!(reshape(A*x,comp_grid.n),TD_LB,TD_UB))
+    #P_sub[ind]              = x -> copy!(x,A'*project_bounds!(A*reshape(x,comp_grid.n),TD_LB,TD_UB))
+    if mode=="x"; coord=1; elseif  mode=="y"; coord=2; elseif mode=="z"; coord=3; end
+    P_sub[ind]               = x -> copy!(x,vec(idct(project_bounds!(dct(reshape(x,comp_grid.n),coord),TD_LB,TD_UB,mode),coord)))
     TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
   else
     (A,AtA_diag,dense,TD_n,banded)  = get_TD_operator(comp_grid,operator_type,TF)
