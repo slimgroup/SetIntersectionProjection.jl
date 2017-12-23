@@ -23,11 +23,7 @@ end
 const lv=length(v)
 u = Vector{TF}(lv)
 sv= Vector{TF}(lv)
-#temp= Vector{Float64}(lv)
-#tmp=BitVector(lv)
-#@inbounds Threads.@threads for i in (1:lv)
-#temp[i]=abs(v[i])
-#end
+
 #u = sort(abs(v),'descend');
 u = sort(abs.(v), rev=true)
 #u = sort(v, by=abs , rev=true)
@@ -37,8 +33,6 @@ sv = cumsum(u)
 
 #rho = find(u > (sv - b) ./ (1:length(u))', 1, 'last');
 #tmp = (u .> ((sv.-b)./ LinSpace(1,lv,lv)))#::BitVector
-#print(size(tmp))
-#print(typeof(tmp))
 const rho = findlast(u .> ((sv.-b)./ (1.0:1.0:lv)))
 convert(TF,rho)
 #rho = findlast(tmp)::Int64
@@ -48,11 +42,6 @@ const theta = max.(TF(0) , (sv[rho] .- b) ./ rho)::TF
 
 #w = sign(v) .* max(abs(v) - theta, 0);
 v .= sign.(v) .* max.(abs.(v).-theta, TF(0))
-#Threads.@threads
-#@inbounds
- # Threads.@threads for i in (1:lv)
- #   v[i] = sign(v[i])* max( abs(v[i])-theta , 0.0 )
- # end
 
 return v
 end #end project_l1_Duchi

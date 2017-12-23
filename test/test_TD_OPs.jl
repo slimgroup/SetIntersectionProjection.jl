@@ -6,7 +6,9 @@
   n2=6
   h1=0.99
   h2=1.123
-  (D2D, D2x, D2z)=get_discrete_Grad(n1,n2,h1,h2)
+  D2D = get_discrete_Grad(n1,n2,h1,h2,"TV")
+  D2x = get_discrete_Grad(n1,n2,h1,h2,"D_x")
+  D2z = get_discrete_Grad(n1,n2,h1,h2,"D_z")
 
   x=zeros(n1,n2) #test on a 'cross' image
   x[:,3]=1.0
@@ -44,7 +46,10 @@
     h1=0.99
     h2=1.123
     h3=1.0
-    (D3D, D3x, D3y, D3z)=get_discrete_Grad(n1,n2,n3,h1,h2,h3)
+    D3D = get_discrete_Grad(n1,n2,n3,h1,h2,h3,"TV")
+    D3x = get_discrete_Grad(n1,n2,n3,h1,h2,h3,"D_x")
+    D3y = get_discrete_Grad(n1,n2,n3,h1,h2,h3,"D_y")
+    D3z = get_discrete_Grad(n1,n2,n3,h1,h2,h3,"D_z")
 
     x=zeros(n1,n2,n3) #test on a 'cross' image
     x[2,:,:]=1.0
