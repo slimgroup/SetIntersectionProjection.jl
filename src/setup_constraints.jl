@@ -74,7 +74,7 @@ end
 for i in ["x","y","z"]
   if haskey(constraint,string("use_TD_bounds_fiber_",i)) && constraint[string("use_TD_bounds_fiber_",i)]== true
     (P_sub, TD_OP, TD_Prop) = setup_transform_domain_bound_constraints_fiber(i,counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_bounds_fiber_",i,"_operator")],constraint[string("TD_LB_fiber_",i)],constraint[string("TD_UB_fiber_",i)],TF,special_operator_list)
-    TD_Prop.ncvx[counter]   = true
+    TD_Prop.ncvx[counter]   = false
     TD_Prop.tag[counter]    = ( string("TD_bounds_fiber_",i) , constraint[string("TD_bounds_fiber_",i,"_operator")] )
     counter                 = counter+1;
   end
@@ -165,14 +165,16 @@ for i in ["x","y","z"]
 end
 
 #rank constraint for 2D matrix
-if haskey(constraint,"use_TD_rank") && constraint["use_TD_rank"]== true
-  if length(comp_grid.n)==3 && comp_grid.n[3]>1 #test if provided model is 3D
-     error("provided model is 3D, select 'use_rank_slice' instead of 'use_rank' ")
+for i=1:3
+  if haskey(constraint,string("use_TD_rank_",i)) && constraint[string("use_TD_rank_",i)]== true
+    if length(comp_grid.n)==3 && comp_grid.n[3]>1 #test if provided model is 3D
+       error("provided model is 3D, select 'use_rank_slice' instead of 'use_rank' ")
+    end
+    (P_sub, TD_OP, TD_Prop)=setup_transform_domain_rank_constraints(counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_rank_operator_",i)],constraint[string("TD_max_rank_",i)],TF,special_operator_list)
+    TD_Prop.ncvx[counter]= true
+    TD_Prop.tag[counter]  = (string("TD_rank_",i), constraint[string("TD_rank_operator_",i)])
+    counter              = counter+1;
   end
-  (P_sub, TD_OP, TD_Prop)=setup_transform_domain_rank_constraints(counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_rank_operator_",i)],constraint[string("TD_max_rank",i)],TF,special_operator_list)
-  TD_Prop.ncvx[counter]= false
-  TD_Prop.tag[counter]  = (string("TD_rank_",i), constraint[string("TD_rank_operator_",i)])
-  counter              = counter+1;
 end
 
 #rank constraint each slice of a 3D matrix

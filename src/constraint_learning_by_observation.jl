@@ -103,14 +103,14 @@ for i=1:n_train_ex #can be changed to a parallel loop for larger datasets
     observations["TV_card_095"][i]=length(temp)-findfirst(temp.>0.05)
 
     #observe DCT spectrum per column (x)
-    temp_img=DCT(training_image,1);
+    temp_img=dct(reshape(training_image,t2,t3),1);
     (temp_vals,indx)=findmin(temp_img,2)
     observations["DCT_x_LB"].=min.(temp_vals[:],observations["DCT_x_LB"])
     (temp_vals,indx)=findmax(temp_img,1)
     observations["DCT_x_UB"].=max.(temp_vals[:],observations["DCT_x_UB"])
 
     #observe DCT spectrum per row (y)
-    temp_img=DCT(training_image,2);
+    temp_img=dct(reshape(training_image,t2,t3),2);
     (temp_vals,indx)=findmin(temp_img,2)
     observations["DCT_y_LB"].=min.(temp_vals[:],observations["DCT_y_LB"])
     (temp_vals,indx)=findmax(temp_img,1)

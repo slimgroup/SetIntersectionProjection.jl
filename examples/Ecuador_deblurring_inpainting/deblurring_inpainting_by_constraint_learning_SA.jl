@@ -6,7 +6,7 @@
 
 @everywhere using SetIntersectionProjection
 @everywhere using MAT
-@everywhere using PyPlot
+using PyPlot
 
 
 @everywhere type compgrid
@@ -45,21 +45,27 @@ for i=1:16
 end
 savefig(joinpath(data_dir,"training_data_all.pdf"),bbox_inches="tight")
 savefig(joinpath(data_dir,"training_data_all.png"),bbox_inches="tight")
+close()
 
 for i=1:35
   figure();title(string("training image", i), fontsize=10)
   imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
   savefig(joinpath(data_dir,string("training_data_", i,".pdf")),bbox_inches="tight")
   savefig(joinpath(data_dir,string("training_data_", i,".png")),bbox_inches="tight")
+  close()
 end
+close("all")
 
 #computational grid for the training images (all images assumed to be on the same grid here)
 comp_grid = compgrid((1, 1),(size(m_evaluation,2), size(m_evaluation,3)))
 #convert model and computational grid parameters
 comp_grid=compgrid( ( convert(TF,comp_grid.d[1]),convert(TF,comp_grid.d[2]) ), comp_grid.n )
 
+
 #create true observed data by blurring and setting pixels to zero
 bkl = 25; #blurring kernel length
+d_obs = zeros(TF,size(m_evaluation,1),comp_grid.n[1]-bkl,comp_grid.n[2])
+
 
 n1=comp_grid.n[1]
 Bx=speye(n1)./bkl
@@ -83,13 +89,14 @@ mask = spdiagm(mask,0)
 FWD_OP = convert(SparseMatrixCSC{TF,TI},mask*BF)
 
 #blur and subsample to create observed data
-d_obs = zeros(TF,size(m_evaluation,1),comp_grid.n[1]-blk,comp_grid.n[2])
 for i=1:size(d_obs,1)
   d_obs[i,:,:] = reshape(FWD_OP*vec(m_evaluation[i,:,:]),comp_grid.n[1]-bkl,comp_grid.n[2])
 end
+println("finished creating observed data")
 
 #"train" by observing constraints on the data images in training data set
 observations = constraint_learning_by_obseration(comp_grid,m_train)
+println("finished learning by observation")
 
 #define a few constraints and what to do with the observations
 constraint=Dict()
@@ -97,9 +104,9 @@ constraint["use_bounds"]=true
 constraint["m_min"]=0.0
 constraint["m_max"]=255.0
 
-constraint["use_TD_rank"]=true;
+constraint["use_TD_rank_1"]=false;
 observations["rank_095"]=sort(vec(observations["rank_095"]))
-constraint["TD_max_rank"] = convert(TI,round(quantile(observations["rank_095"],0.50)))
+constraint["TD_max_rank_1"] = convert(TI,round(quantile(observations["rank_095"],0.50)))
 constraint["TD_rank_operator_1"]="identity"
 
 constraint["use_TD_nuclear_1"]=true;
@@ -126,7 +133,7 @@ constraint["use_TD_l1_2"]=false
 constraint["TD_l1_operator_2"]="curvelet"
 constraint["TD_l1_sigma_2"] = 0.5f0*convert(TF,quantile(vec(observations["curvelet_l1"]),0.50))
 
-constraint["use_TD_l1_3"]=true
+constraint["use_TD_l1_3"]=false
 constraint["TD_l1_operator_3"]="DFT"
 constraint["TD_l1_sigma_3"] = convert(TF,quantile(vec(observations["DFT_l1"]),0.50))
 
@@ -175,6 +182,8 @@ options.linear_inv_prob_flag = true #this is important to set
 options.parallel             = true
 options.zero_ini_guess       = true
 BLAS.set_num_threads(2)
+FFTW.set_num_threads(2)
+
 
 (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
 
@@ -192,9 +201,12 @@ data = vec(d_obs[1,:,:])
 LBD=data.-2.0;  LBD=convert(Vector{TF},LBD)
 UBD=data.+2.0;  UBD=convert(Vector{TF},UBD)
 push!(P_sub,x -> project_bounds!(x,LBD,UBD))
+println("finished setting up constraints")
+
 
 dummy=zeros(TF,size(BF,2))
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(dummy,TD_OP,TD_Prop,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(dummy,TD_OP,TD_Prop,comp_grid,options)
+println("finished precomputing and distributing")
 
 for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
