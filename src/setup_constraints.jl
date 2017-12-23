@@ -70,6 +70,16 @@ for i=1:3
   end
 end
 
+#Transform domain bounds constraints for each column/row/fiber for a 2D or 3D model
+for i in ["x","y","z"]
+  if haskey(constraint,string("use_TD_bounds_fiber_",i)) && constraint[string("use_TD_bounds_fiber_",i)]== true
+    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_bound_constraints_fiber(i,counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_bounds_fiber_",i,"_operator")],constraint[string("TD_LB_fiber_",i)],constraint[string("TD_UB_fiber_",i)],TF,special_operator_list)
+    TD_Prop.ncvx[counter]   = true
+    TD_Prop.tag[counter]    = ( string("TD_bounds_fiber_",i) , constraint[string("TD_bounds_fiber_",i,"_operator")] )
+    counter                 = counter+1;
+  end
+end
+
 #Transform domain l1-norm constraints (including total-variation)
 for i=1:3
   if haskey(constraint,string("use_TD_l1_",i)) && constraint[string("use_TD_l1_",i)]==true
@@ -100,12 +110,12 @@ for i=1:3
   end
 end
 
-#Transform domain cardinality constraints for each column/row/fibre for a 2D or 3D model
+#Transform domain cardinality constraints for each column/row/fiber for a 2D or 3D model
 for i in ["x","y","z"]
-  if haskey(constraint,string("use_TD_card_fibre_",i)) && constraint[string("use_TD_card_fibre_",i)]== true
-    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_card_constraints_fibre(i,counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_card_fibre_",i,"_operator")],constraint[string("card_fibre_",i)],TF,special_operator_list)
+  if haskey(constraint,string("use_TD_card_fiber_",i)) && constraint[string("use_TD_card_fiber_",i)]== true
+    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_card_constraints_fiber(i,counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_card_fiber_",i,"_operator")],constraint[string("card_fiber_",i)],TF,special_operator_list)
     TD_Prop.ncvx[counter]   = true
-    TD_Prop.tag[counter]    = ( string("TD_card_fibre_",i) , constraint[string("TD_card_fibre_",i,"_operator")] )
+    TD_Prop.tag[counter]    = ( string("TD_card_fiber_",i) , constraint[string("TD_card_fiber_",i,"_operator")] )
     counter                 = counter+1;
   end
 end
@@ -155,19 +165,14 @@ for i in ["x","y","z"]
 end
 
 #rank constraint for 2D matrix
-if haskey(constraint,"use_rank") && constraint["use_rank"]== true
+if haskey(constraint,"use_TD_rank") && constraint["use_TD_rank"]== true
   if length(comp_grid.n)==3 && comp_grid.n[3]>1 #test if provided model is 3D
      error("provided model is 3D, select 'use_rank_slice' instead of 'use_rank' ")
   end
-  P_sub[counter]            = x -> project_rank!(reshape(x,comp_grid.n),constraint["max_rank"])
-  TD_Prop.ncvx[counter]     = true
-  TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
-  TD_Prop.AtA_diag[counter] = true
-  TD_Prop.dense[counter]    = false
-  TD_Prop.banded[counter]   = true
-  TD_Prop.TD_n[counter]     = comp_grid.n
-  TD_Prop.tag[counter]      = ("rank", "identity")
-  counter                   = counter+1;
+  (P_sub, TD_OP, TD_Prop)=setup_transform_domain_rank_constraints(counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_rank_operator_",i)],constraint[string("TD_max_rank",i)],TF,special_operator_list)
+  TD_Prop.ncvx[counter]= false
+  TD_Prop.tag[counter]  = (string("TD_rank_",i), constraint[string("TD_rank_operator_",i)])
+  counter              = counter+1;
 end
 
 #rank constraint each slice of a 3D matrix
@@ -212,7 +217,7 @@ function setup_transform_domain_bound_constraints(ind,P_sub,TD_OP,TD_Prop,comp_g
 
   if operator_type in special_operator_list
     if operator_type=="DCT"
-      else
+    else
       error("temporality no support for bound constraints in a transform domain that results in complex coefficients (can only choose DCT for now)")
     end
     if TF==Float64; TI=Int64; else; TI=Int32; end
@@ -234,9 +239,55 @@ function setup_transform_domain_bound_constraints(ind,P_sub,TD_OP,TD_Prop,comp_g
   return P_sub, TD_OP, TD_Prop
 end
 
+function setup_transform_domain_bound_constraints_fiber(mode,ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,LB,UB,TF,special_operator_list)
+
+  if operator_type in special_operator_list
+    if operator_type=="DCT"
+      #get 1D DCT
+      if mode=="x"
+        A = joDCT(convert(Int64,comp_grid.n[1]);planned=false,DDT=TF,RDT=TF)
+      elseif mode=="y"
+        A = joDCT(convert(Int64,comp_grid.n[2]);planned=false,DDT=TF,RDT=TF)
+      elseif mode=="z"
+        A = joDCT(convert(Int64,comp_grid.n[3]);planned=false,DDT=TF,RDT=TF)
+      end
+    else
+      error("temporality no support for bound constraints in a transform domain that results in complex coefficients (can only choose DCT for now)")
+    end
+    if TF==Float64; TI=Int64; else; TI=Int32; end
+    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
+    TD_Prop.AtA_diag[ind]   = true
+    TD_Prop.dense[ind]      = false
+    TD_Prop.TD_n[ind]       = comp_grid.n
+    TD_Prop.banded[ind]     = true
+    P_sub[ind]              = x -> copy!(x,A'*project_bounds!(reshape(A*x,comp_grid.n),TD_LB,TD_UB))
+    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
+  else
+    (A,AtA_diag,dense,TD_n,banded)  = get_TD_operator(comp_grid,operator_type,TF)
+    P_sub[ind]              =  x -> project_bounds!(reshape(x,TD_n),LB,UB,mode)
+    TD_OP[ind]              = A
+    TD_Prop.AtA_diag[ind]   = AtA_diag
+    TD_Prop.dense[ind]      = dense
+    TD_Prop.TD_n[ind]       = TD_n
+    TD_Prop.banded[ind]     = banded
+  end
+  return P_sub, TD_OP, TD_Prop
+end
+
 function setup_transform_domain_nuclear_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,nuclear_norm,TF,special_operator_list)
     (A,AtA_diag,dense,TD_n,banded)= get_TD_operator(comp_grid,operator_type,TF)
     P_sub[ind]              = x -> project_nuclear!(reshape(x,TD_n),nuclear_norm)
+    TD_OP[ind]              = A
+    TD_Prop.AtA_diag[ind]   = AtA_diag
+    TD_Prop.dense[ind]      = dense
+    TD_Prop.TD_n[ind]       = TD_n
+    TD_Prop.banded[ind]     = banded
+  return P_sub, TD_OP, TD_Prop
+end
+
+function setup_transform_domain_rank_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,max_rank,TF,special_operator_list)
+    (A,AtA_diag,dense,TD_n,banded)= get_TD_operator(comp_grid,operator_type,TF)
+    P_sub[ind]              = x -> project_rank!(reshape(x,TD_n),max_rank)
     TD_OP[ind]              = A
     TD_Prop.AtA_diag[ind]   = AtA_diag
     TD_Prop.dense[ind]      = dense
@@ -313,10 +364,10 @@ function setup_transform_domain_card_constraints(ind,P_sub,TD_OP,TD_Prop,comp_gr
   return P_sub, TD_OP, TD_Prop
 end
 
-function setup_transform_domain_card_constraints_fibre(mode,ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,k,TF,special_operator_list)
+function setup_transform_domain_card_constraints_fiber(mode,ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,k,TF,special_operator_list)
 
   if operator_type in special_operator_list
-    error("temporality no support for cardinality constraints in a transform domain on tensor fibres")
+    error("temporality no support for cardinality constraints in a transform domain on tensor fibers")
   else
     (A,AtA_diag,dense,TD_n,banded)  = get_TD_operator(comp_grid,operator_type,TF)
     P_sub[ind]              =  x -> project_cardinality!(reshape(x,TD_n),convert(Integer,k),mode)

@@ -97,9 +97,10 @@ constraint["use_bounds"]=true
 constraint["m_min"]=0.0
 constraint["m_max"]=255.0
 
-constraint["use_rank"]=true;
+constraint["use_TD_rank"]=true;
 observations["rank_095"]=sort(vec(observations["rank_095"]))
-constraint["max_rank"] = convert(TI,round(quantile(observations["rank_095"],0.50)))
+constraint["TD_max_rank"] = convert(TI,round(quantile(observations["rank_095"],0.50)))
+constraint["TD_rank_operator_1"]="identity"
 
 constraint["use_TD_nuclear_1"]=true;
 constraint["TD_nuclear_operator_1"]="identity"
@@ -138,48 +139,16 @@ constraint["use_TD_bounds_2"]=true
 constraint["TDB_operator_2"]="D_z"
 constraint["TD_LB_2"]=convert(TF,quantile(vec(observations["D_z_min"]),0.15))
 constraint["TD_UB_2"]=convert(TF,quantile(vec(observations["D_z_max"]),0.85))
-#
-# constraint["use_TD_bounds_3"]=true
-# constraint["TDB_operator_3"]="DCT"
-# constraint["TD_LB_3"]=observations["DCT_LB"]
-# constraint["TD_UB_3"]=observations["DCT_UB"]
-#
-# constraint["TD_UB_3"]=reshape(constraint["TD_UB_3"],comp_grid.n)
-# constraint["TD_LB_3"]=reshape(constraint["TD_LB_3"],comp_grid.n)
-# temp1=zeros(TF,comp_grid.n)
-# temp2=zeros(TF,comp_grid.n)
-# for j=2:size(constraint["TD_LB_3"],1)-1
-#   for k=2:size(constraint["TD_LB_3"],2)-1
-#     temp1[j,k].=minimum(constraint["TD_LB_3"][j-1:j+1,k-1:k+1]);
-#     temp2[j,k].=maximum(constraint["TD_UB_3"][j-1:j+1,k-1:k+1]);
-#   end
-# end
-# temp1[1,:]=constraint["TD_LB_3"][1,:];
-# temp1[:,1]=constraint["TD_LB_3"][:,1]
-# temp1[end,:]=constraint["TD_LB_3"][end,:]
-# temp1[:,end]=constraint["TD_LB_3"][:,end]
-#
-# temp2[1,:]=constraint["TD_UB_3"][1,:]
-# temp2[:,1]=constraint["TD_UB_3"][:,1]
-# temp2[end,:]=constraint["TD_UB_3"][end,:]
-# temp2[:,end]=constraint["TD_UB_3"][:,end]
-#
-# for j=1:size(constraint["TD_LB_3"],1)-1
-#   for k=1:size(constraint["TD_LB_3"],2)-1
-#     temp1[j,k].=minimum(constraint["TD_LB_3"][j:j+1,k:k+1]);
-#     temp2[j,k].=maximum(constraint["TD_UB_3"][j:j+1,k:k+1]);
-#   end
-# end
-# for j=2:size(constraint["TD_LB_3"],1)
-#   for k=2:size(constraint["TD_LB_3"],2)
-#     temp1[j,k].=minimum(constraint["TD_LB_3"][j-1:j,k-1:k]);
-#     temp2[j,k].=maximum(constraint["TD_UB_3"][j-1:j,k-1:k]);
-#   end
-# end
-#
-# constraint["TD_LB_3"]=vec(temp1)
-# constraint["TD_UB_3"]=vec(temp2)
 
+constraint["use_TD_bounds_fiber_x"]=true
+constraint["TD_bounds_fiber_x_operator"]="DCT"
+constraint["TD_LB_fiber_x"]=observations["DCT_x_LB"]
+constraint["TD_UB_fiber_x"]=observations["DCT_x_UB"]
+
+constraint["use_TD_bounds_fiber_y"]=true
+constraint["TD_bounds_fiber_y_operator"]="DCT"
+constraint["TD_LB_fiber_y"]=observations["DCT_y_LB"]
+constraint["TD_UB_fiber_y"]=observations["DCT_y_UB"]
 
 constraint["use_TD_card_1"]=false
 constraint["TD_card_operator_1"]="curvelet"

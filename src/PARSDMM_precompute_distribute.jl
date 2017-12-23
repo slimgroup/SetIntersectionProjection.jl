@@ -53,8 +53,7 @@ l       = Vector{Vector{TF}}(p);
 
 for ii=1:p #initialize all rho's, gamma's, y's and l's
     y[ii]       = zeros(TF,size(TD_OP[ii],1))
-    ly          = length(y[ii])
-    l[ii]       = zeros(TF,ly);#0.*y[ii];
+    l[ii]       = zeros(TF,length(y[ii]));
 end
 
 if options.parallel==true

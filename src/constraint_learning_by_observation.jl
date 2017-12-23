@@ -35,8 +35,11 @@ observations["D_x_max"]      = zeros(TF,n_train_ex)
 observations["D_z_min"]      = zeros(TF,n_train_ex)
 observations["D_z_max"]      = zeros(TF,n_train_ex)
 
-observations["DCT_LB"]      = zeros(TF,t2*t3)
-observations["DCT_UB"]      = zeros(TF,t2*t3)
+observations["DCT_x_LB"]      = zeros(TF,t2)
+observations["DCT_x_UB"]      = zeros(TF,t2)
+
+observations["DCT_y_LB"]      = zeros(TF,t3)
+observations["DCT_y_UB"]      = zeros(TF,t3)
 
 #get transform-domain operators
 #need to install CurveLab to use the Curvelet transform
@@ -47,6 +50,9 @@ observations["DCT_UB"]      = zeros(TF,t2*t3)
 #(DFT, dummy1, dummy2, dummy3)=get_TD_operator(comp_grid,"DFT",TF)
 DFT = x-> vec(fft(reshape(x,comp_grid.n)))
 DCT = x-> vec(dct(reshape(x,comp_grid.n)))
+
+DCT_x = x-> vec(dct(reshape(x,comp_grid.n),1))
+DCT_y = x-> vec(dct(reshape(x,comp_grid.n),2))
 
 for i=1:n_train_ex #can be changed to a parallel loop for larger datasets
 
@@ -96,10 +102,19 @@ for i=1:n_train_ex #can be changed to a parallel loop for larger datasets
     temp=TV_OP*training_image; temp=abs.(temp); temp=sort(temp); temp=cumsum(temp); temp=temp./maximum(temp);
     observations["TV_card_095"][i]=length(temp)-findfirst(temp.>0.05)
 
-    #observe DCT spectrum
-    observations["DCT_LB"].=min.(DCT(training_image),observations["DCT_LB"])
-    observations["DCT_UB"].=max.(DCT(training_image),observations["DCT_UB"])
+    #observe DCT spectrum per column (x)
+    temp_img=DCT(training_image,1);
+    (temp_vals,indx)=findmin(temp_img,2)
+    observations["DCT_x_LB"].=min.(temp_vals[:],observations["DCT_x_LB"])
+    (temp_vals,indx)=findmax(temp_img,1)
+    observations["DCT_x_UB"].=max.(temp_vals[:],observations["DCT_x_UB"])
 
+    #observe DCT spectrum per row (y)
+    temp_img=DCT(training_image,2);
+    (temp_vals,indx)=findmin(temp_img,2)
+    observations["DCT_y_LB"].=min.(temp_vals[:],observations["DCT_y_LB"])
+    (temp_vals,indx)=findmax(temp_img,1)
+    observations["DCT_y_UB"].=max.(temp_vals[:],observations["DCT_y_UB"])
 end
 
 

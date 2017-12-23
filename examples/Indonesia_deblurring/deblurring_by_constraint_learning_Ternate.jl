@@ -87,9 +87,10 @@ constraint["use_bounds"]=true
 constraint["m_min"]=0.0
 constraint["m_max"]=255.0
 
-constraint["use_rank"]=false;
+constraint["use_TD_rank"]=true;
 observations["rank_095"]=sort(vec(observations["rank_095"]))
-constraint["max_rank"] = convert(TI,round(quantile(observations["rank_095"],0.50)))
+constraint["TD_max_rank"] = convert(TI,round(quantile(observations["rank_095"],0.50)))
+constraint["TD_rank_operator_1"]="identity"
 
 constraint["use_TD_nuclear_1"]=true;
 constraint["TD_nuclear_operator_1"]="identity"

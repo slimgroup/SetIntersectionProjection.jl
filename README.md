@@ -10,6 +10,7 @@ Performance for non-convex sets is empirical. Our main algorithm, Projection Ada
 <!-- $$
 \min_{\mathbf{x}} \frac{1}{2} \| \mathbf{x} - \mathbf{m} \|_2^2 + \sum_{i=1}^{p-1} \iota_{\mathcal{C}_i}(A_i \mathbf{x}).
 $$-->
+
 ![equation](http://latex.codecogs.com/gif.latex?%24%24%20%5Cmin_%7B%5Cmathbf%7Bx%7D%7D%20%5Cfrac%7B1%7D%7B2%7D%20%5C%7C%20%5Cmathbf%7Bx%7D%20-%20%5Cmathbf%7Bm%7D%20%5C%7C_2%5E2%20&plus;%20%5Csum_%7Bi%3D1%7D%5E%7Bp%7D%20%5Ciota_%7B%5Cmathcal%7BC%7D_i%7D%28A_i%20%5Cmathbf%7Bx%7D%29.%20%24%24)
 
 Each set ![equation](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Cmathcal%7BV%7D_i) is characterized as an 'elementary' set $\mathcal{C}_i$, for which we know a closed form projection (l1-ball, l2-ball, bounds, nuclear norm, rank, cardinality...) and a transform-domain operator A_i (discrete derivatives, DFT, DCT, anisotropic total-variation,...).
@@ -40,7 +41,15 @@ Main features:
 - constraints may be defined for the matrix/tensor model and for columns/slices/fibres simultaneously
 - stores `AtA[i]`$=A_i^T A$ in compressed diagonal storage (CDS or DIA format) if all $A_i$ have a banded structure. This saves memory compared to standard Julia `SparseMatrixCSC` format. We also use a multithreaded matrix-vector product which is faster than the Julia `SparseMatrixCSC` matrix-vector product
 
-The following example illustrates the basic usage. Start with `julia -p 3` with 3 workers. 
+
+Applications:
+
+ - Seismic full-waveform inversion [EXAMPLE]
+ - Joint image deblurring and inpainting by learning parametric convex sets [EXAMPLE]
+ - Image deblurring by learning parametric convex sets [EXAMPLE]
+
+
+The following example illustrates the basic usage. We will project an image onto a set that is the intersection of bound constraint, vertical monotonicity (slope-constraints) and horizontal smoothness (another type of slope-constraint). This is a serial (single-level) example. Use parallel and or multi-level version for larger problems. 
 
 ```julia
 @everywhere using SetIntersectionProjection
@@ -55,9 +64,6 @@ end
 #PARSDMM options:
 options=PARSDMM_options()
 options.FL=Float32
-
-set_zero_subnormals(true)
-BLAS.set_num_threads(2)
 
 set_zero_subnormals(true)
 BLAS.set_num_threads(2)
@@ -107,7 +113,6 @@ options.parallel             = false
 Once we have projectors and transform-domain operators, we use `PARSDMM_precompute_distribute` to precompute and distribute things, followed by actually projecting `m` and plotting the results.
 
 ```julia
-
 (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
 
 println("")
@@ -141,6 +146,7 @@ subplot(3, 3, 9);semilogy(log_PARSDMM.evol_x)         ;title("x evolution")
 tight_layout()
 
 ```
+
 ![original_model](docs/images/original_model.png)
 ![projected_model](docs/images/projected_model.png)
 ![PARSDMM_logs_](docs/images/PARSDMM_logs.png)

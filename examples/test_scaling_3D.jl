@@ -66,7 +66,7 @@ T_tot_serial_multilevel=Vector{Any}(length(width))
 log_T_parallel_multilevel=Vector{Any}(length(width))
 T_tot_parallel_multilevel=Vector{Any}(length(width))
 
-options.rho_ini = [1.0;100.0;100.0;100.0;1.0]
+options.rho_ini = [1.0;1000.0;1000.0;1000.0;1.0]
 
 for i=1:length(width)
   print(i)

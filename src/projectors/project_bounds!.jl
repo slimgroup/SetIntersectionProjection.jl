@@ -42,3 +42,51 @@ end
 # function min_lean(x::Float64, y::Float64)
 #   ifelse((y < x) | (signbit(y) > signbit(x)),y, x)
 # end
+
+
+function project_bounds!{TF<:Real}(x::Array{TF,2},LB::Vector{TF},UB::Vector{TF},mode::String)
+  """
+  Computes the projection of x onto the set of constraints LB <= x <= UB
+  x is a matrix and the bounds are per row or column.
+  """
+
+  if mode == "x"
+    Threads.@threads for i=1:size(x,2)
+      @inbounds x[:,i].=min.(max.(x[:,i],LB),UB)
+    end
+  elseif mode == "z"
+    Threads.@threads for i=1:size(x,1)
+      @inbounds x[i,:].=min.(max.(x[i,:],LB),UB)
+    end
+  end
+  x=vec(x)
+end
+
+function project_bounds!{TF<:Real}(x::Array{TF,3},LB::Vector{TF},UB::Vector{TF},mode::String)
+  """
+  Computes the projection of x onto the set of constraints LB <= x <= UB
+  x is a 3D array and the bounds are per fiber (x/y/z).
+  """
+
+  if mode == "x"
+    Threads.@threads for i=1:size(x,2)
+      for j=1:size(x,3)
+        @inbounds x[:,i,j].=min.(max.(x[:,i,j],LB),UB)
+      end
+    end
+  elseif mode == "z"
+    Threads.@threads for i=1:size(x,1)
+      for j=1:size(x,3)
+        @inbounds x[i,:,j].=min.(max.(x[i,:,j],LB),UB)
+      end
+    end
+  elseif mode == "z"
+    Threads.@threads for i=1:size(x,1)
+      for j=1:size(x,2)
+        @inbounds x[i,j,:].=min.(max.(x[i,j,:],LB),UB)
+      end
+    end
+
+  end
+x=vec(x)
+end
