@@ -57,6 +57,7 @@ include("projectors/project_rank!.jl");
 include("projectors/project_nuclear!.jl");
 include("projectors/project_l1_Duchi!.jl");
 include("projectors/project_l2!.jl");
+include("projectors/project_annulus!.jl");
 include("projectors/project_subspace!.jl");
 
 include("prox_l2s!.jl")

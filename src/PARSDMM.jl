@@ -91,7 +91,6 @@ x_solve_tol_ref=TF(1.0) #scalar required to determine tolerance for x-minimizati
 log_PARSDMM.T_ini=toq();
 
 for i=1:maxit #main loop
-
   #form right hand side for x-minimization
   tic();
   rhs=rhs_compose(rhs,l,y,rho,TD_OP,p,Blas_active,parallel)

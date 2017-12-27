@@ -100,6 +100,16 @@ for i=1:3
   end
 end
 
+#Transform domain annulus constraints
+for i=1:3
+  if haskey(constraint,string("use_TD_annulus_",i)) && constraint[string("use_TD_annulus_",i)]==true
+    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_annulus_constraints(counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_annulus_operator_",i)],constraint[string("TD_annulus_sigma_min_",i)],constraint[string("TD_annulus_sigma_max_",i)],TF,special_operator_list)
+    TD_Prop.ncvx[counter]   = true
+    TD_Prop.tag[counter]    = (string("TD_annulus ",i), constraint[string("TD_annulus_operator_",i)])
+    counter                 = counter+1;
+  end
+end
+
 #Transform domain cardinality constraints (global for the full computational domain)
 for i=1:3
   if haskey(constraint,string("use_TD_card_",i)) && constraint[string("use_TD_card_",i)]== true
@@ -337,6 +347,28 @@ function setup_transform_domain_l2_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid
     TD_Prop.banded[ind]     = true
   else
     P_sub[ind]              =  x -> project_l2!(x,sigma)
+    TD_OP[ind]              = A
+    TD_Prop.AtA_diag[ind]   = AtA_diag
+    TD_Prop.dense[ind]      = dense
+    TD_Prop.TD_n[ind]       = TD_n
+    TD_Prop.banded[ind]     = banded
+  end
+  return P_sub, TD_OP, TD_Prop
+end
+
+function setup_transform_domain_annulus_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,sigma_min,sigma_max,TF,special_operator_list)
+  (A,AtA_diag,dense,TD_n,banded)= get_TD_operator(comp_grid,operator_type,TF)
+
+  if operator_type in special_operator_list
+    P_sub[ind]              =  x -> copy!(x,A'*project_annulus!(A*x,sigma_min,sigma_max))
+    if TF==Float64; TI=Int64; else; TI=Int32; end
+    TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
+    TD_Prop.AtA_diag[ind]   = true
+    TD_Prop.dense[ind]      = false
+    TD_Prop.TD_n[ind]       = comp_grid.n
+    TD_Prop.banded[ind]     = true
+  else
+    P_sub[ind]              =  x -> project_annulus!(x,sigma_min,sigma_max)
     TD_OP[ind]              = A
     TD_Prop.AtA_diag[ind]   = AtA_diag
     TD_Prop.dense[ind]      = dense

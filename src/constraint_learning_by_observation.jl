@@ -29,6 +29,8 @@ observations["DFT_l1"]       = zeros(TF,n_train_ex)
 observations["DFT_card_095"] = zeros(TI,n_train_ex)
 observations["curvelet_card_095"]= zeros(TI,n_train_ex)
 observations["TV_card_095"]  = zeros(TI,n_train_ex)
+observations["annulus"]      = zeros(TF,n_train_ex)
+observations["TV_annulus"]   = zeros(TF,n_train_ex)
 observations["D_l2"]         = zeros(TF,n_train_ex)
 observations["D_x_min"]      = zeros(TF,n_train_ex)
 observations["D_x_max"]      = zeros(TF,n_train_ex)
@@ -47,8 +49,8 @@ observations["DCT_y_UB"]      = zeros(TF,t3)
 (Dz_OP, dummy1, dummy2, Dz_TD_n)=get_TD_operator(comp_grid,"D_z",TF)
 (TV_OP, dummy1, dummy2, TD_n_TV)=get_TD_operator(comp_grid,"TV",TF)
 (C_OP, dummy1, dummy2, dummy3)=get_TD_operator(comp_grid,"curvelet",TF)
-#(DFT, dummy1, dummy2, dummy3)=get_TD_operator(comp_grid,"DFT",TF)
-DFT = x-> vec(fft(reshape(x,comp_grid.n)))
+(DFT, dummy1, dummy2, dummy3)=get_TD_operator(comp_grid,"DFT",TF)
+#DFT = x-> vec(fft(reshape(x,comp_grid.n)))
 DCT = x-> vec(dct(reshape(x,comp_grid.n)))
 
 DCT_x = x-> vec(dct(reshape(x,comp_grid.n),1))
@@ -84,14 +86,18 @@ for i=1:n_train_ex #can be changed to a parallel loop for larger datasets
     #observe l2 norm of discrete gradients (i.e., l2 version of anisotripic TV)
     observations["D_l2"][i]=norm(TV_OP*training_image,2)
 
+    #observe annulus
+    observations["annulus"][i]=norm(vec(training_image),2)
+    observations["TV_annulus"][i]=norm(TV_OP*vec(training_image),2)
+
     #observe curvelet domain l1 norm
     observations["curvelet_l1"][i]=norm(C_OP*training_image,1)
 
     #observe Fourier domain l1 norm
-    observations["DFT_l1"][i]=norm(DFT(training_image),1)
+    observations["DFT_l1"][i]=norm(DFT*training_image,1)
 
     #observe nr or required DFT atoms to represent 95%
-    temp=DFT(training_image); temp=abs.(temp); temp=sort(temp); temp=cumsum(temp); temp=temp./maximum(temp);
+    temp=DFT*training_image; temp=abs.(temp); temp=sort(temp); temp=cumsum(temp); temp=temp./maximum(temp);
     observations["DFT_card_095"][i]=length(temp)-findfirst(temp.>0.05)
 
     #observe nr or required curvelet atoms to represent95%
@@ -106,12 +112,12 @@ for i=1:n_train_ex #can be changed to a parallel loop for larger datasets
     temp_img=dct(reshape(training_image,t2,t3),1);
     (temp_vals,indx)=findmin(temp_img,2)
     observations["DCT_x_LB"].=min.(temp_vals[:],observations["DCT_x_LB"])
-    (temp_vals,indx)=findmax(temp_img,1)
+    (temp_vals,indx)=findmax(temp_img,2)
     observations["DCT_x_UB"].=max.(temp_vals[:],observations["DCT_x_UB"])
 
     #observe DCT spectrum per row (y)
     temp_img=dct(reshape(training_image,t2,t3),2);
-    (temp_vals,indx)=findmin(temp_img,2)
+    (temp_vals,indx)=findmin(temp_img,1)
     observations["DCT_y_LB"].=min.(temp_vals[:],observations["DCT_y_LB"])
     (temp_vals,indx)=findmax(temp_img,1)
     observations["DCT_y_UB"].=max.(temp_vals[:],observations["DCT_y_UB"])
