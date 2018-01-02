@@ -5,9 +5,7 @@
 # South America dataset
 
 @everywhere using SetIntersectionProjection
-@everywhere using MAT
-using PyPlot
-
+using MAT
 
 @everywhere type compgrid
   d :: Tuple
@@ -38,23 +36,6 @@ m_train      = mtrue[1:35,:,:]
 m_evaluation = mtrue[36:39,:,:]
 m_est        = zeros(TF,size(m_evaluation))
 
-#plot training images
-figure();title("training image", fontsize=10)
-for i=1:16
-  subplot(4,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
-end
-savefig(joinpath(data_dir,"training_data_all.pdf"),bbox_inches="tight")
-savefig(joinpath(data_dir,"training_data_all.png"),bbox_inches="tight")
-close()
-
-for i=1:35
-  figure();title(string("training image", i), fontsize=10)
-  imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
-  savefig(joinpath(data_dir,string("training_data_", i,".pdf")),bbox_inches="tight")
-  savefig(joinpath(data_dir,string("training_data_", i,".png")),bbox_inches="tight")
-  close()
-end
-close("all")
 
 #computational grid for the training images (all images assumed to be on the same grid here)
 comp_grid = compgrid((1, 1),(size(m_evaluation,2), size(m_evaluation,3)))
@@ -69,7 +50,7 @@ d_obs = zeros(TF,size(m_evaluation,1),comp_grid.n[1]-bkl,comp_grid.n[2])
 
 n1=comp_grid.n[1]
 Bx=speye(n1)./bkl
-for i=1:bkl
+for i=2:bkl
   temp=  spdiagm(ones(n1)./bkl,i)
   temp=temp[1:n1,1:n1];
   Bx+= temp;
@@ -189,7 +170,7 @@ FFTW.set_num_threads(2)
 
 #add the mask*blurring filer sparse matrix as a transform domain matrix
 push!(TD_OP,FWD_OP)
-push!(TD_Prop.AtA_offsets,convert(Vector{TI},0:bkl))
+push!(TD_Prop.AtA_offsets,convert(Vector{TI},0:bkl)) #these are dummy values, actual ofsetts are automatically detected
 push!(TD_Prop.ncvx,false)
 push!(TD_Prop.banded,true)
 push!(TD_Prop.AtA_diag,true)
@@ -212,7 +193,7 @@ for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
   @time (x,log_PARSDMM) = PARSDMM(dummy,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options)
   m_est[i,:,:]=reshape(x,comp_grid.n)
-  println("SNR:", round(SNR(vec(m_evaluation[i,(bkl+1):end-(bkl+1),:]),vec(m_est[i,(bkl+1):end-(bkl+1),:])),2))
+  println("SNR:", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(m_est[i,(bkl*2):end-(bkl*2),:])),2))
   if i+1<=size(d_obs,1)
     data = vec(d_obs[i+1,:,:])
     LBD=data.-2.0;  LBD=convert(Vector{TF},LBD);
@@ -221,17 +202,36 @@ for i=1:size(d_obs,1)
   end
 end
 
+using PyPlot
+
+#plot training images
+figure();title("training image", fontsize=10)
+for i=1:16
+  subplot(4,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
+end
+savefig(joinpath(data_dir,"training_data_all.pdf"),bbox_inches="tight")
+savefig(joinpath(data_dir,"training_data_all.png"),bbox_inches="tight")
+close()
+
+for i=1:35
+  figure();title(string("training image", i), fontsize=10)
+  imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
+  savefig(joinpath(data_dir,string("training_data_", i,".pdf")),bbox_inches="tight")
+  savefig(joinpath(data_dir,string("training_data_", i,".png")),bbox_inches="tight")
+  close()
+end
+close("all")
 
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 
 for i=1:size(m_est,1)
-    figure();imshow(d_obs[i,(bkl+1):end-(bkl+1),:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
+    figure();imshow(d_obs[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
     savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".pdf")),bbox_inches="tight")
     savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".png")),bbox_inches="tight")
-    figure();imshow(m_est[i,(bkl+1):end-(bkl+1),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,(bkl+1):end-(bkl+1),:]),vec(m_est[i,(bkl+1):end-(bkl+1),:])),2)))
+    figure();imshow(m_est[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(m_est[i,(bkl*2):end-(bkl*2),:])),2)))
     savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".pdf")),bbox_inches="tight")
     savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".png")),bbox_inches="tight")
-    figure();imshow(m_evaluation[i,(bkl+1):end-(bkl+1),:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
+    figure();imshow(m_evaluation[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
     savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".pdf")),bbox_inches="tight")
     savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".png")),bbox_inches="tight")
 end
