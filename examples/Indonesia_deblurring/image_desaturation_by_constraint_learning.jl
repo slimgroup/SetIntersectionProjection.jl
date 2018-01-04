@@ -45,7 +45,7 @@ comp_grid=compgrid( ( convert(TF,comp_grid.d[1]),convert(TF,comp_grid.d[2]) ), c
 #create 'observed data' by creating artificial saturation of images
 d_obs = deepcopy(m_evaluation)
 d_obs[d_obs.>125.0f0].=125.0f0
-#d_obs[d_obs.<30.0f0]=30.0f0
+d_obs[d_obs.<60.0f0]=60.0f0
 
 # train by observing constraints on the data images in training data set
 observations = constraint_learning_by_obseration(comp_grid,m_train)
@@ -53,7 +53,7 @@ observations = constraint_learning_by_obseration(comp_grid,m_train)
 #define a few constraints and what to do with the observations
 constraint=Dict()
 
-constraint["use_bounds"]=true
+constraint["use_bounds"]=false
 constraint["m_min"]=0.0
 constraint["m_max"]=255.0
 
@@ -165,9 +165,9 @@ push!(TD_Prop.tag,("data term","identity"))
 data = vec(d_obs[1,:,:])
 LBD=data.-2.0;  LBD=convert(Vector{TF},LBD);
 UBD=data.+2.0;  UBD=convert(Vector{TF},UBD);
-#ind_min_clip=find(data.==30.0f0)
+ind_min_clip=find(data.==60.0f0)
 ind_max_clip=find(data.==125.0f0)
-#LBD[ind_min_clip].=0.0f0
+LBD[ind_min_clip].=0.0f0
 UBD[ind_max_clip].=255.0f0
 
 push!(P_sub,input -> project_bounds!(input,LBD,UBD))
@@ -175,7 +175,8 @@ push!(P_sub,input -> project_bounds!(input,LBD,UBD))
 dummy=zeros(TF,prod(comp_grid.n))
 (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(dummy,TD_OP,TD_Prop,comp_grid,options)
 x_ini= vec(d_obs[1,:,:])
-x_ini[ind_max_clip]=255.0f0
+x_ini[ind_max_clip]=225.0f0
+x_ini[ind_min_clip]=0.0f0
 
 for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
@@ -190,14 +191,15 @@ for i=1:size(d_obs,1)
     data = vec(d_obs[i+1,:,:])
     LBD=data.-2.0;  LBD=convert(Vector{TF},LBD);
     UBD=data.+2.0;  UBD=convert(Vector{TF},UBD);
-    #ind_min_clip=find(data.==30.0f0)
+    ind_min_clip=find(data.==60.0f0)
     ind_max_clip=find(data.==125.0f0)
-    #LBD[ind_min_clip].=0.0f0
+    LBD[ind_min_clip].=0.0f0
     UBD[ind_max_clip].=255.0f0
     P_sub[end] = x -> project_bounds!(x,LBD,UBD)
 
     x_ini= vec(d_obs[i,:,:])
-    x_ini[ind_max_clip]=255.0f0
+    x_ini[ind_max_clip]=225.0f0
+    x_ini[ind_min_clip]=0.0f0
   end
 end
 #
@@ -231,14 +233,14 @@ end
 #plot results
 for i=1:size(m_est,1)
     figure();imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(joinpath(data_dir,string("deblurring_observed",i,".pdf")),bbox_inches="tight")
-    savefig(joinpath(data_dir,string("deblurring_observed",i,".png")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("saturized_observed",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("saturized_observed",i,".png")),bbox_inches="tight")
     figure();imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:])),2)))
-    savefig(joinpath(data_dir,string("PARSDMM_deblurring",i,".pdf")),bbox_inches="tight")
-    savefig(joinpath(data_dir,string("PARSDMM_deblurring",i,".png")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("PARSDMM_desaturation",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("PARSDMM_desaturation",i,".png")),bbox_inches="tight")
     figure();imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(joinpath(data_dir,string("deblurring_evaluation",i,".pdf")),bbox_inches="tight")
-    savefig(joinpath(data_dir,string("deblurring_evaluation",i,".png")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("desaturation_evaluation",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("desaturation_evaluation",i,".png")),bbox_inches="tight")
 end
 
 # file = matopen(joinpath(data_dir,"x.mat"), "w")

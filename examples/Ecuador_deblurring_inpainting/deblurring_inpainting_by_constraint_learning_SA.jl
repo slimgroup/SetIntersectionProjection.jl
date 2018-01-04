@@ -146,6 +146,16 @@ constraint["use_TD_card_2"]=false
 constraint["TD_card_operator_2"]="TV"
 constraint["card_2"]=convert(TI,round(quantile(vec(observations["TV_card_095"]),0.85)))
 
+constraint["use_TD_annulus_1"]=true
+constraint["TD_annulus_operator_1"]="identity"
+constraint["TD_annulus_sigma_max_1"]=maximum(observations["annulus"])
+constraint["TD_annulus_sigma_min_1"]=minimum(observations["annulus"])
+
+constraint["use_TD_annulus_2"]=true
+constraint["TD_annulus_operator_2"]="TV"
+constraint["TD_annulus_sigma_max_2"]=maximum(observations["TV_annulus"])
+constraint["TD_annulus_sigma_min_2"]=minimum(observations["TV_annulus"])
+
 #PARSDMM options:
 options=PARSDMM_options()
 options=default_PARSDMM_options(options,options.FL)
@@ -262,7 +272,7 @@ file = matopen(joinpath(data_dir,"m_est.mat"), "w")
 write(file, "m_est", convert(Array{Float64,3},m_est))
 close(file)
 
-file = matopen("m_evaluation.mat", "w")
+file = matopen(joinpath(data_dir,"m_evaluation.mat"), "w")
 write(file, "m_evaluation", convert(Array{Float64,3},m_evaluation))
 close(file)
 
