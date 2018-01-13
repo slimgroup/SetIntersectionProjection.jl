@@ -82,7 +82,7 @@ for i=2:n_levels
 
   #set up constraints on new level
   (P_sub_l,TD_OP_l,TD_Prop_l) = setup_constraints(constraint_level,comp_grid_levels[i],TF)
-  (TD_OP_l,AtA_l,dummy1,dummy2) = PARSDMM_precompute_distribute(m_levels[i],TD_OP_l,TD_Prop_l,comp_grid_levels[i],options)
+  (TD_OP_l,AtA_l,dummy1,dummy2) = PARSDMM_precompute_distribute(TD_OP_l,TD_Prop_l,comp_grid_levels[i],options)
 
   #save information
   TD_OP_levels[i]     = TD_OP_l
