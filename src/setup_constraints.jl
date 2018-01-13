@@ -300,6 +300,9 @@ function setup_transform_domain_nuclear_constraints(ind,P_sub,TD_OP,TD_Prop,comp
 end
 
 function setup_transform_domain_rank_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,max_rank,TF,special_operator_list)
+    if operator_type in ["TV" "D2D" "D3D"]
+      error("TV, D2D or D3D not available for transform-domain rank constraint, use two or three separate constraints with different derivatives (Dx,Dy,Dz)")
+    end
     (A,AtA_diag,dense,TD_n,banded)= get_TD_operator(comp_grid,operator_type,TF)
     P_sub[ind]              = x -> project_rank!(reshape(x,TD_n),max_rank)
     TD_OP[ind]              = A

@@ -71,7 +71,7 @@ constraint["TD_UB_1"]=1e6;
 
 options.parallel             = false
 (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
 
 println("")
 println("PARSDMM serial (bounds and bounds on D_z):")
@@ -124,7 +124,7 @@ println("")
 println("PARSDMM parallel (bounds and bounds on D_z):")
 options.parallel=true
 (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
 
 @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options)
 @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options)
@@ -202,62 +202,3 @@ figure();
 subplot(3,1,1);imshow(x_plot[:,:,2*Int64(round(comp_grid.n[3]/3))],cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, ymax, 0]); title("mprojected model x-y slice")
 subplot(3,1,2);imshow(x_plot[:,2*Int64(round(comp_grid.n[2]/3)),:]',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("projected model x-z slice")
 subplot(3,1,3);imshow(x_plot[2*Int64(round(comp_grid.n[1]/3)),:,:]',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  ymax, zmax, 0]); title("projected model y-z slice")
-
-
-#Now test TV
-# constraint["use_TD_bounds_1"] = 0
-# constraint["use_TD_l1_1"]     = 1
-# constraint["TD_l1_operator_1"] = "TV"
-# constraint["TD_l1_sigma_1"]     = 0.25*norm(TD_OP[2]*m,1)
-# (P,P_sub,TD_OP,TD_Prop,AtA) = setup_constraints_3D(constraint,comp_grid);
-# @time (x,log_PSDMM) = compute_projection_intersection_PSDMM_test(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options,FL);
-# @time (x,log_PSDMM) = compute_projection_intersection_PSDMM_test(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options,FL);
-#using PyPlot
-#figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))');colorbar
-
-#
-# #now test both
-# constraint["use_TD_bounds_1"] = 1
-# (P,P_sub,TD_OP,TD_Prop,AtA) = setup_constraints_2D(constraint,comp_grid);
-# @time (x,log_PSDMM) = compute_projection_intersection_PSDMM_test(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-# @time (x,log_PSDMM) = compute_projection_intersection_PSDMM_test(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-
-#Cardinality on a gradient
-# constraint["use_TD_bounds_1"] = 0
-# constraint["use_TD_card_1"] = 1
-# constraint["TD_card_operator_1"]="D_vert"
-# constraint["card_1"] = 5*comp_grid.n[1]
-# options.obj_tol=1e-4
-# options.feas_tol=1e-4
-# options.adjust_rho=true
-# options.adjust_feasibility_rho=false
-#  (P,P_sub,TD_OP,TD_Prop,AtA) = setup_constraints_2D(constraint,comp_grid);
-#  @time (x,log_PSDMM) = compute_projection_intersection_PSDMM_test(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-# # #@time (x,log_PSDMM) = compute_projection_intersection_PSDMM_test(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-# # using PyPlot
-# # figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))');colorbar
-#
-# constraint["use_TD_bounds_1"]=1;
-# constraint["TDB_operator_1"]="D_lat";
-# constraint["TD_LB_1"]=-1;
-# constraint["TD_UB_1"]=1;
-# (P,P_sub,TD_OP,TD_Prop,AtA) = setup_constraints_2D(constraint,comp_grid);
-# @time (x,log_PSDMM) = compute_projection_intersection_PSDMM_test(x,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-# #@time (x,log_PSDMM) = compute_projection_intersection_PSDMM_test(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-# using PyPlot
-# figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))');colorbar
-#
-
-#cardinality on columns of the model
-# constraint["use_TD_bounds_1"]=0
-# constraint["use_TD_card_f_z"]=1
-# constraint["TD_card_f_z_operator"]="D_vert"
-# constraint["card_f_z"] = 5
-# options.obj_tol=1e-4
-# options.feas_tol=1e-4
-# options.adjust_rho=true
-# options.adjust_feasibility_rho=true
-# (P,P_sub,TD_OP,TD_Prop,AtA) = setup_constraints_2D(constraint,comp_grid);
-#  @time (x,log_PSDMM) = compute_projection_intersection_PSDMM_test(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-#  using PyPlot
-#   figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))');colorbar

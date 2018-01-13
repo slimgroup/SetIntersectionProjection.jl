@@ -84,7 +84,7 @@ for i=1:length(width)
   #options.rho_ini = [10.0]
   BLAS.set_num_threads(8)
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
+  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
   (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
   println(t)
@@ -97,7 +97,7 @@ for i=1:length(width)
   options.parallel=true
   BLAS.set_num_threads(4)
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
+  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
   (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
   println(t)
@@ -135,20 +135,6 @@ for i=1:length(width)
 
 end
 
-# T_cg=Vector{Float64}(length(width))
-# T_ini=Vector{Float64}(length(width))
-# T_rhs=Vector{Float64}(length(width))
-# T_adjust_rho_gamma=Vector{Float64}(length(width))
-# T_y_l_update=Vector{Float64}(length(width))
-#
-# for i=1:length(width)
-#   T_cg[i]=log_T[i].T_cg
-#   T_rhs[i]=log_T[i].T_rhs
-#   T_adjust_rho_gamma[i]=log_T[i].T_adjust_rho_gamma
-#   T_y_l_update[i]=log_T[i].T_y_l_upd
-#   T_ini[i]=log_T[i].T_ini
-# end
-
 #plot results
 fig, ax = subplots()
 ax[:loglog](N, T_tot_serial, label="serial",linewidth=5)
@@ -162,16 +148,123 @@ ylabel("time [seconds]", fontsize=15)
 savefig("projection_intersection_timings3D_1.pdf",bbox_inches="tight")
 savefig("projection_intersection_timings3D_1.png",bbox_inches="tight")
 
-#
-# #plot results
-# fig, ax = subplots()
-# ax[:loglog](N, T_cg, label="T cg")
-# ax[:loglog](N, T_rhs, label="T rhs")
-# ax[:loglog](N, T_adjust_rho_gamma, label="T adjust rho,gamma")
-# ax[:loglog](N, T_y_l_update, label="T y-upd")
-# ax[:loglog](N, T_ini, label="T ini")
-# ax[:legend]()
-# title("3D time vs grid size", fontsize=15)
-# xlabel("N gridpoints", fontsize=15)
-# ylabel("time [seconds]", fontsize=15)
-# savefig("projection_intersection_timings_3D_2.pdf",bbox_inches="tight")
+
+#######################################################################################
+#######################################################################################
+
+#now with a different set of constraints:
+# transform-domain rank and bounds
+constraint=Dict()
+
+#bound constraints
+constraint["use_bounds"]=true
+constraint["m_min"]=1500.0
+constraint["m_max"]=6000.0
+
+#nuclear norm constraint on vertical derivative of the image
+constraint["use_TD_nuclear_1"]=true
+constraint["TD_nuclear_operator_1"]="identity"
+
+constraint["use_TD_nuclear_2"]=true
+constraint["TD_nuclear_operator_2"]="identity"
+
+constraint["use_TD_nuclear_2"]=true
+constraint["TD_nuclear_operator_2"]="identity"
+
+#the max nuclear norm is adjusted to each model size, see below
+
+log_T_serial=Vector{Any}(length(width))
+T_tot_serial=Vector{Any}(length(width))
+log_T_parallel=Vector{Any}(length(width))
+T_tot_parallel=Vector{Any}(length(width))
+log_T_serial_multilevel=Vector{Any}(length(width))
+T_tot_serial_multilevel=Vector{Any}(length(width))
+log_T_parallel_multilevel=Vector{Any}(length(width))
+T_tot_parallel_multilevel=Vector{Any}(length(width))
+
+options.rho_ini = [1.0;1000.0;1000.0;1000.0;1.0]
+
+for i=1:length(width)
+  print(i)
+
+  m=m_full[1:width[i],1:width[i],:];
+  comp_grid = compgrid( (TF(d[1]), TF(d[2]), TF(d[3])),( size(m,1), size(m,2), size(m,3) ) )
+    #
+    # constraint["TD_nuclear_norm_1"]=0.5f0*norm(svdvals(m),1)
+    # constraint["TD_nuclear_norm_2"]=0.5f0*norm(svdvals(reshape(Dz*vec(m),TD_n)),1)
+    # constraint["TD_nuclear_norm_3"]=0.5f0*norm(svdvals(reshape(Dz*vec(m),TD_n)),1)
+
+  m=convert(Vector{TF},vec(m))
+
+  N[i]=prod(size(m));
+
+  #serial
+  println("")
+  println("serial")
+  options.parallel=false
+  #options.rho_ini = [10.0]
+  BLAS.set_num_threads(8)
+  (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+  (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+  val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+  println(t)
+  log_T_serial[i]=log_PARSDMM;
+  T_tot_serial[i]=t;
+
+  #parallel
+  println("")
+  println("parallel")
+  options.parallel=true
+  BLAS.set_num_threads(4)
+  (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+  (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+  val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+  println(t)
+  log_T_parallel[i]=log_PARSDMM;
+  T_tot_parallel[i]=t;
+
+  #serial multilevel
+  println("")
+  println("serial multilevel")
+  BLAS.set_num_threads(8)
+  #options.rho_ini = [1000.0]
+  options.parallel=false
+  n_levels=3
+  coarsening_factor=2
+  (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+  (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
+  val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
+  println(t)
+  log_T_serial_multilevel[i]=log_PARSDMM;
+  T_tot_serial_multilevel[i]=t;
+
+  #parallel multilevel
+  println("")
+  println("parallel multilevel")
+  BLAS.set_num_threads(4)
+  options.parallel=true
+  n_levels=3
+  coarsening_factor=2
+  (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+  (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
+  val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
+  println(t)
+  log_T_parallel_multilevel[i]=log_PARSDMM;
+  T_tot_parallel_multilevel[i]=t;
+
+end
+
+#plot results
+fig, ax = subplots()
+ax[:loglog](N, T_tot_serial, label="serial",linewidth=5)
+ax[:loglog](N, T_tot_parallel, label="parallel",linewidth=5)
+ax[:loglog](N, T_tot_serial_multilevel, label="serial multilevel",linewidth=5)
+ax[:loglog](N, T_tot_parallel_multilevel, label="parallel multilevel",linewidth=5)
+ax[:legend]()
+title(string("time 3D vs grid size, JuliaThreads=",Threads.nthreads(),", BLAS threads=",ccall((:openblas_get_num_threads64_, Base.libblas_name), Cint, ())), fontsize=12)
+xlabel("N gridpoints", fontsize=15)
+ylabel("time [seconds]", fontsize=15)
+savefig("projection_intersection_timings3D_1_b.pdf",bbox_inches="tight")
+savefig("projection_intersection_timings3D_1_b.png",bbox_inches="tight")

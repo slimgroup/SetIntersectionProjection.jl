@@ -60,7 +60,7 @@ options.obj_tol=10*eps(TF)
 options.feas_tol=10*eps(TF)
 BLAS.set_num_threads(2) #2 is fine for a small problem
 (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
 
 println("PARSDMM serial (bounds, TV and bounds on D_z):")
 @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);

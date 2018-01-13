@@ -1,14 +1,13 @@
 export PARSDMM_precompute_distribute
 
 function PARSDMM_precompute_distribute{TF<:Real,TI<:Integer}(
-                                      m        ::Vector{TF},
                                       TD_OP    ::Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}},
                                       TD_Prop,
                                       comp_grid,
                                       options
                                       )
 
-const N           = length(m)
+const N           = prod(comp_grid.n)
 
 #add the identity matrix as the operator for the squared distance from the point we want to project
 if options.linear_inv_prob_flag==false

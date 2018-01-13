@@ -13,13 +13,13 @@ $$-->
 
 ![equation](http://latex.codecogs.com/gif.latex?%24%24%20%5Cmin_%7B%5Cmathbf%7Bx%7D%7D%20%5Cfrac%7B1%7D%7B2%7D%20%5C%7C%20%5Cmathbf%7Bx%7D%20-%20%5Cmathbf%7Bm%7D%20%5C%7C_2%5E2%20&plus;%20%5Csum_%7Bi%3D1%7D%5E%7Bp%7D%20%5Ciota_%7B%5Cmathcal%7BC%7D_i%7D%28A_i%20%5Cmathbf%7Bx%7D%29.%20%24%24)
 
-Each set ![equation](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Cmathcal%7BV%7D_i) is characterized as an 'elementary' set $\mathcal{C}_i$, for which we know a closed form projection (l1-ball, l2-ball, bounds, nuclear norm, rank, cardinality...) and a transform-domain operator A_i (discrete derivatives, DFT, DCT, anisotropic total-variation,...).
+Each set ![equation](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Cmathcal%7BV%7D_i) is characterized as an 'elementary' set $\mathcal{C}_i$, for which we know a closed form projection (l1-ball, l2-ball, bounds, nuclear norm, rank, cardinality, annulus, ...) and a transform-domain operator A_i (discrete derivatives, DFT, DCT, Curvelet transform, anisotropic total-variation,...).
 
 The input for the algorithm are thus pairs of projector onto $\mathcal{C}_i$ and transform-domain operator A_i. 
 
 The software can also solve the feasibility problem by dropping the squared distance from $\mathbf{m}$ term. 
 
-The main applications are inverse problems. For non-convex inverse problems, or inverse problems with 'expensive' forward operators, we can use SetIntersectionProjection as the projector onto an intersection of constraints to solve $\min_{\mathbf{m}} f(\mathbf{m})  \:\: \text{subject to} \:\: \mathbf{m} \in \bigcap_{i=1}^p \mathcal{V}_i$ with a spectral projected gradient / projected quasi-Newton / projected-Newton method. If we need to solve a linear inverse problem with a 'cheap' forward operator $B$ we can solve the feasibility problem
+The main applications are inverse problems. For non-convex inverse problems, or inverse problems with 'expensive' forward operators, we can use SetIntersectionProjection as the projector onto an intersection of constraints to solve <!--$\min_{\mathbf{m}} f(\mathbf{m})  \:\: \text{subject to} \:\: \mathbf{m} \in \bigcap_{i=1}^p \mathcal{V}_i$-->![equation](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Cmin_%7B%5Cmathbf%7Bm%7D%7D%20f%28%5Cmathbf%7Bm%7D%29%20%5C%3A%5C%3A%20%5Ctext%7Bsubject%20to%7D%20%5C%3A%5C%3A%20%5Cmathbf%7Bm%7D%20%5Cin%20%5Cbigcap_%7Bi%3D1%7D%5Ep%20%5Cmathcal%7BV%7D_i) with a spectral projected gradient / projected quasi-Newton / projected-Newton method. If we need to solve a linear inverse problem with a 'cheap' forward operator $B$ we can solve the feasibility problem
 <!-- 
 $$
 \textbf{find} \:\: {\mathbf{x}} \:\: \text{s.t.} \:\: \begin{cases}
@@ -28,6 +28,7 @@ $$
 \end{cases}.
 $$
 -->
+
 ![equation](http://latex.codecogs.com/gif.latex?%24%24%20%5Ctextbf%7Bfind%7D%20%5C%3A%5C%3A%20%7B%5Cmathbf%7Bx%7D%7D%20%5C%3A%5C%3A%20%5Ctext%7Bs.t.%7D%20%5C%3A%5C%3A%20%5Cbegin%7Bcases%7D%20%28B%20%5Cmathbf%7Bx%7D%20-%20%5Cmathbf%7Bd%7D_%5Ctext%7Bobserved%7D%29%20%5Cin%20%5Cmathcal%7BC%7D_%7Bp&plus;1%7D%20%5C%5C%20%5Cmathbf%7Bx%7D%20%5Cin%20%5Cbigcap_%7Bi%3D1%7D%5E%7Bp%7D%20%5Cmathcal%7BV%7D_i%2C%20%5Cend%7Bcases%7D.%20%24%24)
 
 Main features:
@@ -48,6 +49,11 @@ Applications:
  - Joint image deblurring and inpainting by learning parametric convex sets [EXAMPLE]
  - Image deblurring by learning parametric convex sets [EXAMPLE]
 
+Tutorials:
+
+ - Project a 2D image onto an interseciton of sets with parallel and multilevel PARSDMM 
+ - Project a 3D image onto an interseciton of sets with parallel and multilevel PARSDMM
+  
 
 The following example illustrates the basic usage. We will project an image onto a set that is the intersection of bound constraint, vertical monotonicity (slope-constraints) and horizontal smoothness (another type of slope-constraint). This is a serial (single-level) example. Use parallel and or multi-level version for larger problems. 
 

@@ -58,7 +58,7 @@ constraint["TD_l1_sigma_1"]    = 0.25*norm(TV_OP*m,1)
 
 BLAS.set_num_threads(2) #2 is fine for a small problem
 (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
 
 println("PARSDMM serial (bounds, bounds on D_z and TV):")
 @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);

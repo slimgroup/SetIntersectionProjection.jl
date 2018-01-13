@@ -216,7 +216,7 @@ UBD=data.+2.0;  UBD=convert(Vector{TF},UBD);
 push!(P_sub,x -> project_bounds!(x,LBD,UBD))
 
 dummy=zeros(TF,size(BF,2))
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(dummy,TD_OP,TD_Prop,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
 
 for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))

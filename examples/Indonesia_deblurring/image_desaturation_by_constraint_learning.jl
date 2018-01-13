@@ -173,7 +173,7 @@ UBD[ind_max_clip].=255.0f0
 push!(P_sub,input -> project_bounds!(input,LBD,UBD))
 
 dummy=zeros(TF,prod(comp_grid.n))
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(dummy,TD_OP,TD_Prop,comp_grid,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
 x_ini= vec(d_obs[1,:,:])
 x_ini[ind_max_clip]=225.0f0
 x_ini[ind_min_clip]=0.0f0

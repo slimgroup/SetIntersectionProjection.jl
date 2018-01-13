@@ -196,7 +196,7 @@ println("finished setting up constraints")
 
 
 dummy=zeros(TF,size(BF,2))
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(dummy,TD_OP,TD_Prop,comp_grid,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
 println("finished precomputing and distributing")
 
 for i=1:size(d_obs,1)

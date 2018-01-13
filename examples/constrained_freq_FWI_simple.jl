@@ -250,7 +250,7 @@ for j in constraint_strategy_list
   # various types of cardinality and rank
 elseif j==2
 		keyword="cardmat_cardcol_rank_bounds"
-    title_str="column and matrix grad. card. & rank & bounds"
+    title_str="fiber and matrix grad. card. & rank & bounds"
 
 		constraint=Dict()
 		constraint["use_bounds"]=true
@@ -311,7 +311,7 @@ elseif j==2
       # various types of cardinality
     elseif j==5
     			keyword="cardmat_cardcol_bounds"
-          title_str="column and matrix grad. card. & bounds"
+          title_str="fiber and matrix grad. card. & bounds"
 
     			constraint=Dict()
     			constraint["use_bounds"]=true
@@ -361,7 +361,7 @@ elseif j==2
 
           elseif j==7
     					keyword="cardcol_bounds"
-              title_str="column grad. card. & bounds"
+              title_str="fiber grad. card. & bounds"
 
     					constraint=Dict()
     					constraint["use_bounds"]=true
@@ -438,9 +438,8 @@ elseif j==2
 end
 
   #set up constraints, precompute some things and define projector
-  dummy=zeros(Float64,prod(comp_grid.n))
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(dummy,TD_OP,TD_Prop,comp_grid,options)
+  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
   proj_intersection = x-> PARSDMM(x,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options)
   # function prj!{T}(dst::T, src::T)
   #   (dst[:],dummy1,dummy2,dymmy3) = proj_intersection(src)

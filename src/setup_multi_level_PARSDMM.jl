@@ -41,7 +41,7 @@ comp_grid_levels = Vector{Any}(n_levels)
 # set up constraints and matrices on coarse level
 #1st level is the grid corresponding to the original model m (matrix or tensor)
 (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,TF)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,comp_grid,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
 
 if typeof(AtA)==Vector{Array{TF,2}} #change AtA to CDS
   #AtA=convert(Vector{Array{TF,2}},AtA);
