@@ -28,7 +28,7 @@ for i=1:size(d_obs,1)
     A           = opMatrix(FWD_OP)*TD_OP';
     
     b=m;
-    sigma=norm(ones(size(A,1),1).*2,2);
+    sigma=norm(randi([-2 2],nnz(b),1));
     tau = 0;
     [x_W,r,g,info] = spgl1( A, b, tau, sigma, x0, options );
     

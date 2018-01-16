@@ -13,23 +13,18 @@ $$-->
 
 ![equation](http://latex.codecogs.com/gif.latex?%24%24%20%5Cmin_%7B%5Cmathbf%7Bx%7D%7D%20%5Cfrac%7B1%7D%7B2%7D%20%5C%7C%20%5Cmathbf%7Bx%7D%20-%20%5Cmathbf%7Bm%7D%20%5C%7C_2%5E2%20&plus;%20%5Csum_%7Bi%3D1%7D%5E%7Bp%7D%20%5Ciota_%7B%5Cmathcal%7BC%7D_i%7D%28A_i%20%5Cmathbf%7Bx%7D%29.%20%24%24)
 
-Each set ![equation](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Cmathcal%7BV%7D_i) is characterized as an 'elementary' set $\mathcal{C}_i$, for which we know a closed form projection (l1-ball, l2-ball, bounds, nuclear norm, rank, cardinality, annulus, ...) and a transform-domain operator A_i (discrete derivatives, DFT, DCT, Curvelet transform, anisotropic total-variation,...).
+Each set `V_i` is characterized as an 'elementary' set `C_i`, for which we know a closed form projection (l1-ball, l2-ball, bounds, nuclear norm, rank, cardinality, annulus, ...) and a transform-domain operator `A_i` (discrete derivatives, DFT, DCT, Curvelet transform, anisotropic total-variation,...). For example, if we have `V = { x | ||Ax||_1 <= sigma } `, then we use a transform-domain operator `A` and set `C = { y | ||y||_1 <= sigma }` with additional equality constraints `Ax=y`.
 
-The input for the algorithm are thus pairs of projector onto $\mathcal{C}_i$ and transform-domain operator A_i. 
-
-The software can also solve the feasibility problem by dropping the squared distance from $\mathbf{m}$ term. 
-
-The main applications are inverse problems. For non-convex inverse problems, or inverse problems with 'expensive' forward operators, we can use SetIntersectionProjection as the projector onto an intersection of constraints to solve <!--$\min_{\mathbf{m}} f(\mathbf{m})  \:\: \text{subject to} \:\: \mathbf{m} \in \bigcap_{i=1}^p \mathcal{V}_i$-->![equation](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Cmin_%7B%5Cmathbf%7Bm%7D%7D%20f%28%5Cmathbf%7Bm%7D%29%20%5C%3A%5C%3A%20%5Ctext%7Bsubject%20to%7D%20%5C%3A%5C%3A%20%5Cmathbf%7Bm%7D%20%5Cin%20%5Cbigcap_%7Bi%3D1%7D%5Ep%20%5Cmathcal%7BV%7D_i) with a spectral projected gradient / projected quasi-Newton / projected-Newton method. If we need to solve a linear inverse problem with a 'cheap' forward operator $B$ we can solve the feasibility problem
+The input for the algorithm are thus pairs of projector onto `C_i` and transform-domain operator `A_i`. The software can also solve the feasibility problem by dropping the squared distance from `m` term. The main applications are inverse problems. For inverse problems with 'expensive' forward operators, we can use SetIntersectionProjection as the projector onto an intersection of constraints to solve <!--$\min_{\mathbf{m}} f(\mathbf{m})  \:\: \text{subject to} \:\: \mathbf{m} \in \bigcap_{i=1}^p \mathcal{V}_i$-->![equation](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Cmin_%7B%5Cmathbf%7Bm%7D%7D%20f%28%5Cmathbf%7Bm%7D%29%20%5C%3A%5C%3A%20%5Ctext%7Bsubject%20to%7D%20%5C%3A%5C%3A%20%5Cmathbf%7Bm%7D%20%5Cin%20%5Cbigcap_%7Bi%3D1%7D%5Ep%20%5Cmathcal%7BV%7D_i) with a spectral projected gradient / projected quasi-Newton / projected-Newton method. If we need to solve a linear inverse problem with a 'cheap' forward operator `B` we include a data-fit constraint, such as `{ x | l <= (Bx - d_{observed})_i <= u_i }` or `{ x | || Bx - d_{observed} ||_2 = c }` and solve
 <!-- 
 $$
-\textbf{find} \:\: {\mathbf{x}} \:\: \text{s.t.} \:\: \begin{cases}
-
-(B \mathbf{x} - \mathbf{d}_\text{observed}) \in \mathcal{C}_p \\ \mathbf{x} \in \bigcap_{i=1}^{p-1} \mathcal{V}_i,
-\end{cases}.
+\min_{\bx,\by_i} \frac{1}{2}\| \bx - \bm \|_2^2 + \sum_{i=1}^{p-1} \iota_{\mathcal{C}_i}(\by_i) + \iota_{\mathcal{C}_p^\text{data}}(\by_p)\quad \text{s.t.} \quad \begin{cases}
+A_i \bx = \by_i \\ B\bx=\by_p
+\end{cases},
 $$
 -->
 
-![equation](http://latex.codecogs.com/gif.latex?%24%24%20%5Ctextbf%7Bfind%7D%20%5C%3A%5C%3A%20%7B%5Cmathbf%7Bx%7D%7D%20%5C%3A%5C%3A%20%5Ctext%7Bs.t.%7D%20%5C%3A%5C%3A%20%5Cbegin%7Bcases%7D%20%28B%20%5Cmathbf%7Bx%7D%20-%20%5Cmathbf%7Bd%7D_%5Ctext%7Bobserved%7D%29%20%5Cin%20%5Cmathcal%7BC%7D_%7Bp&plus;1%7D%20%5C%5C%20%5Cmathbf%7Bx%7D%20%5Cin%20%5Cbigcap_%7Bi%3D1%7D%5E%7Bp%7D%20%5Cmathcal%7BV%7D_i%2C%20%5Cend%7Bcases%7D.%20%24%24)
+![equation](http://latex.codecogs.com/gif.latex?%5Cmin_%7B%5Cmathbf%7Bx%7D%2C%5Cmathbf%7By%7D_i%7D%20%5Cfrac%7B1%7D%7B2%7D%20%5C%7C%20%5Cmathbf%7Bx%7D%20-%20%5Cmathbf%7Bm%7D%20%5C%7C_2%5E2%20&plus;%20%5Csum_%7Bi%3D1%7D%5E%7Bp-1%7D%20%5Ciota_%7B%5Cmathcal%7BC%7D_i%7D%28%5Cmathbf%7By%7D_i%29%20&plus;%20%5Ciota_%7B%5Cmathcal%7BC%7D_p%5E%5Ctext%7Bdata%7D%7D%28%5Cmathbf%7By%7D_p%29%5Cquad%20%5Ctext%7Bs.t.%7D%20%5Cquad%20%5Cbegin%7Bcases%7D%20A_i%20%5Cmathbf%7Bx%7D%20%3D%20%5Cmathbf%7By%7D_i%20%5C%5C%20B%20%5Cmathbf%7Bx%7D%3D%5Cmathbf%7By%7D_p%20%5Cend%7Bcases%7D)
 
 Main features:
 
@@ -40,21 +35,27 @@ Main features:
 - serial part of code also uses multithreading and mulithreaded BLAS operations
 - transform-domain operators may be: SparseMatrixCSC, JOLI (https://github.com/slimgroup/JOLI.jl) DCT/DFT/Curvelet matrix-free operators
 - constraints may be defined for the matrix/tensor model and for columns/slices/fibres simultaneously
-- stores `AtA[i]`$=A_i^T A$ in compressed diagonal storage (CDS or DIA format) if all $A_i$ have a banded structure. This saves memory compared to standard Julia `SparseMatrixCSC` format. We also use a multithreaded matrix-vector product which is faster than the Julia `SparseMatrixCSC` matrix-vector product
+- stores `AtA[i]=A_i^T A` in compressed diagonal storage (CDS or DIA format) if all $A_i$ have a banded structure. This saves memory compared to standard Julia `SparseMatrixCSC` format. We also use a multithreaded matrix-vector product which is faster than the Julia `SparseMatrixCSC` matrix-vector product
 
+List of constraints, transform-domain operators and short function description
 
 Applications:
 
- - Seismic full-waveform inversion [EXAMPLE]
- - Joint image deblurring and inpainting by learning parametric convex sets [EXAMPLE]
- - Image deblurring by learning parametric convex sets [EXAMPLE]
+ - [Seismic full-waveform inversion with set intersection constraints](docs/README_freq_FWI_ex.md)
+ - [Joint image denoising-deblurring-inpainting or image desaturation by learning a parametric intersection of (non-)convex sets](docs/README_image_proc_constraint_learning.md)
 
 Tutorials:
 
- - Project a 2D image onto an interseciton of sets with parallel and multilevel PARSDMM 
- - Project a 3D image onto an interseciton of sets with parallel and multilevel PARSDMM
+ - [Project a 2D image onto an intersection of sets with parallel and multilevel PARSDMM](examples/projection_intersection_2D.jl)
+ - [Project a 3D image onto an intersection of sets with parallel and multilevel PARSDMM](examples/projection_intersection_3D.jl)
   
+Performance:
 
+ - [timings for projections of 2D models vs grid size]
+ - [timings for projections of 3D models vs grid size]
+ - [computational cost parallel Dykstra vs PARSDMM]
+ - [timings Julia 0.6 SparseMatrixCSC mat-vec vs our multi-threaded compressed-diagonal mat-vec]
+ 
 The following example illustrates the basic usage. We will project an image onto a set that is the intersection of bound constraint, vertical monotonicity (slope-constraints) and horizontal smoothness (another type of slope-constraint). This is a serial (single-level) example. Use parallel and or multi-level version for larger problems. 
 
 ```julia
@@ -73,6 +74,7 @@ options.FL=Float32
 
 set_zero_subnormals(true)
 BLAS.set_num_threads(2)
+FFTW.set_num_threads(2)
 
 #select working precision
 if options.FL==Float64
@@ -119,7 +121,7 @@ options.parallel             = false
 Once we have projectors and transform-domain operators, we use `PARSDMM_precompute_distribute` to precompute and distribute things, followed by actually projecting `m` and plotting the results.
 
 ```julia
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
 
 println("")
 println("PARSDMM serial (bounds and bounds on D_z):")

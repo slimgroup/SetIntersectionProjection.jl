@@ -46,7 +46,7 @@ comp_grid=compgrid( ( convert(TF,comp_grid.d[1]),convert(TF,comp_grid.d[2]) ), c
 #create true observed data by blurring and setting pixels to zero
 bkl = 25; #blurring kernel length
 d_obs = zeros(TF,size(m_evaluation,1),comp_grid.n[1]-bkl,comp_grid.n[2])
-
+temp  = zeros(TF,comp_grid.n[1]-bkl,comp_grid.n[2])
 
 n1=comp_grid.n[1]
 Bx=speye(n1)./bkl
@@ -71,7 +71,12 @@ FWD_OP = convert(SparseMatrixCSC{TF,TI},mask*BF)
 
 #blur and subsample to create observed data
 for i=1:size(d_obs,1)
-  d_obs[i,:,:] = reshape(FWD_OP*vec(m_evaluation[i,:,:]),comp_grid.n[1]-bkl,comp_grid.n[2])
+  temp = FWD_OP*vec(m_evaluation[i,:,:])
+  #add noise (integers between -2 and 2 for each  nonzero observation point)
+  noise = rand([-2,-1,0,1,2],countnz(temp));
+  nz_ind = find(temp)
+  temp[nz_ind].= temp[nz_ind].+noise
+  d_obs[i,:,:] = reshape(temp,comp_grid.n[1]-bkl,comp_grid.n[2])
 end
 println("finished creating observed data")
 
@@ -312,13 +317,14 @@ for i=1:size(m_evaluation,1)
 end
 
 
-file = matopen("x_SPGL1_C2_save_SA.mat")
-x_TFOCS_tv_save=read(file, "x_SPGL1_C2_save_SA")
+file = matopen("x_SPGL1_wavelet_save_SA.mat")
+x_TFOCS_tv_save=read(file, "x_SPGL1_wavelet_save_SA")
 x_TFOCS_tv_save=reshape(x_TFOCS_tv_save,4,comp_grid.n[1],comp_grid.n[2])
 
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 for i=1:size(m_evaluation,1)
   figure()
-  imshow(x_TFOCS_tv_save[i,26:end-26,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("SPGL1 BPDN-curvelet, SNR=", round(SNR(vec(m_evaluation[i,26:end-26,:]),vec(x_TFOCS_tv_save[i,26:end-26,:])),2)))
-  savefig(string("SPGL1_curvelet_inpainting",i,".pdf"),bbox_inches="tight")
+  imshow(x_TFOCS_tv_save[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("SPGL1 BPDN-wavelet, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(x_TFOCS_tv_save[i,(bkl*2):end-(bkl*2),:])),2)))
+  savefig(joinpath(data_dir,string("SPGL1_wavelet_inpainting",i,".pdf")),bbox_inches="tight")
+  savefig(joinpath(data_dir,string("SPGL1_wavelet_inpainting",i,".png")),bbox_inches="tight")
 end
