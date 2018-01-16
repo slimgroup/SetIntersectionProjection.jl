@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="generator" content="scholpandoc">
+  <meta name="viewport" content="width=device-width">
+  
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.7.1/modernizr.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.js"></script>
+  <link rel="stylesheet" href="https://www.slim.eos.ubc.ca/Publications/Resources/ScholMD/standalone/slimweb-scholmd-standalone-v0.1-latest.min.css">
+</head>
+<body>
+<div class="scholmd-container">
+<div class="scholmd-main">
+<div class="math scholmd-math-definitions" style="visibility: hidden; height: 0px; width 0px;">\[
+\def\bb{\mathbf b}
+\def\bc{\mathbf c}
+\def\bd{\mathbf d}
+\def\bg{\mathbf g}
+\def\bh{\mathbf h}
+\def\bl{\mathbf l}
+\def\bm{\mathbf m}
+\def\bp{\mathbf p}
+\def\bq{\mathbf q}
+\def\br{\mathbf r}
+\def\bs{\mathbf s}
+\def\bu{\mathbf u}
+\def\bv{\mathbf v}
+\def\bw{\mathbf w}
+\def\by{\mathbf y}
+\def\bx{\mathbf x}
+\def\bz{\mathbf z}
+%\def\argmin{\operatornamewithlimits{arg min}}
+\def\argmin{\mathop{\rm arg\min}}
+\]</div>
+<div class="scholmd-content">
+<h1 id="image-processing-by-learning-a-parametric-intersection-of-non-convex-sets">Image processing by learning a parametric intersection of (non-)convex sets</h1>
+<p><a href="../examples/examples/Ecuador_deblurring_inpainting/deblurring_inpainting_by_constraint_learning_SA.jl">Julia script for this example a) (joint image denoising+deblurring+inpainting)</a></p>
+<p><a href="../examples/examples/Indonesia_deblurring/image_desaturation_by_constraint_learning.jl">Julia script for this example b) (image desaturation)</a></p>
+<p>The applications of interest for this example are linear inverse problems, such as removing motion blur with a known blurring kernel and inpainting of missing pixels, single-image super-resolution, denoising, and desaturation of saturated images. We use aerial photos as the target.</p>
+<p>Several recent works on linear imaging inverse problems <span class="scholmd-citation" data-cites="Chang_2017_ICCV">(e.g., @7949028, <span class="citeproc-not-found" data-reference-id="Chang_2017_ICCV"><strong>???</strong></span>)</span> use neural networks that require large datasets containing hundreds to hundreds of thousands of training examples. On the other hand, there are methods that do not require training, such as basis-pursuit type formulations <span class="scholmd-citation" data-cites="MRM:MRM21391">(e.g., <span class="citeproc-not-found" data-reference-id="MRM:MRM21391"><strong>???</strong></span>, <span class="scholmd-citation" data-cites="Candes2009">(<span class="citeproc-not-found" data-reference-id="Candes2009"><strong>???</strong></span>)</span>, <span class="scholmd-citation" data-cites="doi:10.1137/080714488">(<span class="citeproc-not-found" data-reference-id="doi:10.1137/080714488"><strong>???</strong></span>)</span>, <span class="scholmd-citation" data-cites="Becker2011">(<span class="citeproc-not-found" data-reference-id="Becker2011"><strong>???</strong></span>)</span>, <span class="scholmd-citation" data-cites="doi:10.1137/130919210">(<span class="citeproc-not-found" data-reference-id="doi:10.1137/130919210"><strong>???</strong></span>)</span>)</span> often minimize the <span class="math scholmd-math-inline">\(\ell_1\)</span>-norm of transform-domain coefficients (total-variation, Wavelet) or the nuclear norm of an image, subject to a data-fit constraint. Without learning, the method requires hand picking a suitable transform for each class of images.</p>
+<p>Here we use a very simple method to learn the constraint parameters, such as bounds, <span class="math scholmd-math-inline">\(\ell_1\)</span>, <span class="math scholmd-math-inline">\(\ell_2\)</span> and nuclear norms for various transform-domains. The learning is just observing the parameters of training examples. The advantage is that we obtain competitive or better results than basis-pursuit problem formulations with only a few representative training examples. The training phase is computationally cheap and intrinsically parallel per training image and per learned constraint parameter. There is no need to adapt transforms and constraints to different classes of images because we will use a variety of constraints and transform-domain operators. The philosophy here is that if we use a variety of constraints, there is likely at least one ‘good’ constraint that discriminates between blurred and focussed images or images with missing pixels and realistic images. The disadvantage is that the learned constraint parameters will not generalize well to other types of images. We will learn parameters for up to <span class="math scholmd-math-inline">\(15\)</span> different constraint types for a joint denoising-inpainting-deblurring example. We then use the same constraints but re-learn the parameters for a different type of images for a desaturation problem. The algorithm is thus identical for different problems and different datasets. Regarding the geometry of the inverse problem, we learn a convex or non-convex set that contains the class of images we seek to reconstruct. We parameterize the set we want to learn as an intersection of many sets in combination with many transform-domain operators.</p>
+<p>Once the set is learned, we add a data-fit constraint to the intersection and reconstruction follows as the projection of an initial guess onto the learned set. If we would seek a feasible point instead of a projection, this problem formulation is known as ‘set-theoretic estimation’ <span class="scholmd-citation" data-cites="COMBETTES1996155">(@214546, <span class="citeproc-not-found" data-reference-id="COMBETTES1996155"><strong>???</strong></span>)</span>. The authors of @1323102 observe that for <span class="math scholmd-math-inline">\(15\)</span> out of <span class="math scholmd-math-inline">\(20\)</span> investigated data-sets, <span class="math scholmd-math-inline">\(99\%\)</span> of the images have a total-variation within <span class="math scholmd-math-inline">\(20\%\)</span> of the average total variation of the data-set. Here we follow the same reasoning, but use many constraints and the PARSDMM algorithm to compute the projection. The forward model <span class="math scholmd-math-inline">\(B\)</span> is a banded matrix for a blurring kernel on a regular grid, a diagonal restriction of the identity matrix for inpainting and the product of the two for simultaneous inpainting and deblurring. Just as the other transform-domain operators, the banded forward models are efficiently stored in the compressed diagonal storage format. The sparsity-pattern of <span class="math scholmd-math-inline">\(B^T B\)</span> completely or partially overlaps with that of the constraints listed below, so matrix-vector products do not require additional computational time.</p>
+<p>For both examples we observe the following constraint parameters:</p>
+<ol type="1">
+<li>upper and lower bounds: <span class="math scholmd-math-inline">\(\{ \bm \: | \: \bl_i \leq \bm_i \leq \bu_i \}\)</span></li>
+<li>nuclear norm: <span class="math scholmd-math-inline">\(\{ \bm \: | \: \sum_{j=1}^k \lambda_j \leq \sigma \}\)</span>, with <span class="math scholmd-math-inline">\(\bm = \textbf{vec}( \sum_{j=1}^{k}\lambda_j \bu_j \bv_j^* )\)</span> is the SVD of the image</li>
+<li>nuclear norm of discrete gradients of the image (total-nuclear-variation): <span class="math scholmd-math-inline">\(\{ \bm \: | \: \sum_{j=1}^k \lambda_j \leq \sigma \}\)</span>, with <span class="math scholmd-math-inline">\((I_{n_x} \otimes D_z)\bm = \textbf{vec}( \sum_{j=1}^{k}\lambda_j \bu_j \bv_j^* )\)</span> is the SVD of the vertical derivative of the image, same for the other direction</li>
+<li>anisotropic total-variation: <span class="math scholmd-math-inline">\(\{ \bm \: | \: \| A \bm \|_1 \leq \sigma \}\)</span> with <span class="math scholmd-math-inline">\(A = ((I_{n_x} \otimes D_z)^T \: (D_x \otimes I_{n_z})^T)^T\)</span></li>
+<li>annulus: <span class="math scholmd-math-inline">\(\{ \bm \: | \: \sigma_l \leq \| \bm \|_2 \leq \sigma_u \}\)</span></li>
+<li>annulus of the discrete gradients of the training images: <span class="math scholmd-math-inline">\(\{ \bm \: | \: \sigma_l \leq \| A \bm \|_2 \leq \sigma_u \}\)</span> with <span class="math scholmd-math-inline">\(A = ((I_{n_x} \otimes D_z)^T \: (D_x \otimes I_{n_z})^T)^T\)</span></li>
+<li><span class="math scholmd-math-inline">\(\ell_1\)</span>-norm of DFT coefficients: <span class="math scholmd-math-inline">\(\{ \bm \: | \: \| A \bm \|_1 \leq \sigma \}\)</span> with <span class="math scholmd-math-inline">\(A = \)</span> discrete Fourier transform</li>
+<li>slope-constraints in x and z direction (bounds on the discrete gradients of the image): <span class="math scholmd-math-inline">\(\{ \bm \: | \: \bl_i \leq (D_x \otimes I_{n_z}) \bm)_i \leq \bu_i \}\)</span> with all <span class="math scholmd-math-inline">\(\bu_i = \varepsilon_u\)</span> and <span class="math scholmd-math-inline">\(\bl_i = - \varepsilon_l\)</span>, same for z-direction</li>
+<li>point-wise bound-constraints on DCT coefficients: <span class="math scholmd-math-inline">\(\{ \bm \: | \: \bl_i \leq (A \bm)_i \leq \bu_i \}\)</span>, with <span class="math scholmd-math-inline">\(A=\)</span> discrete cosine transform</li>
+</ol>
+<p>There are nine types of constraints on the model (<span class="math scholmd-math-inline">\(11\)</span> sets passed to PARSDMM). We also add a point-wise data-fit constraint, <span class="math scholmd-math-inline">\(\{ \bx \: | \: \bl \leq (B \bx - \bd_\text{obs}) \leq \bu\}\)</span>, and compute the projection onto the intersection of all constraints with PARSDMM (algorithm #alg:PARSDMM) applied to problem formulation #proj_intersect_lininvprob2.</p>
+<p>The goal of the first example is to recover an image from <span class="math scholmd-math-inline">\(20%\)</span> observed pixels of a blurred image (25 pixels known motion blur), where each observed data-point also contains a small amount of random noise in the interval <span class="math scholmd-math-inline">\([-2 - 2]\)</span>. The dataset is a series of images from ‘Planet Labs PlanetScope Ecuador’ with a resolution of three meters, available at openaerialmap.org. There are <span class="math scholmd-math-inline">\(35\)</span> patches (<span class="math scholmd-math-inline">\(1100 \times 1100\)</span> pixels) for training and Figure <span class="scholmd-crossref"><a href="#Fig:inpainting-deblurring-evaluation">2</a></span> shows the results. We compare our results with the solution of <span class="math scholmd-math-inline">\(\min \|\bx\|_\text{TV} \:\: \text{s.t.} \:\: \|B \bx - \bd_\text{obs} \|_2 \leq \sigma\)</span> (TV-BPDN), computed with the Matlab package TFOCS <span class="scholmd-citation" data-cites="Becker2011">(<span class="citeproc-not-found" data-reference-id="Becker2011"><strong>???</strong></span>)</span>. We used TFOCS with a very small (TFOCS parameter <span class="math scholmd-math-inline">\(\mu=1e-5\)</span>) additional smoothing and ran the iterations until the solution signal to noise ratio (SNR) did not further improve. Additionally, we compare the results when we recover the wavelet coefficients, <span class="math scholmd-math-inline">\(\mathbf{c}\)</span>, by solving <span class="math scholmd-math-inline">\(\min \| \mathbf{c} \|_1 \:\: \text{s.t.} \:\: \|B W^* \mathbf{c} - \bd_\text{obs} \|_2 \leq \sigma\)</span> (TV-wavelet) with the SPGL1 toolbox <span class="scholmd-citation" data-cites="doi:10.1137/080714488">(<span class="citeproc-not-found" data-reference-id="doi:10.1137/080714488"><strong>???</strong></span>)</span> for Matlab. The matrix <span class="math scholmd-math-inline">\(W\)</span> represents the wavelet transform. The learned set intersection approach achieves higher SNR for all evaluation images than the basis-pursuit denoise formulation tested with total-variation and with Wavelets (Daubechies wavelets as implemented by the SPOT linear operator toolbox (http://www.cs.ubc.ca/labs/scl/spot/index.html) and computed with the Rice Wavelet Toolbox (RWT, github.com/ricedsp/rwt)).</p>
+<figure class="scholmd-float scholmd-figure scholmd-widefloat" id="Fig:inpainting-deblurring-training">
+<div class="scholmd-float-content"><figure class="scholmd-subfig" style="display: inline-block; width: ">
+<img src="images/inpainting_deblurring_figs/training_data_1.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: ">
+<img src="images/inpainting_deblurring_figs/training_data_2.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: ">
+<img src="images/inpainting_deblurring_figs/training_data_3.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: ">
+<img src="images/inpainting_deblurring_figs/training_data_4.png" />
+</figure><br /><figure class="scholmd-subfig" style="display: inline-block; width: ">
+<img src="images/inpainting_deblurring_figs/training_data_5.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: ">
+<img src="images/inpainting_deblurring_figs/training_data_6.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: ">
+<img src="images/inpainting_deblurring_figs/training_data_7.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: ">
+<img src="images/inpainting_deblurring_figs/training_data_8.png" />
+</figure></div>
+<div class="scholmd-float-caption"><figcaption><span class="scholmd-caption-head"><span class="scholmd-caption-head-prefix">Figure</span><span class="scholmd-caption-head-label">1</span></span><span class="scholmd-caption-text">A sample of <span class="math scholmd-math-inline">\(8\)</span> out of <span class="math scholmd-math-inline">\(35\)</span> training images.</span></figcaption></div>
+</figure>
+<figure class="scholmd-float scholmd-figure scholmd-widefloat" id="Fig:inpainting-deblurring-evaluation">
+<div class="scholmd-float-content"><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/deblurring_inpainting_observed1.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/deblurring_inpainting_observed2.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/deblurring_inpainting_observed3.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/deblurring_inpainting_observed4.png" />
+</figure><br /><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/deblurring_inpainting_evaluation1.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/deblurring_inpainting_evaluation2.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/deblurring_inpainting_evaluation3.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/deblurring_inpainting_evaluation4.png" />
+</figure><br /><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/PARSDMM_deblurring_inpainting1.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/PARSDMM_deblurring_inpainting2.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/PARSDMM_deblurring_inpainting3.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/PARSDMM_deblurring_inpainting4.png" />
+</figure><br /><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/TFOCS_TV_inpainting1.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/TFOCS_TV_inpainting2.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/TFOCS_TV_inpainting3.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/TFOCS_TV_inpainting4.png" />
+</figure><br /><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/SPGL1_wavelet_inpainting1.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/SPGL1_wavelet_inpainting2.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/SPGL1_wavelet_inpainting3.png" />
+</figure><figure class="scholmd-subfig" style="display: inline-block; width: 25%">
+<img src="images/inpainting_deblurring_figs/SPGL1_wavelet_inpainting4.png" />
+</figure></div>
+<div class="scholmd-float-caption"><figcaption><span class="scholmd-caption-head"><span class="scholmd-caption-head-prefix">Figure</span><span class="scholmd-caption-head-label">2</span></span><span class="scholmd-caption-text">Reconstruction results from 80% missing pixels of an image with motion blur (25 pixels) and noise for PARSDMM with many learned constraints, BPDN-total-variation with TFOCS and BPDN-wavelet with SPGL1.</span></figcaption></div>
+</figure>
+<p></p>
+<div class="references">
+
+</div>
+</div>
+</div>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+      processClass: "math"
+    },
+    TeX: {
+        TagSide: "left",
+        TagIndent: "1.2em",
+        equationNumbers: {
+            autoNumber: "AMS"
+        },
+        Macros: {
+            ensuremath: ["#1",1],
+            textsf: ["\\mathsf{\\text{#1}}",1],
+            texttt: ["\\mathtt{\\text{#1}}",1]
+        }
+    },
+    "HTML-CSS": { 
+        scale: 100,
+        availableFonts: ["TeX"], 
+        preferredFont: "TeX",
+        webFont: "TeX",
+        imageFont: "TeX",
+        EqnChunk: 1000
+    }
+});
+</script>
+<script src="https://www.slim.eos.ubc.ca/Publications/Resources/ScholMD/js/slimweb-scholmd-scripts.js"></script>
+<script src="https://www.slim.eos.ubc.ca/MathJax/MathJax.js?config=TeX-AMS_HTML-full" type="text/javascript"></script>
+</div>
+</body>
+</html>
