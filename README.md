@@ -1,5 +1,7 @@
 # SetIntersectionProjection
-SetIntersectionProjection is a Julia 0.6 package developed by Bas Peters that computes projections of vectorized 2D and 3D images/models,
+![projections of two different points onto a non-convex intersection](docs/images/geometrical_ex.png)
+
+SetIntersectionProjection is a Julia 0.6 package mainly developed by Bas Peters that computes projections of vectorized 2D and 3D images/models,
 <!-- #$$\mathcal{P}_{\mathcal{V}} (\mathbf{m}) \in \arg\min_{\mathbf{x}} \frac{1}{2} \| \mathbf{x} - \mathbf{m} \|_2^2 \quad \text{subject to} \quad \mathbf{m} \in\bigcap_{i=1}^p \mathcal{V}_i,$$ -->
 
 ![equation](http://latex.codecogs.com/gif.latex?%5Cinline%20%24%5Cmathbf%7Bm%7D%20%5Cin%20%5Cmathbb%7BR%7D%5EN%24) , onto intersections of p convex and non-convex sets:
@@ -35,7 +37,7 @@ Main features:
 - serial part of code also uses multithreading and mulithreaded BLAS operations
 - transform-domain operators may be: SparseMatrixCSC, JOLI (https://github.com/slimgroup/JOLI.jl) DCT/DFT/Curvelet matrix-free operators
 - constraints may be defined for the matrix/tensor model and for columns/slices/fibres simultaneously
-- stores `AtA[i]=A_i^T A` in compressed diagonal storage (CDS or DIA format) if all $A_i$ have a banded structure. This saves memory compared to standard Julia `SparseMatrixCSC` format. We also use a multithreaded matrix-vector product which is faster than the Julia `SparseMatrixCSC` matrix-vector product
+- stores `AtA[i]=A_i^T A` in compressed diagonal storage (CDS or DIA format) if all 'A_i' have a banded structure. This saves memory compared to standard Julia `SparseMatrixCSC` format. We also use a multithreaded matrix-vector product which is faster than the Julia `SparseMatrixCSC` matrix-vector product
 
 List of constraints, transform-domain operators and short function description
 
@@ -51,9 +53,7 @@ Tutorials:
   
 Performance:
 
- - [timings for projections of 2D models vs grid size]
- - [timings for projections of 3D models vs grid size]
- - [computational cost parallel Dykstra vs PARSDMM]
+ - [timings for projections of 2D and 3D models vs grid size, computational cost parallel Dykstra vs PARSDMM](examples/README_PARSDMM_performance.md)
  - [timings Julia 0.6 SparseMatrixCSC mat-vec vs our multi-threaded compressed-diagonal mat-vec]
  
 The following example illustrates the basic usage. We will project an image onto a set that is the intersection of bound constraint, vertical monotonicity (slope-constraints) and horizontal smoothness (another type of slope-constraint). This is a serial (single-level) example. Use parallel and or multi-level version for larger problems. 

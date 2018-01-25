@@ -138,7 +138,7 @@ ax[:loglog]([0 ; cumsum(ARADMM_it)],feasibility_err_dyk[:,3],linestyle="--",colo
 title("relative set feasibility error")
 xlabel("number of sequential projections onto l1-ball", fontsize=15)
 ax[:legend]()
-savefig("Dykstra_vs_PARSDMM_feasibility.pdf",bbox_inches="tight")
+savefig("Dykstra_vs_PARSDMM_feasibility.eps",bbox_inches="tight",dpi=1200)
 savefig("Dykstra_vs_PARSDMM_feasibility.png",bbox_inches="tight")
 
 
@@ -153,7 +153,7 @@ ax[:loglog]([0;cumsum(cg_it)],feasibility_err_dyk[:,3],linestyle="--",color="k",
 title("relative set feasibility error")
 xlabel("number of sequential CG iterations", fontsize=15)
 ax[:legend]()
-savefig("Dykstra_vs_PARSDMM_feasibility_CG.pdf",bbox_inches="tight")
+savefig("Dykstra_vs_PARSDMM_feasibility_CG.eps",bbox_inches="tight",dpi=1200))
 savefig("Dykstra_vs_PARSDMM_feasibility_CG.png",bbox_inches="tight")
 
 
@@ -164,5 +164,5 @@ ax[:loglog](cumsum(ARADMM_it[2:end]),abs.(diff(obj)./obj[1:end-1]),color="r",lab
 title(L"$ \frac{\frac{1}{2} || \mathbf{m}-\mathbf{x}_k ||_2^2 - \frac{1}{2} || \mathbf{m}-\mathbf{x}_{k-1} ||_2^2} {\frac{1}{2} || \mathbf{m}-\mathbf{x}_{k-1} ||_2^2} $", y=1.04, fontsize=15)
 xlabel("number of sequential projections onto l1-ball", fontsize=15)
 ax[:legend]()
-savefig("Dykstra_vs_PARSDMM_obj_change.pdf",bbox_inches="tight")
+savefig("Dykstra_vs_PARSDMM_obj_change.eps",bbox_inches="tight",dpi=1200))
 savefig("Dykstra_vs_PARSDMM_obj_change.png",bbox_inches="tight")

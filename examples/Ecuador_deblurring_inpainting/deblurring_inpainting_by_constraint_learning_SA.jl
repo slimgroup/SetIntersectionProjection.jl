@@ -224,14 +224,14 @@ figure();title("training image", fontsize=10)
 for i=1:16
   subplot(4,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig(joinpath(data_dir,"training_data_all.pdf"),bbox_inches="tight")
+savefig(joinpath(data_dir,"training_data_all.eps"),bbox_inches="tight",dpi=600)
 savefig(joinpath(data_dir,"training_data_all.png"),bbox_inches="tight")
 close()
 
 for i=1:35
   figure();title(string("training image", i), fontsize=10)
   imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
-  savefig(joinpath(data_dir,string("training_data_", i,".pdf")),bbox_inches="tight")
+  savefig(joinpath(data_dir,string("training_data_", i,".eps")),bbox_inches="tight",dpi=600))
   savefig(joinpath(data_dir,string("training_data_", i,".png")),bbox_inches="tight")
   close()
 end
@@ -241,36 +241,15 @@ SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 
 for i=1:size(m_est,1)
     figure();imshow(d_obs[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".eps")),bbox_inches="tight",dpi=600))
     savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".png")),bbox_inches="tight")
     figure();imshow(m_est[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(m_est[i,(bkl*2):end-(bkl*2),:])),2)))
-    savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".eps")),bbox_inches="tight",dpi=600))
     savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".png")),bbox_inches="tight")
     figure();imshow(m_evaluation[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".eps")),bbox_inches="tight",dpi=600))
     savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".png")),bbox_inches="tight")
 end
-
-#test TV and bounds only, to see if all the other constraints contribute anything in reconstructuion quality
-#
-# #constraints
-# constraint=Dict()
-# constraint["use_bounds"]=true
-# constraint["m_min"]=0.0
-# constraint["m_max"]=255.0
-#
-# constraint["use_TD_l1_1"]=true
-# constraint["TD_l1_operator_1"]="TV"
-# constraint["TD_l1_sigma_1"] = convert(TF,quantile(vec(observations["TV"]),0.50))
-#
-# (m_est,mask_save)=ICLIP_inpainting(FWD_OP,d_obs,m_evaluation,constraint,comp_grid,options,multi_level,n_levels,coarsening_factor)
-#
-# for i=1:size(m_est,1)
-#   figure()
-#   subplot(3,1,1);imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("observed")
-#   subplot(3,1,2);imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("Reconstruction")
-#   subplot(3,1,3);imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-# end
 
 
 file = matopen(joinpath(data_dir,"m_est.mat"), "w")
@@ -293,29 +272,17 @@ file = matopen(joinpath(data_dir,"FWD_OP.mat"), "w")
 write(file, "FWD_OP", convert(SparseMatrixCSC{Float64,Int64},FWD_OP))
 close(file)
 
-
 #load TFOCS matlab results and plot
  file = matopen("x_TFOCS_tv_save_SA.mat")
  x_TFOCS_tv_save=read(file, "x_TFOCS_tv_save_SA")
+ x_TFOCS_tv_save=reshape(x_TFOCS_tv_save,4,comp_grid.n[1],comp_grid.n[2])
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 for i=1:size(m_evaluation,1)
   figure()
   imshow(x_TFOCS_tv_save[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("TFOCS BPDN-TV, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(x_TFOCS_tv_save[i,(bkl*2):end-(bkl*2),:])),2)))
-  savefig(string("TFOCS_TV_inpainting",i,".pdf"),bbox_inches="tight")
+  savefig(joinpath(data_dir,string("TFOCS_TV_inpainting",i,".eps")),bbox_inches="tight",dpi=600))
+  savefig(joinpath(data_dir,string("TFOCS_TV_inpainting",i,".png")),bbox_inches="tight")
 end
-#
-
-# file = matopen("x_TFOCS_W_save_SA.mat")
-# x_TFOCS_tv_save=read(file, "x_TFOCS_W_save_SA")
-# x_TFOCS_tv_save=reshape(x_TFOCS_tv_save,4,comp_grid.n[1],comp_grid.n[2])
-#
-# SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
-# for i=1:size(m_evaluation,1)
-#   figure()
-#   imshow(x_TFOCS_tv_save[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("TFOCS BPDN-Wavelet, SNR=", round(SNR(vec(m_evaluation[i,26:end-26,:]),vec(x_TFOCS_tv_save[i,26:end-26,:])),2)))
-#   savefig(string("TFOCS_Wavelet_inpainting",i,".pdf"),bbox_inches="tight")
-# end
-
 
 file = matopen("x_SPGL1_wavelet_save_SA.mat")
 x_SPGL_wavelet_save=read(file, "x_SPGL1_wavelet_save_SA")
@@ -325,6 +292,6 @@ SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 for i=1:size(m_evaluation,1)
   figure()
   imshow(x_SPGL_wavelet_save[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("SPGL1 BPDN-wavelet, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(x_SPGL_wavelet_save[i,:,:])),2)))
-  savefig(joinpath(data_dir,string("SPGL1_wavelet_inpainting",i,".pdf")),bbox_inches="tight")
+  savefig(joinpath(data_dir,string("SPGL1_wavelet_inpainting",i,".eps")),bbox_inches="tight",dpi=600))
   savefig(joinpath(data_dir,string("SPGL1_wavelet_inpainting",i,".png")),bbox_inches="tight")
 end

@@ -124,7 +124,7 @@ function plot_velocity(vs,title_str,model,keyword,rec_x,rec_z,src_x,src_z)
     colorbar()
     figure;plot(rec_x,rec_z,linewidth=1.0, marker="o",linestyle="")
     figure;plot(src_x,src_z,linewidth=1.0, marker="x",linestyle="","k")
-    savefig(joinpath(data_dir,string("CFWI_simple_freq_m_est_",keyword,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("CFWI_simple_freq_m_est_",keyword,".eps")),bbox_inches="tight",dpi=300)
     savefig(joinpath(data_dir,string("CFWI_simple_freq_m_est_",keyword,".png")),bbox_inches="tight")
     return nothing
 end

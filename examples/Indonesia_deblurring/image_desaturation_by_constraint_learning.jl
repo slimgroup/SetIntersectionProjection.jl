@@ -218,14 +218,14 @@ figure();title("training image", fontsize=10)
 for i=1:16
   subplot(4,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig(joinpath(data_dir,"training_data_all.pdf"),bbox_inches="tight")
+savefig(joinpath(data_dir,"training_data_all.eps"),bbox_inches="tight",dpi=600)
 savefig(joinpath(data_dir,"training_data_all.png"),bbox_inches="tight")
 close()
 
 for i=1:16
   figure();title(string("training image", i), fontsize=10)
   imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
-  savefig(joinpath(data_dir,string("training_data_", i,".pdf")),bbox_inches="tight")
+  savefig(joinpath(data_dir,string("training_data_", i,".eps")),bbox_inches="tight",dpi=600)
   savefig(joinpath(data_dir,string("training_data_", i,".png")),bbox_inches="tight")
   close()
 end
@@ -233,15 +233,33 @@ end
 #plot results
 for i=1:size(m_est,1)
     figure();imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(joinpath(data_dir,string("saturized_observed",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("saturized_observed",i,".eps")),bbox_inches="tight",dpi=600)
     savefig(joinpath(data_dir,string("saturized_observed",i,".png")),bbox_inches="tight")
     figure();imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:])),2)))
-    savefig(joinpath(data_dir,string("PARSDMM_desaturation",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("PARSDMM_desaturation",i,".eps")),bbox_inches="tight",dpi=600)
     savefig(joinpath(data_dir,string("PARSDMM_desaturation",i,".png")),bbox_inches="tight")
     figure();imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(joinpath(data_dir,string("desaturation_evaluation",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("desaturation_evaluation",i,".eps")),bbox_inches="tight",dpi=600)
     savefig(joinpath(data_dir,string("desaturation_evaluation",i,".png")),bbox_inches="tight")
+    close()
 end
+
+#plot histograms of reconstructed on top of true
+nbins=10
+for i=1:size(m_est,1)
+  fig = figure("pyplot_histogram") # Not strictly required
+  ax = axes() # Not strictly required
+  h = plt[:hist](vec(m_evaluation[i,:,:]),nbins) # Histogram of true image
+  h = plt[:hist](vec(m_est[i,:,:]),nbins,alpha=0.5) # Histogram of estimated image
+  xlabel("pixel value", fontsize=12)
+  ylabel("count", fontsize=12)
+  title("Histograms of true and estimated image (PARSDMM)", fontsize=12)
+  savefig(joinpath(data_dir,string("hist_desaturation_PARSDMM",i,".eps")),bbox_inches="tight",dpi=300)
+  savefig(joinpath(data_dir,string("hist_desaturation_PARSDMM",i,".png")),bbox_inches="tight")
+  savefig(joinpath(data_dir,string("hist_desaturation_PARSDMM_HQPNG",i,".png")),bbox_inches="tight",dpi=1200)
+  close()
+end
+
 
 # file = matopen(joinpath(data_dir,"x.mat"), "w")
 # write(file, "x", convert(Array{Float64,1},x))
@@ -284,7 +302,7 @@ close(file)
 # for i=1:size(m_est,1)
 #   figure()
 #   imshow(x_TFOCS_tv_save[i,51:end-51,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("TFOCS BPDN-TV, SNR=", round(SNR(vec(m_evaluation[i,51:end-51,:]),vec(x_TFOCS_tv_save[i,51:end-51,:])),2)))
-#   savefig(string("TFOCS_TV_inpainting",i,".pdf"),bbox_inches="tight")
+#   savefig(string("TFOCS_TV_inpainting",i,".eps"),bbox_inches="tight",dpi=600)
 # end
 
 #
@@ -300,16 +318,16 @@ close(file)
 # z_true_2    = m_evaluation[2,500:end,600:800];
 #
 # figure();imshow(z_parsdmm_1,cmap="gray",vmin=0.0,vmax=255.0); title("PARSDMM zoomed")
-# savefig(string("PARSDMM_inpainting_zoomed_1.pdf"),bbox_inches="tight")
+# savefig(string("PARSDMM_inpainting_zoomed_1.eps"),bbox_inches="tight",dpi=600)
 # figure();imshow(z_parsdmm_2,cmap="gray",vmin=0.0,vmax=255.0); title("PARSDMM zoomed")
-# savefig(string("PARSDMM_inpainting_zoomed_2.pdf"),bbox_inches="tight")
+# savefig(string("PARSDMM_inpainting_zoomed_2.eps"),bbox_inches="tight",dpi=600)
 #
 # figure();imshow(z_TFOCS_1,cmap="gray",vmin=0.0,vmax=255.0); title("BPDN-TV zoomed")
-# savefig(string("TFOCS_inpainting_zoomed_1.pdf"),bbox_inches="tight")
+# savefig(string("TFOCS_inpainting_zoomed_1.eps"),bbox_inches="tight",dpi=600)
 # figure();imshow(z_TFOCS_2,cmap="gray",vmin=0.0,vmax=255.0); title("BPDN-TV zoomed")
-# savefig(string("TFOCS_inpainting_zoomed_2.pdf"),bbox_inches="tight")
+# savefig(string("TFOCS_inpainting_zoomed_2.eps"),bbox_inches="tight",dpi=600)
 #
 # figure();imshow(z_true_1,cmap="gray",vmin=0.0,vmax=255.0); title("true zoomed")
-# savefig(string("true_inpainting_zoomed_1.pdf"),bbox_inches="tight")
+# savefig(string("true_inpainting_zoomed_1.eps"),bbox_inches="tight",dpi=600)
 # figure();imshow(z_true_2,cmap="gray",vmin=0.0,vmax=255.0); title("true zoomed")
-# savefig(string("true_inpainting_zoomed_2.pdf"),bbox_inches="tight")
+# savefig(string("true_inpainting_zoomed_2.eps"),bbox_inches="tight",dpi=600)

@@ -144,12 +144,29 @@ using PyPlot
 #plot results
 for i=1:size(m_est_TV_BPDN,1)
     figure();imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(joinpath(data_dir,string("saturized_observed",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("saturized_observed",i,".eps")),bbox_inches="tight",dpi=600)
     savefig(joinpath(data_dir,string("saturized_observed",i,".png")),bbox_inches="tight")
     figure();imshow(m_est_TV_BPDN[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("TV BPDN, SNR=", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est_TV_BPDN[i,:,:])),2)))
-    savefig(joinpath(data_dir,string("TV_BPDN_desaturation",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("TV_BPDN_desaturation",i,".eps")),bbox_inches="tight",dpi=600)
     savefig(joinpath(data_dir,string("TV_BPDN_desaturation",i,".png")),bbox_inches="tight")
     figure();imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(joinpath(data_dir,string("desaturation_evaluation",i,".pdf")),bbox_inches="tight")
+    savefig(joinpath(data_dir,string("desaturation_evaluation",i,".eps")),bbox_inches="tight",dpi=600)
     savefig(joinpath(data_dir,string("desaturation_evaluation",i,".png")),bbox_inches="tight")
+    close()
+end
+
+close("all")
+nbins=10
+for i=1:size(m_est_TV_BPDN,1)
+  fig = figure("pyplot_histogram") # Not strictly required
+  ax = axes() # Not strictly required
+  h = plt[:hist](vec(m_evaluation[i,:,:]),nbins) # Histogram of true image
+  h = plt[:hist](vec(m_est_TV_BPDN[i,:,:]),nbins,alpha=0.5) # Histogram of estimated image
+  xlabel("pixel value", fontsize=12)
+  ylabel("count", fontsize=12)
+  title("Histograms of true and estimated image (TV-BPDN)", fontsize=12)
+  savefig(joinpath(data_dir,string("hist_desaturation_TVBPDN",i,".eps")),bbox_inches="tight",dpi=300)
+  savefig(joinpath(data_dir,string("hist_desaturation_TVBPDN",i,".png")),bbox_inches="tight")
+  savefig(joinpath(data_dir,string("hist_desaturation_TVBPDN_HQPNG",i,".png")),bbox_inches="tight",dpi=1200)
+  close()
 end

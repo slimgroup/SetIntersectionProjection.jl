@@ -144,7 +144,7 @@ fig, ax = subplots()
 fig, ax = subplots()
 ;ax[:semilogy](time_PARSDMM[1:length(PARSDMM_obj_stop)],PARSDMM_obj_stop,label="PARSDMM")
 ;ax[:semilogy](time_ECOS,ECOS_obj_stop,label="ECOS")
-savefig("Dykstra_vs_convexJL.pdf",bbox_inches="tight")
+savefig("Dykstra_vs_convexJL.eps",bbox_inches="tight")
 savefig("Dykstra_vs_convexJL.png",bbox_inches="tight")
 #
 # subplot(2, 1, 2);semilogy(log_PARSDMM.r_dual)         ;title("r dual")
