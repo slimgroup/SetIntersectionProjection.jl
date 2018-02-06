@@ -1,6 +1,7 @@
 @everywhere using SetIntersectionProjection
 using MAT
 using PyPlot
+data_dir = "/data/slim/bpeters/SetIntersection_data_results"
 
 @everywhere type compgrid
   d :: Tuple
@@ -61,7 +62,7 @@ T_tot_parallel_multilevel=Vector{Any}(length(width))
 for i=1:length(width)
   print(i)
 
-  file = matopen("compass_velocity.mat")
+  file = matopen(joinpath(data_dir,"compass_velocity.mat"))
   m=read(file, "Data")
   close(file)
   m=m[1:341,1:width[i]];
@@ -141,10 +142,10 @@ end
 
 #plot results
 fig, ax = subplots()
-ax[:loglog](N, T_tot_serial, label="serial",linewidth=5)
-ax[:loglog](N, T_tot_parallel, label="parallel",linewidth=5)
-ax[:loglog](N, T_tot_serial_multilevel, label="serial multilevel",linewidth=5)
-ax[:loglog](N, T_tot_parallel_multilevel, label="parallel multilevel",linewidth=5)
+ax[:loglog](N, T_tot_serial, marker="o", markersize=10, label="serial",linewidth=5)
+ax[:loglog](N, T_tot_parallel, marker="x", markersize=10,label="parallel",linewidth=5)
+ax[:loglog](N, T_tot_serial_multilevel, marker="v", markersize=10, label="serial multilevel",linewidth=5)
+ax[:loglog](N, T_tot_parallel_multilevel, marker="^", markersize=10, label="parallel multilevel",linewidth=5)
 ax[:legend]()
 title(string("time 2D vs grid size, JuliaThreads=",Threads.nthreads(),", BLAS threads=",ccall((:openblas_get_num_threads64_, Base.libblas_name), Cint, ())), fontsize=12)
 xlabel("N gridpoints", fontsize=15)
@@ -268,5 +269,5 @@ savefig("projection_intersection_timings2D_1.png",bbox_inches="tight")
 # title(string("time 2D vs grid size, JuliaThreads=",Threads.nthreads(),", BLAS threads=",ccall((:openblas_get_num_threads64_, Base.libblas_name), Cint, ())), fontsize=12)
 # xlabel("N gridpoints", fontsize=15)
 # ylabel("time [seconds]", fontsize=15)
-# savefig("projection_intersection_timings2D_1_b.eps",bbox_inches="tight")
-# savefig("projection_intersection_timings2D_1_b.png",bbox_inches="tight")
+# savefig("projection_intersection_timings2D_2.eps",bbox_inches="tight")
+# savefig("projection_intersection_timings2D_2.png",bbox_inches="tight")

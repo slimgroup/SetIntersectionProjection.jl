@@ -84,9 +84,17 @@ if mode == "x"
 @inbounds x[sort_ind[k+1:end],i,j]=0.0;
       end
   end
+# elseif mode == "z"
+#   for i=1:size(x,1)
+#   Threads.@threads for j=1:size(x,2)
+#       #sort_ind = sortperm( x[:,i], by=abs, rev=true)
+#       sort_ind = sortperm( view(x,i,j,:), by=abs, rev=true)
+# @inbounds x[i,j,sort_ind[k+1:end]]=0.0;
+#     end
+#   end
 elseif mode == "z"
-  for i=1:size(x,1)
-  Threads.@threads for j=1:size(x,2)
+  Threads.@threads for i=1:size(x,1)
+  for j=1:size(x,2)
       #sort_ind = sortperm( x[:,i], by=abs, rev=true)
       sort_ind = sortperm( view(x,i,j,:), by=abs, rev=true)
 @inbounds x[i,j,sort_ind[k+1:end]]=0.0;

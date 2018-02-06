@@ -231,7 +231,7 @@ close()
 for i=1:35
   figure();title(string("training image", i), fontsize=10)
   imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
-  savefig(joinpath(data_dir,string("training_data_", i,".eps")),bbox_inches="tight",dpi=600))
+  savefig(joinpath(data_dir,string("training_data_", i,".eps")),bbox_inches="tight",dpi=600)
   savefig(joinpath(data_dir,string("training_data_", i,".png")),bbox_inches="tight")
   close()
 end
@@ -241,13 +241,13 @@ SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 
 for i=1:size(m_est,1)
     figure();imshow(d_obs[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".eps")),bbox_inches="tight",dpi=600))
+    savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".eps")),bbox_inches="tight",dpi=600)
     savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".png")),bbox_inches="tight")
     figure();imshow(m_est[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(m_est[i,(bkl*2):end-(bkl*2),:])),2)))
-    savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".eps")),bbox_inches="tight",dpi=600))
+    savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
     savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".png")),bbox_inches="tight")
     figure();imshow(m_evaluation[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".eps")),bbox_inches="tight",dpi=600))
+    savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".eps")),bbox_inches="tight",dpi=600)
     savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".png")),bbox_inches="tight")
 end
 
@@ -280,7 +280,7 @@ SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 for i=1:size(m_evaluation,1)
   figure()
   imshow(x_TFOCS_tv_save[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("TFOCS BPDN-TV, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(x_TFOCS_tv_save[i,(bkl*2):end-(bkl*2),:])),2)))
-  savefig(joinpath(data_dir,string("TFOCS_TV_inpainting",i,".eps")),bbox_inches="tight",dpi=600))
+  savefig(joinpath(data_dir,string("TFOCS_TV_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
   savefig(joinpath(data_dir,string("TFOCS_TV_inpainting",i,".png")),bbox_inches="tight")
 end
 
@@ -292,6 +292,6 @@ SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 for i=1:size(m_evaluation,1)
   figure()
   imshow(x_SPGL_wavelet_save[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("SPGL1 BPDN-wavelet, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(x_SPGL_wavelet_save[i,:,:])),2)))
-  savefig(joinpath(data_dir,string("SPGL1_wavelet_inpainting",i,".eps")),bbox_inches="tight",dpi=600))
+  savefig(joinpath(data_dir,string("SPGL1_wavelet_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
   savefig(joinpath(data_dir,string("SPGL1_wavelet_inpainting",i,".png")),bbox_inches="tight")
 end

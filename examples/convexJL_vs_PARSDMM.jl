@@ -14,7 +14,7 @@ end
 file = matopen("compass_velocity.mat")
 m=read(file, "Data")
 close(file)
-m=m[1:341,200:300]#[1:341,200:600];
+m=m[1:341,200:240]#300]#[1:341,200:600];
 m=m';
 
 #PARSDMM options:
@@ -65,7 +65,7 @@ BLAS.set_num_threads(2) #2 is fine for a small problem
 println("PARSDMM serial (bounds, TV and bounds on D_z):")
 @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
 
-iteration_list=2:5:150
+iteration_list=2:20:150
 time_PARSDMM=Vector{Float64}(length(iteration_list))
 PARSDMM_feas_log=Array{Float64,2}(length(iteration_list),3)
 for i=1:length(iteration_list)
@@ -118,10 +118,11 @@ tdlb=TF(0.0)
 tdub=TF(1.0e6)
 cv = Variable(length(m))
 TV_lim=TF(0.25*norm(TV_OP*m,1));
-problem = minimize(sumsquares(cv-m),[norm(TV_OP*cv,1)<=TV_lim ; D_z*cv<=tdub ; D_z*cv>=tdlb ; cv>=constraint["m_min"] ; cv<=constraint["m_max"]])
+#problem = minimize(sumsquares(cv-m),[norm(TV_OP*cv,1)<=TV_lim ; D_z*cv<=tdub ; D_z*cv>=tdlb ; cv>=constraint["m_min"] ; cv<=constraint["m_max"]])
+problem = minimize(sumsquares(cv-m),[norm(TV_OP*cv,1)<=TV_lim ])
 tol_general=10*eps(TF)
 
-maxit_list=5:10:200
+maxit_list=5:20:200
 ECOS_obj_log=Vector{Float64}(length(maxit_list))
 time_ECOS=Vector{Float64}(length(maxit_list))
 ECOS_feas_log=Array{Float64,2}(length(maxit_list),3)
@@ -138,14 +139,18 @@ end
 ECOS_obj_stop=abs.(diff(ECOS_obj_log)./ECOS_obj_log[1:end-1])
 
 fig, ax = subplots()
-;ax[:semilogy](time_PARSDMM,PARSDMM_feas_log,label="PARSDMM")
-;ax[:semilogy](time_ECOS,ECOS_feas_log,label="ECOS")
+;ax[:loglog](time_PARSDMM,PARSDMM_feas_log,label="PARSDMM")
+;ax[:loglog](time_ECOS,ECOS_feas_log,label="ECOS",linestyle="--")
 
 fig, ax = subplots()
-;ax[:semilogy](time_PARSDMM[1:length(PARSDMM_obj_stop)],PARSDMM_obj_stop,label="PARSDMM")
-;ax[:semilogy](time_ECOS,ECOS_obj_stop,label="ECOS")
+;ax[:loglog](time_PARSDMM[1:length(PARSDMM_obj_stop)],PARSDMM_obj_stop,label="PARSDMM")
+;ax[:loglog](time_ECOS,ECOS_obj_stop,label="ECOS",linestyle="--")
 savefig("Dykstra_vs_convexJL.eps",bbox_inches="tight")
 savefig("Dykstra_vs_convexJL.png",bbox_inches="tight")
+
+figure();imshow(reshape(cv.value,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection PARSDMM (bounds, bounds on D_z, TV))")
+
+
 #
 # subplot(2, 1, 2);semilogy(log_PARSDMM.r_dual)         ;title("r dual")
 # subplot(3, 3, 1);semilogy(log_PARSDMM.obj)            ;title(L"$ \frac{1}{2} || \mathbf{m}-\mathbf{x} ||_2^2 $")
@@ -158,34 +163,34 @@ savefig("Dykstra_vs_convexJL.png",bbox_inches="tight")
 # ;
 
 #
-# TF=Float64
-# TI=Int64
-# options.FL=Float64
-# (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-# (TV_OP, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"TV",TF)
-# (D_z, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"D_z",TF)
-# m=convert(Vector{TF},m)
-# tdlb=TF(0.0)
-# tdub=TF(1.0e6)
-# cv = Variable(length(m))
-# TV_lim=TF(0.25*norm(TV_OP*m,1));
-# problem = minimize(sumsquares(cv-m),[norm(TV_OP*cv,1)<=TV_lim ; D_z*cv<=tdub ; D_z*cv>=tdlb ; cv>=constraint["m_min"] ; cv<=constraint["m_max"]])
-# tol_general=10*eps(TF)
-# maxit_list=5:5:60
-# SCS_obj_log=Vector{Float64}(length(maxit_list))
-# time_SCS=Vector{Float64}(length(maxit_list))
-# SCS_feas_log=Array{Float64,2}(length(maxit_list),3)
-# for i=1:length(maxit_list)
-#   tic()
-#   solve!(problem,SCSSolver(max_iters=maxit_list[i]))
-#   time_SCS[i]=toc()
-#   SCS_obj_log[i]=0.5*norm(vec(cv.value)-m,2).^2
-#   #don't need more than one run in this case becaues the running time does not decrease
-#   for j=1:3
-#     SCS_feas_log[i,j]=norm(P_sub[j](TD_OP[j]*vec(cv.value))-TD_OP[j]*vec(cv.value))/norm(TD_OP[j]*vec(cv.value))
-#   end
-# end
-# SCS_obj_stop=abs.(diff(SCS_obj_log)./SCS_obj_log[1:end-1])
+TF=Float64
+TI=Int64
+options.FL=Float64
+(P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+(TV_OP, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"TV",TF)
+(D_z, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"D_z",TF)
+m=convert(Vector{TF},m)
+tdlb=TF(0.0)
+tdub=TF(1.0e6)
+cv = Variable(length(m))
+TV_lim=TF(0.25*norm(TV_OP*m,1));
+problem = minimize(sumsquares(cv-m),[norm(TV_OP*cv,1)<=TV_lim])# ; D_z*cv<=tdub ; D_z*cv>=tdlb ; cv>=constraint["m_min"] ; cv<=constraint["m_max"]])
+tol_general=10*eps(TF)
+maxit_list=5:5:60
+SCS_obj_log=Vector{Float64}(length(maxit_list))
+time_SCS=Vector{Float64}(length(maxit_list))
+SCS_feas_log=Array{Float64,2}(length(maxit_list),3)
+for i=1:length(maxit_list)
+  tic()
+  solve!(problem,SCSSolver(max_iters=maxit_list[i]),linearsolver="SCS.Indirect")
+  time_SCS[i]=toc()
+  SCS_obj_log[i]=0.5*norm(vec(cv.value)-m,2).^2
+  #don't need more than one run in this case becaues the running time does not decrease
+  for j=1:3
+    SCS_feas_log[i,j]=norm(P_sub[j](TD_OP[j]*vec(cv.value))-TD_OP[j]*vec(cv.value))/norm(TD_OP[j]*vec(cv.value))
+  end
+end
+SCS_obj_stop=abs.(diff(SCS_obj_log)./SCS_obj_log[1:end-1])
 #
 #
 # TF=Float64
