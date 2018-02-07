@@ -4,8 +4,7 @@ function constraint2coarse(constraint,comp_grid,coarsening_factor)
 
   constraint_level=deepcopy(constraint)
 
-  #point-wise constraints: same as on fine grid
-  # these include bounds, transform-domain bounds
+  #bound constraints: same as on fine grid
 
   #rank: same as on fine grid
 
@@ -13,7 +12,7 @@ function constraint2coarse(constraint,comp_grid,coarsening_factor)
 
   #define below what to do with norms (l1, l2 and nuclear)
   # will probably depend on constraints and interpolation type that is used
-  # below we use simple heuristics, better heuristics may improve performance of the multi-level scheme
+  # below we use simple heuristics, better methods may improve performance of the multilevel scheme
 
 
 if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3D
@@ -33,6 +32,15 @@ if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3D
   end
 
 else #use 2D
+
+  #for point-wise bound constraints in a transform-domain on a 2D grid if the transform-domain is a derivative operator:
+
+  for i=1:3
+    if haskey(constraint,string("use_TD_bounds_",i)) && (constraint[string("use_TD_bounds_",i)]==true) && (constraint[string("TDB_operator_",i)] in ["D_x","D_z"])
+      constraint_level[string("TD_LB_",i)]=constraint_level[string("TD_LB_",i)].*coarsening_factor
+      constraint_level[string("TD_UB_",i)]=constraint_level[string("TD_UB_",i)].*coarsening_factor
+    end
+  end
 
     #for l1 norm in a transform-domain: on a 2D grid: ||.||_1(coarse)=||.||_1(fine)/(coarsening factor^2)
     for i=1:3
