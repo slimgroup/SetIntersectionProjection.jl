@@ -146,7 +146,7 @@ ax[:legend]()
 title(string("time 3D vs grid size, JuliaThreads=",Threads.nthreads(),", BLAS threads=",ccall((:openblas_get_num_threads64_, Base.libblas_name), Cint, ())), fontsize=12)
 xlabel("N gridpoints", fontsize=15)
 ylabel("time [seconds]", fontsize=15)
-savefig("projection_intersection_timings3D_1.eps"),bbox_inches="tight",dpi=1200)
+savefig("projection_intersection_timings3D_1.eps",bbox_inches="tight",dpi=1200)
 savefig("projection_intersection_timings3D_1.png",bbox_inches="tight")
 
 

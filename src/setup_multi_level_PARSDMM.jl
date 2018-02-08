@@ -69,6 +69,7 @@ for i=2:n_levels
     m_level     = itp_m[linspace(1,comp_grid.n[1],n[1]), linspace(1,comp_grid.n[2],n[2])]
   end
   m_levels[i] = vec(m_level)
+  #m_levels[i] = vec(restrict(reshape(m_levels[i-1],comp_grid_levels[i-1].n))
 
   #create computational grid information for this level
   comp_grid_levels[i]   = deepcopy(comp_grid)
@@ -91,6 +92,38 @@ for i=2:n_levels
   TD_Prop_levels[i]   = TD_Prop_l
 
 end #for loop
+
+# #replicate edges of the subsampled m to avoid artifacts from the blur kernel
+# for i=1:n_levels
+#   m_levels[i]=reshape(m_levels[i],comp_grid_levels[i].n)
+#   if dim3 == true
+#     m_levels[i][1,:,:]=m_levels[i][2,:,:]
+#     m_levels[i][1,:,:]=m_levels[i][2,:,:]
+#     m_levels[i][end,:,:]=m_levels[i][end-1,:,:]
+#     m_levels[i][end,:,:]=m_levels[i][end-1,:,:]
+#
+#     m_levels[i][:,1,:]=m_levels[i][:,2,:]
+#     m_levels[i][:,1,:]=m_levels[i][:,2,:]
+#     m_levels[i][:,end,:]=m_levels[i][:,end-1,:]
+#     m_levels[i][:,end,:]=m_levels[i][:,end-1,:]
+#
+#     m_levels[i][:,:,1]=m_levels[i][:,:,2]
+#     m_levels[i][:,:,1]=m_levels[i][:,:,2]
+#     m_levels[i][:,:,end]=m_levels[i][:,:,end-1]
+#     m_levels[i][:,:,end]=m_levels[i][:,:,end-1]
+#   else
+#     m_levels[i][1,:]=m_levels[i][2,:]
+#     m_levels[i][1,:]=m_levels[i][2,:]
+#     m_levels[i][end,:]=m_levels[i][end-1,:]
+#     m_levels[i][end,:]=m_levels[i][end-1,:]
+#
+#     m_levels[i][:,1]=m_levels[i][:,2]
+#     m_levels[i][:,1]=m_levels[i][:,2]
+#     m_levels[i][:,end]=m_levels[i][:,end-1]
+#     m_levels[i][:,end]=m_levels[i][:,end-1]
+#   end
+#   m_levels[i]=vec(m_levels[i])
+# end
 
 return m_levels, TD_OP_levels, AtA_levels, P_sub_levels, TD_Prop_levels, comp_grid_levels
 end #end setup_multi_level_PARSDMM

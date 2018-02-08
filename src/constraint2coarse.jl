@@ -21,8 +21,8 @@ if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3D
   for i=1:3
     if haskey(constraint,string("use_TD_bounds_",i)) && (constraint[string("use_TD_bounds_",i)]==true)
       if (constraint[string("TDB_operator_",i)] in ["D_x","D_y","D_z","DFT"])
-        constraint_level[string("TD_LB_",i)]=constraint_level[string("TD_LB_",i)].*coarsening_factor
-        constraint_level[string("TD_UB_",i)]=constraint_level[string("TD_UB_",i)].*coarsening_factor
+        constraint_level[string("TD_LB_",i)]=constraint[string("TD_LB_",i)].*coarsening_factor
+        constraint_level[string("TD_UB_",i)]=constraint[string("TD_UB_",i)].*coarsening_factor
       end
     end
   end
@@ -47,8 +47,8 @@ else #use 2D
   for i=1:3
     if haskey(constraint,string("use_TD_bounds_",i)) && (constraint[string("use_TD_bounds_",i)]==true)
       if (constraint[string("TDB_operator_",i)] in ["D_x","D_y","D_z","DFT"])
-        constraint_level[string("TD_LB_",i)]=constraint_level[string("TD_LB_",i)].*coarsening_factor
-        constraint_level[string("TD_UB_",i)]=constraint_level[string("TD_UB_",i)].*coarsening_factor
+        constraint_level[string("TD_LB_",i)]=constraint[string("TD_LB_",i)].*coarsening_factor
+        constraint_level[string("TD_UB_",i)]=constraint[string("TD_UB_",i)].*coarsening_factor
       end
     end
   end
