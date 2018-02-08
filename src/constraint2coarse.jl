@@ -17,15 +17,15 @@ function constraint2coarse(constraint,comp_grid,coarsening_factor)
 
 if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3D
 
-  #for point-wise bound constraints in a transform-domain on a 3D grid if the transform-domain is a derivative operator:
-  for i=1:3
-    if haskey(constraint,string("use_TD_bounds_",i)) && (constraint[string("use_TD_bounds_",i)]==true)
-      if (constraint[string("TDB_operator_",i)] in ["D_x","D_y","D_z","DFT"])
-        constraint_level[string("TD_LB_",i)]=constraint[string("TD_LB_",i)].*coarsening_factor
-        constraint_level[string("TD_UB_",i)]=constraint[string("TD_UB_",i)].*coarsening_factor
-      end
-    end
-  end
+  # #for point-wise bound constraints in a transform-domain on a 3D grid if the transform-domain is a derivative operator:
+  # for i=1:3
+  #   if haskey(constraint,string("use_TD_bounds_",i)) && (constraint[string("use_TD_bounds_",i)]==true)
+  #     if (constraint[string("TDB_operator_",i)] in ["D_x","D_y","D_z","DFT"])
+  #       constraint_level[string("TD_LB_",i)]=constraint[string("TD_LB_",i)].*coarsening_factor
+  #       constraint_level[string("TD_UB_",i)]=constraint[string("TD_UB_",i)].*coarsening_factor
+  #     end
+  #   end
+  # end
 
   #for l1 norm in a transform-domain: on a 3D grid: ||.||_1(coarse)=||.||_1(fine)/(coarsening factor^3)
   for i=1:3
@@ -43,15 +43,15 @@ if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3D
 
 else #use 2D
 
-  #for point-wise bound constraints in a transform-domain on a 2D grid if the transform-domain is a derivative operator:
-  for i=1:3
-    if haskey(constraint,string("use_TD_bounds_",i)) && (constraint[string("use_TD_bounds_",i)]==true)
-      if (constraint[string("TDB_operator_",i)] in ["D_x","D_y","D_z","DFT"])
-        constraint_level[string("TD_LB_",i)]=constraint[string("TD_LB_",i)].*coarsening_factor
-        constraint_level[string("TD_UB_",i)]=constraint[string("TD_UB_",i)].*coarsening_factor
-      end
-    end
-  end
+  # #for point-wise bound constraints in a transform-domain on a 2D grid if the transform-domain is a derivative operator:
+  # for i=1:3
+  #   if haskey(constraint,string("use_TD_bounds_",i)) && (constraint[string("use_TD_bounds_",i)]==true)
+  #     if (constraint[string("TDB_operator_",i)] in ["D_x","D_y","D_z","DFT"])
+  #       constraint_level[string("TD_LB_",i)]=constraint[string("TD_LB_",i)].*coarsening_factor
+  #       constraint_level[string("TD_UB_",i)]=constraint[string("TD_UB_",i)].*coarsening_factor
+  #     end
+  #   end
+  # end
 
     #for l1 norm in a transform-domain: on a 2D grid: ||.||_1(coarse)=||.||_1(fine)/(coarsening factor^2)
     for i=1:3
