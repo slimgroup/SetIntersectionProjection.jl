@@ -5,7 +5,7 @@ using Parameters
 using Interpolations
 using DistributedArrays
 using JOLI
-using Images
+#using Images
 export log_type_PARSDMM, transform_domain_properties, PARSDMM_options
 
 #main scripts

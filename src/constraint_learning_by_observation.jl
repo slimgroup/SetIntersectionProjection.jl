@@ -37,13 +37,14 @@ observations["D_x_max"]      = zeros(TF,n_train_ex)
 observations["D_z_min"]      = zeros(TF,n_train_ex)
 observations["D_z_max"]      = zeros(TF,n_train_ex)
 
-observations["DCT_x_LB"]      = zeros(TF,t2)
+observations["DCT_x_LB"]      = zeros(TF,t2).+100
 observations["DCT_x_UB"]      = zeros(TF,t2)
 
-observations["DCT_y_LB"]      = zeros(TF,t3)
+observations["DCT_y_LB"]      = zeros(TF,t3).+100 #add 100 because we take the min looping over every training image,
 observations["DCT_y_UB"]      = zeros(TF,t3)
 
-observations["hist_mean"]     = zeros(TF,t2*t3)
+observations["hist_min"]     = zeros(TF,n_train_ex,t2*t3).+10000
+observations["hist_max"]     = zeros(TF,n_train_ex,t2*t3)
 
 #get transform-domain operators
 #need to install CurveLab to use the Curvelet transform
@@ -63,7 +64,8 @@ for i=1:n_train_ex #can be changed to a parallel loop for larger datasets
     training_image = vec(m_train[i,:,:])
 
     #observe sorted values for mean histogram
-    observations["hist_mean"].=observations["hist_mean"].+(1/n_train_ex).*sort(training_image)
+    observations["hist_min"].=min(observations["hist_min"],sort(training_image))
+    observations["hist_max"].=max(observations["hist_max"],sort(training_image))
 
     #observe Nuclear norm
     sv=svdvals(reshape(training_image,comp_grid.n))

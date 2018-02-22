@@ -205,6 +205,19 @@ for i in ["x","y","z"]
   end
 end
 
+# histogram constraints
+if haskey(constraint,"use_hist_eq_relax") && constraint["use_hist_eq_relax"]=true
+  P_sub[counter]  = x -> project_histogram_relaxed!(x,constraint["hist_eq_LB"],constraint["hist_eq_UB"])
+  TD_Prop.ncvx[counter]     = false
+  TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
+  TD_Prop.AtA_diag[counter] = true
+  TD_Prop.dense[counter]    = false
+  TD_Prop.banded[counter]   = true
+  TD_Prop.TD_n[counter]     = comp_grid.n
+  TD_Prop.tag[counter]      = ("histogram", "identity")
+  counter                   = counter+1;
+end
+
 P_sub = P_sub[1:counter-1]
 TD_OP = TD_OP[1:counter-1]
 
