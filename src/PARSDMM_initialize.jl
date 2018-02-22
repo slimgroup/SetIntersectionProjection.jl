@@ -23,8 +23,16 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             )
 
 #
-                            ind_ref           = maxit
-                            const N           = length(x)
+                            ind_ref = maxit
+                            if options.Minkowski == false
+                              const N = length(x)
+                            elseif options.Minkowski == true && zero_ini_guess==true
+                              const N = length(x)*2
+                            elseif options.Minkowski == true && zero_ini_guess==false
+                              @assert length(x)==(2*length(m))
+                              const N = length(x)
+                            end
+                            # const N = size(TD_OP[1],2) #this line will give really weird errors later on for some reason..
 
 
                             # if typeof(AtA[1])==SparseMatrixCSC{TF,TI}
@@ -53,7 +61,8 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             if linear_inv_prob_flag==false
                               #define prox for all terms in the sum (projectors onto sets)
                               #add prox for the data fidelity term 0.5||m-x||_2^2
-                              prox_data = input -> prox_l2s!(input,rho[end],m)
+                              m_orig = deepcopy(m) ::Vector{TF}
+                              prox_data = input -> prox_l2s!(input,rho[end],m_orig)
                               push!(prox,prox_data);
                             end
                             if parallel==true
@@ -69,17 +78,13 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             # detect feasibility of model that needs to be projected
                             stop=false
                             feasibility_initial = zeros(TF,length(P_sub))
-
+                            if options.Minkowski == true
+                              m = [m ; zeros(TF,length(m)) ]
+                            end
                             if parallel
-                              #temp=zeros(TF,length(P_sub))
-                              #temp=distribute(temp)
                               feasibility_initial=distribute(feasibility_initial)
                               #[@spawnat pid m for pid in P_sub.pids]
                               [@spawnat pid compute_relative_feasibility(m,feasibility_initial[:L],TD_OP[:L],P_sub[:L]) for pid in P_sub.pids]
-                                # @sync for ii=1:length(P_sub)
-                              #   @async feasibility_initial[ii]=@fetchfrom P_sub.pids[ii] temp[:L][1];
-                              #   @everywhere gc()
-                              # end
                               feasibility_initial=convert(Vector{TF},feasibility_initial)
                             else
                               for ii=1:length(P_sub)
@@ -103,7 +108,7 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             end
 
                             #allocate arrays of vectors
-                            Ax_out=zeros(TF,length(x))
+                            Ax_out=zeros(TF,N)
 
                             #if y and l are empty, allocate them and fill with zeros
                             if isempty(l)==true

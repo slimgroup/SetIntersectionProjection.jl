@@ -73,6 +73,7 @@ for i=1:length(width)
   N[i]=prod(size(m));
 
   #serial
+  @everywhere gc()
   println("")
   println("serial")
   options.parallel=false
@@ -85,6 +86,7 @@ for i=1:length(width)
   T_tot_serial[i]=t;
 
   #parallel
+  @everywhere gc()
   println("")
   println("parallel")
   options.parallel=true
@@ -97,6 +99,7 @@ for i=1:length(width)
   T_tot_parallel[i]=t;
 
   #serial multilevel
+  @everywhere gc()
   println("")
   println("serial multilevel")
   options.parallel=false
@@ -110,6 +113,7 @@ for i=1:length(width)
   T_tot_serial_multilevel[i]=t;
 
   #parallel multilevel
+  @everywhere gc()
   println("")
   println("parallel multilevel")
   options.parallel=true

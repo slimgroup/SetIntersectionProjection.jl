@@ -46,7 +46,6 @@ function PARSDMM{TF<:Real,TI<:Integer}(m         ::Vector{TF},
 # Author: Bas Peters
 
 tic()
-
 # Parse default options
 convert_options!(options,TF,TI)
 @unpack  x_min_solver,maxit,evol_rel_tol,feas_tol,obj_tol,rho_ini,rho_update_frequency,gamma_ini,
@@ -147,7 +146,11 @@ for i=1:maxit #main loop
 
   #some more logging
   log_PARSDMM.r_pri_total[i]  = sum(log_PARSDMM.r_pri[i,:]);
-  log_PARSDMM.obj[i]          = (TF(0.5).*norm(x.-m)^2);
+  if options.Minkowski == false
+    log_PARSDMM.obj[i]          = TF(0.5).*norm(x.-m)^2
+  else
+    log_PARSDMM.obj[i]          = TF(0.5).*norm(TD_OP[end]*x.-m)^2
+  end
   log_PARSDMM.evol_x[i]       = norm(x_old.-x)./norm(x);
   log_PARSDMM.rho[i,:]        = rho;
   log_PARSDMM.gamma[i,:]      = gamma;

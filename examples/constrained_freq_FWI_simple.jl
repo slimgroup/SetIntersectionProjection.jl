@@ -1,5 +1,6 @@
 #simple frequency domain FWI to illustrate PARSDMM
-include("/home/slim/bpeters/.julia/v0.6/WAVEFORM/src/Waveform.jl")
+#include("/home/slim/bpeters/.julia/v0.6/WAVEFORM/src/Waveform.jl")
+using Waveform
 
 using JOLI
 using PyPlot

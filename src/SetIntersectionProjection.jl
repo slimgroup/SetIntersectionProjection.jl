@@ -5,6 +5,7 @@ using Parameters
 using Interpolations
 using DistributedArrays
 using JOLI
+using Images
 export log_type_PARSDMM, transform_domain_properties, PARSDMM_options
 
 #main scripts
@@ -39,6 +40,7 @@ include("a_is_b_min_c_MT!.jl")
 
 #multi level related scripts
 include("setup_multi_level_PARSDMM.jl")
+include("setup_multilevel_PARSDMM_LP.jl")
 include("constraint2coarse.jl")
 include("interpolate_y_l.jl")
 
@@ -59,6 +61,7 @@ include("projectors/project_l1_Duchi!.jl");
 include("projectors/project_l2!.jl");
 include("projectors/project_annulus!.jl");
 include("projectors/project_subspace!.jl");
+include("project_histogram_relaxed.jl");
 
 include("prox_l2s!.jl")
 
@@ -96,7 +99,7 @@ end
   evol_rel_tol          :: Real = 1e-4
   feas_tol              :: Real = 5e-2
   obj_tol               :: Real = 1e-3
-  rho_ini               :: Vector{Real} = [1000.0]
+  rho_ini               :: Vector{Real} = [10.0]
   rho_update_frequency  :: Integer = 2
   gamma_ini             :: Real = 1.0
   adjust_rho            :: Bool    = true
@@ -108,6 +111,7 @@ end
   FL                    :: DataType = Float32
   parallel              :: Bool    = false
   zero_ini_guess        :: Bool    = true
+  Minkowski             :: Bool    = false
 end
 
 type transform_domain_properties

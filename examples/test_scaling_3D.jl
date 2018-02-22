@@ -69,7 +69,7 @@ T_tot_parallel_multilevel=Vector{Any}(length(width))
 
 options.rho_ini = [1.0;1000.0;1000.0;1000.0;1.0]
 
-for i=1:length(width)
+for i=4:-1:length(width)
   print(i)
 
   m=m_full[1:width[i],1:width[i],:];
