@@ -61,7 +61,7 @@ include("projectors/project_l1_Duchi!.jl");
 include("projectors/project_l2!.jl");
 include("projectors/project_annulus!.jl");
 include("projectors/project_subspace!.jl");
-include("project_histogram_relaxed.jl");
+include("projectors/project_histogram_relaxed.jl");
 
 include("prox_l2s!.jl")
 
