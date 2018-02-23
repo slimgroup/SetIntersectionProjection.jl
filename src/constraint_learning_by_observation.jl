@@ -46,6 +46,9 @@ observations["DCT_y_UB"]      = zeros(TF,t3)
 observations["hist_min"]     = zeros(TF,t2*t3).+10000
 observations["hist_max"]     = zeros(TF,t2*t3)
 
+observations["hist_TV_min"]     = zeros(TF,(t2-1)*t3+t2*(t3-1)).+10000
+observations["hist_TV_max"]     = zeros(TF,(t2-1)*t3+t2*(t3-1))
+
 #get transform-domain operators
 #need to install CurveLab to use the Curvelet transform
 (Dx_OP, dummy1, dummy2, Dx_TD_n)=get_TD_operator(comp_grid,"D_x",TF)
@@ -66,6 +69,10 @@ for i=1:n_train_ex #can be changed to a parallel loop for larger datasets
     #observe sorted values for mean histogram
     observations["hist_min"].=min.(observations["hist_min"],sort(training_image))
     observations["hist_max"].=max.(observations["hist_max"],sort(training_image))
+
+    #observe sorted values for mean histogram
+    observations["hist_TV_min"].=min.(observations["hist_TV_min"],sort(TV_OP*training_image))
+    observations["hist_TV_max"].=max.(observations["hist_TV_max"],sort(TV_OP*training_image))
 
     #observe Nuclear norm
     sv=svdvals(reshape(training_image,comp_grid.n))

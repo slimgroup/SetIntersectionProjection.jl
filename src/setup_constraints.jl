@@ -206,16 +206,14 @@ for i in ["x","y","z"]
 end
 
 # histogram constraints
-if haskey(constraint,"use_hist_eq_relax") && constraint["use_hist_eq_relax"]==true
-  P_sub[counter]  = x -> project_histogram_relaxed!(x,constraint["hist_eq_LB"],constraint["hist_eq_UB"])
-  TD_Prop.ncvx[counter]     = false
-  TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
-  TD_Prop.AtA_diag[counter] = true
-  TD_Prop.dense[counter]    = false
-  TD_Prop.banded[counter]   = true
-  TD_Prop.TD_n[counter]     = comp_grid.n
-  TD_Prop.tag[counter]      = ("histogram", "identity")
-  counter                   = counter+1;
+for i=1:3
+  if haskey(constraint,string("use_TD_hist_eq_relax_",i)) && constraint[string("use_TD_hist_eq_relax_",i)]==true
+    P_sub[counter]  = x -> project_histogram_relaxed!(x,constraint[string("hist_eq_LB_",i)],constraint[string("hist_eq_UB_",i)])
+    (TD_OP[counter],TD_Prop.AtA_diag[counter],TD_Prop.dense[counter],TD_Prop.TD_n[counter],TD_Prop.banded[counter]) = get_TD_operator(comp_grid,constraint[string("TD_hist_eq_operator_",i)],TF)
+    TD_Prop.ncvx[counter]     = false
+    TD_Prop.tag[counter]      = (string("histogram_",i), constraint[string("TD_hist_eq_operator_",i)])
+    counter                   = counter+1;
+  end
 end
 
 P_sub = P_sub[1:counter-1]
@@ -238,7 +236,7 @@ function setup_transform_domain_bound_constraints(ind,P_sub,TD_OP,TD_Prop,comp_g
   else
     TD_UB=convert(Vector{TF},TD_UB); TD_LB=convert(Vector{TF},TD_LB)
   end
-  (A,AtA_diag,dense,TD_n,banded)= get_TD_operator(comp_grid,operator_type,TF)
+  (A,AtA_diag,dense,TD_n,banded) = get_TD_operator(comp_grid,operator_type,TF)
 
   if operator_type in special_operator_list
     if operator_type=="DCT"
