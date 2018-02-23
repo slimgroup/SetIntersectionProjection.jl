@@ -16,6 +16,7 @@ if options.linear_inv_prob_flag==false
   push!(TD_Prop.AtA_offsets,[0])
   push!(TD_Prop.banded,true)
   push!(TD_Prop.AtA_diag,true)
+  push!(TD_Prop.ncvx,false)
   push!(TD_Prop.dense,false)
   push!(TD_Prop.tag,("distance squared","identity"))
 end

@@ -57,6 +57,16 @@ constraint["use_bounds"]=false
 constraint["m_min"]=0.0
 constraint["m_max"]=255.0
 
+constraint["use_TD_hist_eq_relax_1"]=false
+constraint["hist_eq_LB_1"] = observations["hist_min"]
+constraint["hist_eq_UB_1"] = observations["hist_max"]
+constraint["TD_hist_eq_operator_1"]= "identity"
+
+constraint["use_TD_hist_eq_relax_2"]=false
+constraint["hist_eq_LB_2"] = observations["hist_TV_min"]
+constraint["hist_eq_UB_2"] = observations["hist_TV_max"]
+constraint["TD_hist_eq_operator_2"]= "TV"
+
 constraint["use_TD_rank_1"]=false;
 observations["rank_095"]=sort(vec(observations["rank_095"]))
 constraint["TD_max_rank_1"] = convert(TI,round(quantile(observations["rank_095"],0.50)))
@@ -105,12 +115,12 @@ constraint["use_TD_card_1"]=false
 constraint["TD_card_operator_1"]="curvelet"
 constraint["card_1"]=convert(TI,round(quantile(vec(observations["curvelet_card_095"]),0.85)))
 
-constraint["use_TD_bounds_fiber_x"]=true
+constraint["use_TD_bounds_fiber_x"]=false
 constraint["TD_bounds_fiber_x_operator"]="DCT"
 constraint["TD_LB_fiber_x"]=observations["DCT_x_LB"]
 constraint["TD_UB_fiber_x"]=observations["DCT_x_UB"]
 
-constraint["use_TD_bounds_fiber_y"]=true
+constraint["use_TD_bounds_fiber_y"]=false
 constraint["TD_bounds_fiber_y_operator"]="DCT"
 constraint["TD_LB_fiber_y"]=observations["DCT_y_LB"]
 constraint["TD_UB_fiber_y"]=observations["DCT_y_UB"]
@@ -124,7 +134,7 @@ constraint["TD_annulus_operator_1"]="identity"
 constraint["TD_annulus_sigma_max_1"]=maximum(observations["annulus"])
 constraint["TD_annulus_sigma_min_1"]=minimum(observations["annulus"])
 
-constraint["use_TD_annulus_2"]=true
+constraint["use_TD_annulus_2"]=false
 constraint["TD_annulus_operator_2"]="TV"
 constraint["TD_annulus_sigma_max_2"]=maximum(observations["TV_annulus"])
 constraint["TD_annulus_sigma_min_2"]=minimum(observations["TV_annulus"])
@@ -136,6 +146,7 @@ options=default_PARSDMM_options(options,options.FL)
 options.evol_rel_tol = 1f-6
 options.feas_tol     = 0.001f0
 options.obj_tol      = 0.0002f0
+options.rho_ini      =[1000f0]
 options.adjust_gamma           = true
 options.adjust_rho             = true
 options.adjust_feasibility_rho = true
@@ -178,12 +189,19 @@ x_ini= vec(d_obs[1,:,:])
 x_ini[ind_max_clip]=225.0f0
 x_ini[ind_min_clip]=0.0f0
 
+for i=1:length(options.rho_ini)
+  if TD_Prop.ncvx[i]==true
+    options.rho_ini[i]=10f0
+end
+
 for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
  [@spawnat pid y[:L][1]=TD_OP[:L][1]*x_ini for pid in y.pids]
  #[@spawnat pid l[:L][1]=randn(TF,length(l[:L][1])) for pid in l.pids]
 
-  @time (x,log_PARSDMM) = PARSDMM(x_ini,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options,x_ini,[],y)
+
+  p2proj = deepcopy(x_ini) #don't couple initial guess and point to project.
+  @time (x,log_PARSDMM) = PARSDMM(p2proj,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options,x_ini,[],y)
   m_est[i,:,:]=reshape(x,comp_grid.n)
   println("SNR:", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:])),2))
 
@@ -197,7 +215,7 @@ for i=1:size(d_obs,1)
     UBD[ind_max_clip].=255.0f0
     P_sub[end] = x -> project_bounds!(x,LBD,UBD)
 
-    x_ini= vec(d_obs[i,:,:])
+    x_ini= vec(d_obs[i+1,:,:])
     x_ini[ind_max_clip]=225.0f0
     x_ini[ind_min_clip]=0.0f0
   end
