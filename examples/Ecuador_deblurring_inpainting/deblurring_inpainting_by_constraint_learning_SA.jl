@@ -90,6 +90,16 @@ constraint["use_bounds"]=true
 constraint["m_min"]=0.0
 constraint["m_max"]=255.0
 
+constraint["use_TD_hist_eq_relax_1"]=false
+constraint["hist_eq_LB_1"] = observations["hist_min"]
+constraint["hist_eq_UB_1"] = observations["hist_max"]
+constraint["TD_hist_eq_operator_1"]= "identity"
+
+constraint["use_TD_hist_eq_relax_2"]=false
+constraint["hist_eq_LB_2"] = observations["hist_TV_min"]
+constraint["hist_eq_UB_2"] = observations["hist_TV_max"]
+constraint["TD_hist_eq_operator_2"]= "TV"
+
 constraint["use_TD_rank_1"]=false;
 observations["rank_095"]=sort(vec(observations["rank_095"]))
 constraint["TD_max_rank_1"] = convert(TI,round(quantile(observations["rank_095"],0.50)))
@@ -203,6 +213,13 @@ println("finished setting up constraints")
 dummy=zeros(TF,size(BF,2))
 (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
 println("finished precomputing and distributing")
+
+options.rho_ini      = ones(TF,length(TD_OP))*1000f0
+for i=1:length(options.rho_ini)
+  if TD_Prop.ncvx[i]==true
+    options.rho_ini[i]=10f0
+  end
+end
 
 for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))

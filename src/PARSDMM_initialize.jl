@@ -51,7 +51,7 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             pp=p-1;
                             if linear_inv_prob_flag==true; pp=p; end;
 
-                            rho     = Vector{TF}(p);
+                            rho     = Vector{TF}(p)
                             if length(rho_ini)==1
                               fill!(rho,rho_ini[1])
                             else
@@ -91,7 +91,6 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                                 feasibility_initial[ii]=norm(P_sub[ii](TD_OP[ii]*m).-TD_OP[ii]*m)./(norm(TD_OP[ii]*m)+(100*eps(TF)));
                               end
                             end
-
                             if maximum(feasibility_initial)<options.feas_tol #accept input as feasible and return
                                 println("input to PARSDMM is feasible, returning")
                                 stop=true

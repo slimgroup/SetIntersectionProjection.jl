@@ -70,6 +70,9 @@ x_min_solver,rho_update_frequency,adjust_gamma,m,parallel,options,zero_ini_guess
 
 if stop==true #stop if feasibility of input is detected by PARSDMM_initialize
   copy!(x,m)
+  if options.Minkowski == true
+    x = [x ; zeros(TF,length(x)) ]
+  end
   log_PARSDMM.obj             = log_PARSDMM.obj[[1]]
   log_PARSDMM.evol_x          = log_PARSDMM.evol_x[[1]]
   log_PARSDMM.r_pri_total     = log_PARSDMM.r_pri_total[[1]]

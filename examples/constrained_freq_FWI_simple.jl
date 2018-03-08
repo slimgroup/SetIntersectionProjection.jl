@@ -5,16 +5,18 @@ using Waveform
 using JOLI
 using PyPlot
 #using OptimPackNextGen
-using opesciSLIM.SLIM_optim
+#using opesciSLIM.SLIM_optim
 using Waveform
 
 @everywhere using SetIntersectionProjection
 
-include("SPGslim.jl")
+#include("SPGslim.jl")
+include(string(Pkg.dir("JUDI"),"/src/Optimization/SPGSlim.jl"))
+include(string(Pkg.dir("JUDI"),"/src/Optimization/OptimizationFunctions.jl"))
 
 #data directory for loading and writing results
-data_dir = "/data/slim/bpeters/SetIntersection_data_results"
-
+#data_dir = "/data/slim/bpeters/SetIntersection_data_results"
+data_dir = "/Volumes/Users/bpeters/Downloads"
 
 # Set up the model geometry
 # In 2D, we organize our coordinates as (z,x) for legacy + visualization purposes
@@ -237,7 +239,7 @@ end
 
 CFWI(ini_model,projector) = run_CFWI(freq_partition,nsrc,nfreq,v,Q,D,model,opts1,options_SPG,projector,ini_model,max_func_evals)
 
-constraint_strategy_list=[1 2 3 4 5 6 7 8 9]# 2 3 4 5 6]
+constraint_strategy_list=[2 3 4 5 6 7 8 9]# 2 3 4 5 6]
 for j in constraint_strategy_list
   if j==1
     keyword="bounds_only"
@@ -478,6 +480,12 @@ end
   #set up constraints, precompute some things and define projector
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
   (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+  options.rho_ini      = ones(length(TD_OP))*10.0
+  # for i=1:length(options.rho_ini)
+  #   if TD_Prop.ncvx[i]==true
+  #     options.rho_ini[i]=1.0
+  #   end
+  # end
   proj_intersection = x-> PARSDMM(x,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options)
   # function prj!{T}(dst::T, src::T)
   #   (dst[:],dummy1,dummy2,dymmy3) = proj_intersection(src)

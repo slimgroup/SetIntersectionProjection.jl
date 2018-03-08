@@ -57,12 +57,12 @@ constraint["use_bounds"]=false
 constraint["m_min"]=0.0
 constraint["m_max"]=255.0
 
-constraint["use_TD_hist_eq_relax_1"]=false
+constraint["use_TD_hist_eq_relax_1"]=true
 constraint["hist_eq_LB_1"] = observations["hist_min"]
 constraint["hist_eq_UB_1"] = observations["hist_max"]
 constraint["TD_hist_eq_operator_1"]= "identity"
 
-constraint["use_TD_hist_eq_relax_2"]=false
+constraint["use_TD_hist_eq_relax_2"]=true
 constraint["hist_eq_LB_2"] = observations["hist_TV_min"]
 constraint["hist_eq_UB_2"] = observations["hist_TV_max"]
 constraint["TD_hist_eq_operator_2"]= "TV"
@@ -134,7 +134,7 @@ constraint["TD_annulus_operator_1"]="identity"
 constraint["TD_annulus_sigma_max_1"]=maximum(observations["annulus"])
 constraint["TD_annulus_sigma_min_1"]=minimum(observations["annulus"])
 
-constraint["use_TD_annulus_2"]=false
+constraint["use_TD_annulus_2"]=true
 constraint["TD_annulus_operator_2"]="TV"
 constraint["TD_annulus_sigma_max_2"]=maximum(observations["TV_annulus"])
 constraint["TD_annulus_sigma_min_2"]=minimum(observations["TV_annulus"])
@@ -146,7 +146,6 @@ options=default_PARSDMM_options(options,options.FL)
 options.evol_rel_tol = 1f-6
 options.feas_tol     = 0.001f0
 options.obj_tol      = 0.0002f0
-options.rho_ini      =[1000f0]
 options.adjust_gamma           = true
 options.adjust_rho             = true
 options.adjust_feasibility_rho = true
@@ -189,9 +188,11 @@ x_ini= vec(d_obs[1,:,:])
 x_ini[ind_max_clip]=225.0f0
 x_ini[ind_min_clip]=0.0f0
 
+options.rho_ini      = ones(TF,length(TD_OP))*1000f0
 for i=1:length(options.rho_ini)
   if TD_Prop.ncvx[i]==true
     options.rho_ini[i]=10f0
+  end
 end
 
 for i=1:size(d_obs,1)
