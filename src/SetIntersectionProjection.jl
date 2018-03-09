@@ -40,7 +40,6 @@ include("a_is_b_min_c_MT!.jl")
 
 #multi level related scripts
 include("setup_multi_level_PARSDMM.jl")
-include("setup_multilevel_PARSDMM_LP.jl")
 include("constraint2coarse.jl")
 include("interpolate_y_l.jl")
 

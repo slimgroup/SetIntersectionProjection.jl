@@ -72,12 +72,12 @@ end
 
 #Transform domain bounds constraints for each column/row/fiber for a 2D or 3D model
 for i in ["x","y","z"]
-  if haskey(constraint,string("use_TD_bounds_fiber_",i)) && constraint[string("use_TD_bounds_fiber_",i)]== true
-    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_bound_constraints_fiber(i,counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_bounds_fiber_",i,"_operator")],constraint[string("TD_LB_fiber_",i)],constraint[string("TD_UB_fiber_",i)],TF,special_operator_list)
-    TD_Prop.ncvx[counter]   = false
-    TD_Prop.tag[counter]    = ( string("TD_bounds_fiber_",i) , constraint[string("TD_bounds_fiber_",i,"_operator")] )
-    counter                 = counter+1;
-  end
+    if haskey(constraint,string("use_TD_bounds_fiber_",i)) && constraint[string("use_TD_bounds_fiber_",i)]== true
+      (P_sub, TD_OP, TD_Prop) = setup_transform_domain_bound_constraints_fiber(i,counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_bounds_fiber_",i,"_operator")],constraint[string("TD_LB_fiber_",i)],constraint[string("TD_UB_fiber_",i)],TF,special_operator_list)
+      TD_Prop.ncvx[counter]   = false
+      TD_Prop.tag[counter]    = ( string("TD_bounds_fiber_",i) , constraint[string("TD_bounds_fiber_",i,"_operator")] )
+      counter                 = counter+1;
+    end
 end
 
 #Transform domain l1-norm constraints (including total-variation)
@@ -87,6 +87,16 @@ for i=1:3
     TD_Prop.ncvx[counter]= false
     TD_Prop.tag[counter]  = (string("TDl1 ",i), constraint[string("TD_l1_operator_",i)])
     counter              = counter+1;
+  end
+end
+
+#Transform domain l1-norm constraints for each slice (x-y,x-z or y-z) from a 3D model
+for i in ["x","y","z"]
+  if haskey(constraint,string("use_TD_l1_slice_",i)) && constraint[string("use_TD_l1_slice_",i)]== true
+    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_l1_constraints_slice(string(i,"_slice"),counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_l1_slice_",i,"_operator")],constraint[string("TD_li1_sigma_slice_",i)],TF,special_operator_list)
+    TD_Prop.ncvx[counter]   = true
+    TD_Prop.tag[counter]    = ( string("TD_l1_slice_",i) , constraint[string("TD_l1_slice_",i,"_operator")] )
+    counter                 = counter+1;
   end
 end
 
@@ -132,12 +142,14 @@ end
 
 #Transform domain cardinality constraints for each column/row/fiber for a 2D or 3D model
 for i in ["x","y","z"]
-  if haskey(constraint,string("use_TD_card_fiber_",i)) && constraint[string("use_TD_card_fiber_",i)]== true
-    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_card_constraints_fiber_slice(string(i,"_fiber"),counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_card_fiber_",i,"_operator")],constraint[string("card_fiber_",i)],TF,special_operator_list)
+for j=1:3
+  if haskey(constraint,string("use_TD_card_fiber_",i,j)) && constraint[string("use_TD_card_fiber_",i,j)]== true
+    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_card_constraints_fiber_slice(string(i,"_fiber"),counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_card_fiber_",i,j,"_operator")],constraint[string("card_fiber_",i,j)],TF,special_operator_list)
     TD_Prop.ncvx[counter]   = true
-    TD_Prop.tag[counter]    = ( string("TD_card_fiber_",i) , constraint[string("TD_card_fiber_",i,"_operator")] )
+    TD_Prop.tag[counter]    = ( string("TD_card_fiber_",i,j) , constraint[string("TD_card_fiber_",i,j,"_operator")] )
     counter                 = counter+1;
   end
+end
 end
 
 #subspace constraints
@@ -427,10 +439,25 @@ end
 function setup_transform_domain_card_constraints_fiber_slice(mode,ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,k,TF,special_operator_list)
 
   if operator_type in special_operator_list
-    error("temporality no support for cardinality constraints in a transform domain on tensor fibers")
+    error("temporality no support for cardinality constraints in this transform-domain on tensor fibers or slices")
   else
     (A,AtA_diag,dense,TD_n,banded)  = get_TD_operator(comp_grid,operator_type,TF)
     P_sub[ind]              =  x -> project_cardinality!(reshape(x,TD_n),convert(Integer,k),mode)
+    TD_OP[ind]              = A
+    TD_Prop.AtA_diag[ind]   = AtA_diag
+    TD_Prop.dense[ind]      = dense
+    TD_Prop.TD_n[ind]       = TD_n
+    TD_Prop.banded[ind]     = banded
+  end
+  return P_sub, TD_OP, TD_Prop
+end
+
+function setup_transform_domain_l1_constraints_slice(mode,ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,sigma,TF,special_operator_list)
+  if operator_type in special_operator_list
+    error("temporality no support for l1 constraints in this transform-domain on tensor fibers")
+  else
+    (A,AtA_diag,dense,TD_n,banded)  = get_TD_operator(comp_grid,operator_type,TF)
+    P_sub[ind]              = x -> project_l1_Duchi!(x,sigma,mode)
     TD_OP[ind]              = A
     TD_Prop.AtA_diag[ind]   = AtA_diag
     TD_Prop.dense[ind]      = dense
