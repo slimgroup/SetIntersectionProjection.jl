@@ -27,14 +27,14 @@ function stop_PARSDMM{TF<:Real}(
     end
     # fix rho to ensure regular ADMM convergence if primal residual does not decrease over a 20 iteration window
     if i>20 && adjust_rho==true && log_PARSDMM.r_pri_total[i]>maximum(log_PARSDMM.r_pri_total[(i-1):-1:max((i-50),1)])
-      println("no primal residual reduction, fixing PARSDMM rho (iteration ",i,")")
+      println("no primal residual reduction, fixing PARSDMM rho & gamma (iteration ",i,")")
       adjust_rho = false;
       adjust_feasibility_rho = false;
       adjust_gamma = false;
       if nprocs()>1
         [ @spawnat pid adjust_gamma for pid in workers() ]
         [ @spawnat pid adjust_rho for pid in workers() ]
-        [ @spawnat pid adjust_rho_type for pid in workers() ]
+        [ @spawnat pid adjust_feasibility_rho for pid in workers() ]
       end
       ind_ref = i;
     end

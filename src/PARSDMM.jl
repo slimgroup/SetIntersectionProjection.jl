@@ -62,10 +62,10 @@ end
 const pp=length(TD_OP);
 if linear_inv_prob_flag==false; pp=pp-1; end;
 
-(ind_ref,N,TD_OP,AtA,p,rho_update_frequency,adjust_gamma,gamma_ini,rho,gamma,y,y_0,y_old,l,l_0,l_old,
+(ind_ref,N,TD_OP,AtA,p,rho_update_frequency,adjust_gamma,adjust_rho,adjust_feasibility_rho,gamma_ini,rho,gamma,y,y_0,y_old,l,l_0,l_old,
 l_hat_0,x_0,x_old,r_dual,rhs,s,s_0,Q,prox,log_PARSDMM,l_hat,x_hat,r_pri,d_l_hat,d_H_hat,d_l,
 d_G_hat,P_sub,Q_offsets,stop,feasibility_initial,set_feas,Ax_out)=PARSDMM_initialize(x,l,y,AtA,TD_OP,TD_Prop,P_sub,comp_grid,maxit,rho_ini,gamma_ini,
-x_min_solver,rho_update_frequency,adjust_gamma,m,parallel,options,zero_ini_guess,linear_inv_prob_flag)
+x_min_solver,rho_update_frequency,adjust_gamma,adjust_rho,adjust_feasibility_rho,m,parallel,options,zero_ini_guess,linear_inv_prob_flag)
 
 
 if stop==true #stop if feasibility of input is detected by PARSDMM_initialize

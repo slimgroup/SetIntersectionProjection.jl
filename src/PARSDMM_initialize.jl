@@ -15,6 +15,8 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             x_min_solver        ::String,
                             rho_update_frequency::Integer,
                             adjust_gamma        ::Bool,
+                            adjust_rho          ::Bool,
+                            adjust_feasibility_rho::Bool,
                             m                   ::Vector{TF},
                             parallel            ::Bool,
                             options,
@@ -106,10 +108,9 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                                 end
                             end
                             if parallel==true
-                              adjust_gamma    = adjust_gamma
-                              adjust_rho      = adjust_rho
                               [ @spawnat pid adjust_gamma for pid in y.pids ]
                               [ @spawnat pid adjust_rho for pid in y.pids ]
+                              [ @spawnat pid adjust_feasibility_rho for pid in y.pids ]
                             end
                             #allocate arrays of vectors
                             Ax_out=zeros(TF,N)
