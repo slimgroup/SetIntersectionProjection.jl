@@ -107,11 +107,7 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                                     gamma_ini             = TF(0.75)
                                 end
                             end
-                            if parallel==true
-                              [ @spawnat pid adjust_gamma for pid in y.pids ]
-                              [ @spawnat pid adjust_rho for pid in y.pids ]
-                              [ @spawnat pid adjust_feasibility_rho for pid in y.pids ]
-                            end
+
                             #allocate arrays of vectors
                             Ax_out=zeros(TF,N)
 
@@ -259,7 +255,11 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             if parallel==true && (typeof(y)<:DistributedArrays.DArray) == false
                                y=distribute(y)
                             end
-
+                            if parallel==true
+                              [ @spawnat pid adjust_gamma for pid in y.pids ]
+                              [ @spawnat pid adjust_rho for pid in y.pids ]
+                              [ @spawnat pid adjust_feasibility_rho for pid in y.pids ]
+                            end
                             if parallel == true
                               [@spawnat pid comp_grid for pid in  y.pids]
                             end

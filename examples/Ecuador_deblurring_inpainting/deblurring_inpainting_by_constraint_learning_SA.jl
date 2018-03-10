@@ -181,7 +181,7 @@ options.adjust_gamma           = true
 options.adjust_rho             = true
 options.adjust_feasibility_rho = true
 options.Blas_active            = true
-options.maxit                  = 5000
+options.maxit                  = 300
 set_zero_subnormals(true)
 
 options.linear_inv_prob_flag = true #this is important to set

@@ -57,12 +57,12 @@ constraint["use_bounds"]=false
 constraint["m_min"]=0.0
 constraint["m_max"]=255.0
 
-constraint["use_TD_hist_eq_relax_1"]=true
+constraint["use_TD_hist_eq_relax_1"]=false
 constraint["hist_eq_LB_1"] = observations["hist_min"]
 constraint["hist_eq_UB_1"] = observations["hist_max"]
 constraint["TD_hist_eq_operator_1"]= "identity"
 
-constraint["use_TD_hist_eq_relax_2"]=true
+constraint["use_TD_hist_eq_relax_2"]=false
 constraint["hist_eq_LB_2"] = observations["hist_TV_min"]
 constraint["hist_eq_UB_2"] = observations["hist_TV_max"]
 constraint["TD_hist_eq_operator_2"]= "TV"
@@ -150,7 +150,7 @@ options.adjust_gamma           = true
 options.adjust_rho             = true
 options.adjust_feasibility_rho = true
 options.Blas_active            = true
-options.maxit                  = 5000
+options.maxit                  = 300
 set_zero_subnormals(true)
 
 options.linear_inv_prob_flag = false #compute projection of initial guess
