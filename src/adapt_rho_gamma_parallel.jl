@@ -5,7 +5,6 @@ function adapt_rho_gamma_parallel{TF<:Real}(
                                   rho             ::Vector{TF},
                                   adjust_gamma    ::Bool,
                                   adjust_rho      ::Bool,
-                                  adjust_rho_type ::String,
                                   y               ::Vector{Vector{TF}},
                                   y_old           ::Vector{Vector{TF}},
                                   s               ::Vector{Vector{TF}},
@@ -24,7 +23,7 @@ function adapt_rho_gamma_parallel{TF<:Real}(
 
     # Barzilai-Borwein type for Douglash-Rachford splitting on the dual problem
     #hardcoded and suggested value by the paper based on numerical evidence
-if adjust_rho_type == "BB"
+
   const eps_correlation = TF(0.3);
 
 
@@ -154,7 +153,7 @@ if adjust_rho_type == "BB"
         end
       end #end compute new rho and gamma
 
-end #adjust rho
+
 
 # copy!(l_hat_0[1],l_hat[1])
 # copy!(y_0[1],y[1])

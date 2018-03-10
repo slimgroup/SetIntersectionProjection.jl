@@ -6,7 +6,6 @@ function adapt_rho_gamma{TF<:Real}(
                                   rho             ::Vector{TF},
                                   adjust_gamma    ::Bool,
                                   adjust_rho      ::Bool,
-                                  adjust_rho_type ::String,
                                   y               ::Vector{Vector{TF}},
                                   y_old           ::Vector{Vector{TF}},
                                   s               ::Vector{Vector{TF}},
@@ -33,7 +32,6 @@ function adapt_rho_gamma{TF<:Real}(
         safeguard = 1f-6
     end
 
-if adjust_rho_type == "BB"
   const eps_correlation = TF(0.3);
 
   #Threads.@threads for ii = 1:p
@@ -126,7 +124,7 @@ if adjust_rho_type == "BB"
       end #end compute new rho and gamma
     end #end for loop
 
-end #adjust rho
+
 
 return rho,gamma,l_hat,d_l_hat,d_H_hat,d_l ,d_G_hat
 end #function adapt_rho_gamma

@@ -104,7 +104,6 @@ end
   adjust_rho            :: Bool    = true
   adjust_gamma          :: Bool    = true
   adjust_feasibility_rho:: Bool    = true
-  adjust_rho_type       :: String  = "BB"
   Blas_active           :: Bool    = true
   linear_inv_prob_flag  :: Bool    = false
   FL                    :: DataType = Float32

@@ -19,7 +19,6 @@ function default_PARSDMM_options(options,TF)
   options.adjust_rho            = true
   options.adjust_gamma          = true
   options.adjust_feasibility_rho= true
-  options.adjust_rho_type       = "BB"
   options.Blas_active           = true
   options.linear_inv_prob_flag  = false
   options.FL                    = TF

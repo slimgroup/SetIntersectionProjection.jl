@@ -101,11 +101,16 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                                 if TD_Prop.ncvx[ii] == true
                                     println("non-convex set(s) involved, using special settings")
                                     rho_update_frequency  = 3;
-                                    adjust_gamma          = false;
-                                    gamma_ini             = TF(0.75);
+                                    adjust_gamma          = false
+                                    gamma_ini             = TF(0.75)
                                 end
                             end
-
+                            if parallel==true
+                              adjust_gamma    = adjust_gamma
+                              adjust_rho      = adjust_rho
+                              [ @spawnat pid adjust_gamma for pid in y.pids ]
+                              [ @spawnat pid adjust_rho for pid in y.pids ]
+                            end
                             #allocate arrays of vectors
                             Ax_out=zeros(TF,N)
 
@@ -263,14 +268,6 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                               set_feas=distribute(set_feas)
                             else
                               set_feas=[]
-                            end
-                            if parallel==true
-                              adjust_gamma    = options.adjust_gamma
-                              adjust_rho      = options.adjust_rho
-                              adjust_rho_type = options.adjust_rho_type
-                              [ @spawnat pid adjust_gamma for pid in y.pids ]
-                              [ @spawnat pid adjust_rho for pid in y.pids ]
-                              [ @spawnat pid adjust_rho_type for pid in y.pids ]
                             end
 
                             if zero_ini_guess==true

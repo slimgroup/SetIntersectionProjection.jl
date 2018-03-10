@@ -49,7 +49,7 @@ tic()
 # Parse default options
 convert_options!(options,TF,TI)
 @unpack  x_min_solver,maxit,evol_rel_tol,feas_tol,obj_tol,rho_ini,rho_update_frequency,gamma_ini,
-adjust_rho,adjust_gamma,adjust_feasibility_rho,adjust_rho_type,Blas_active,
+adjust_rho,adjust_gamma,adjust_feasibility_rho,Blas_active,
 linear_inv_prob_flag,FL,parallel,zero_ini_guess = options
 
 # Input checks
@@ -191,12 +191,12 @@ for i=1:maxit #main loop
 
      if (adjust_rho == true || adjust_gamma == true) && mod(i,rho_update_frequency)==TF(0)
        if parallel==true
-         [ @spawnat pid adapt_rho_gamma_parallel(gamma[:L],rho[:L],adjust_gamma,adjust_rho,adjust_rho_type,y[:L],
+         [ @spawnat pid adapt_rho_gamma_parallel(gamma[:L],rho[:L],adjust_gamma,adjust_rho,y[:L],
          y_old[:L],s[:L],s_0[:L],l[:L],l_hat_0[:L],l_0[:L],l_old[:L],y_0[:L],l_hat[:L],d_l_hat[:L],d_H_hat[:L],d_l[:L],d_G_hat[:L]) for pid in y.pids]
-         #[ @spawnat pid adapt_rho_gamma_parallel_exp(gamma[:L][1],rho[:L][1],adjust_gamma,adjust_rho,adjust_rho_type,y[:L][1],
+         #[ @spawnat pid adapt_rho_gamma_parallel_exp(gamma[:L][1],rho[:L][1],adjust_gamma,adjust_rho,y[:L][1],
          #y_old[:L][1],s[:L][1],s_0[:L][1],l[:L][1],l_hat_0[:L][1],l_0[:L][1],l_old[:L][1],y_0[:L][1],l_hat[:L][1],d_l_hat[:L][1],d_H_hat[:L][1],d_l[:L][1],d_G_hat[:L][1]) for pid in y.pids]
        else
-         (rho,gamma,l_hat,d_l_hat,d_H_hat,d_l,d_G_hat)=adapt_rho_gamma(i,gamma,rho,adjust_gamma,adjust_rho,adjust_rho_type,y,y_old,s,s_0,l,l_hat_0,l_0,l_old,y_0,p,l_hat,d_l_hat,d_H_hat,d_l,d_G_hat);
+         (rho,gamma,l_hat,d_l_hat,d_H_hat,d_l,d_G_hat)=adapt_rho_gamma(i,gamma,rho,adjust_gamma,adjust_rho,y,y_old,s,s_0,l,l_hat_0,l_0,l_old,y_0,p,l_hat,d_l_hat,d_H_hat,d_l,d_G_hat);
        end
          if i>1
            if parallel==true
