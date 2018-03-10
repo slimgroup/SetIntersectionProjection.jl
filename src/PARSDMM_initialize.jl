@@ -281,7 +281,7 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                               end
                               fill!(x,TF(0.0))
                             end
-return ind_ref,N,TD_OP,AtA,p,rho_update_frequency,adjust_gamma,gamma_ini,rho,gamma,y,y_0,y_old,
+return ind_ref,N,TD_OP,AtA,p,rho_update_frequency,adjust_gamma,adjust_rho,adjust_feasibility_rho,gamma_ini,rho,gamma,y,y_0,y_old,
        l,l_0,l_old,l_hat_0,x_0,x_old,r_dual,rhs,s,s_0,Q,prox,log_PARSDMM,l_hat,x_hat,r_pri,
        d_l_hat,d_H_hat,d_l,d_G_hat,P_sub,Q_offsets,stop,feasibility_initial,set_feas,Ax_out
 end #end parsdmm_initialize
