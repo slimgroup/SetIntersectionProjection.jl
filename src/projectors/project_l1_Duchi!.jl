@@ -46,3 +46,57 @@ v .= sign.(v) .* max.(abs.(v).-theta, TF(0))
 
 return v
 end #end project_l1_Duchi
+#
+# function project_l1_Duchi!{TF<:Real}(v::Union{Array{TF,3},Array{Complex{TF},3}}, b::TF,mode::String)
+#
+# if (b < TF(0))
+#   error("Radius of L1 ball is negative");
+# end
+# (n1,n2,n3)=size(v)
+#
+# ##Slice based projection
+# if mode == "x_slice"
+#   u = Vector{TF}(n2*n3)
+#   sv= Vector{TF}(n2*n3)
+#   v = reshape(v,n1,n2*n3)
+#   Threads.@threads for i=1:n1
+#     u = sort(abs.(v[i,:]), rev=true)
+#     sv = cumsum(u)
+#     rho = findlast(u .> ((sv.-b)./ (1.0:1.0:(n2*n3))))
+#     theta = max.(TF(0) , (sv[rho] .- b) ./ rho)::TF
+#     @inbounds v[i,:] .= sign.(v[i,:]) .* max.(abs.(v[:,i]).-theta, TF(0))
+#   end
+#   v = reshape(v,n1,n2,n3)
+# elseif mode == "z_slice"
+#   u = Vector{TF}(n1*n2)
+#   sv= Vector{TF}(n1*n2)
+#   v = reshape(v,n1*n2,n3)
+#   Threads.@threads for i=1:n3
+#     u = sort(abs.(v[:,i]), rev=true)
+#     sv = cumsum(u)
+#     rho = findlast(u .> ((sv.-b)./ (1.0:1.0:(n1*n2))))
+#     theta = max.(TF(0) , (sv[rho] .- b) ./ rho)::TF
+#     @inbounds v[:,i] .= sign.(v[:,i]) .* max.(abs.(v[:,i]).-theta, TF(0))
+#   end
+#   v = reshape(v,n1,n2,n3)
+# elseif mode == "y_slice"
+#   permutedims(v,[2;1;3]);
+#   v = reshape(v,n2,n1*n3)
+#   u = Vector{TF}(n1*n3)
+#   sv= Vector{TF}(n1*n3)
+#   Threads.@threads for i=1:size(v,1)
+#     u = sort(abs.(v[i,:]), rev=true)
+#     sv = cumsum(u)
+#     rho = findlast(u .> ((sv.-b)./ (1.0:1.0:(n1*n3))))
+#     theta = max.(TF(0) , (sv[rho] .- b) ./ rho)::TF
+#     @inbounds v[i,:] .= sign.(v[i,:]) .* max.(abs.(v[:,i]).-theta, TF(0))
+#   end
+#   v = reshape(v,n2,n1,n3);
+#   permutedims(v,[2;1;3]);
+# else
+#   error("provided incorred mode for l1_projection")
+# end #end if
+# v=vec(v)
+#
+# return v
+# end #end project_l1_Duchi

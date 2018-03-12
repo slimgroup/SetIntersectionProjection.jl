@@ -168,6 +168,21 @@ if haskey(constraint,"use_subspace") && constraint["use_subspace"]== true
   counter                   = counter+1;
 end
 
+#subspace contraints per slice of a tensor
+for i in ["x","y","z"]
+  if haskey(constraint,string("use_subspace_slice_",i)) && constraint[string("use_subspace_slice_",i)]== true
+    P_sub[counter]            = x -> project_subspace!(reshape(x,comp_grid.n),constraint[string("A_slice_",i)],constraint[string("subspace_slice_",i,"_orthogonal")],i)
+    TD_Prop.ncvx[counter]     = false
+    TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
+    TD_Prop.AtA_diag[counter] = true
+    TD_Prop.dense[counter]    = false
+    TD_Prop.banded[counter]   = true
+    TD_Prop.TD_n[counter]     = comp_grid.n
+    TD_Prop.tag[counter]      = (string("subspace_slice_",i), "identity")
+    counter                   = counter+1;
+  end
+end
+
 #Nuclear norm constraints for a matrix
 for i=1:3
   if  haskey(constraint,string("use_TD_nuclear_",i)) && constraint[string("use_TD_nuclear_",i)]== true
