@@ -1,42 +1,62 @@
 export project_subspace!
 
 function project_subspace!{TF<:Real}(
-                          input ::Vector{TF},
+                          x     ::Vector{TF},
                           A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
                           orth  ::Bool
                           )
-#If we want to project each slice of a tensor onto the subspace spanned by the columns of A
-#the input is a 2D array, because every slice of the tensor is already vectorized. This avoids repeated reshape operations
-
+#project a vector x onto the subspace spanned by the columns of A.
+#This is a simple implementation that solves linear systems on the fly. We can
+#add options to factor A'*A once and reuse if memory permits. Iterative factorization
+#free methods are also an option. Orthogonalize subspace beforehand to obtain an A
+# such that A'*A=I to avoid linear system solves all together in this stage.
   if orth == true
-     input .= A*(A'*input) ::Vector{TF}
+     x .= A*(A'*x) ::Vector{TF}
   else
-    input .= A*((A'*A)\(A'*input)) ::Vector{TF}
+    x .= A*((A'*A)\(A'*x)) ::Vector{TF}
   end
 
 end
 
 function project_subspace!{TF<:Real}(
-                          input ::Array{TF,3},
+                          x     ::Array{TF,3},
                           A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
                           orth  ::Bool,
                           mode  ::String
                           )
 #we want to project each slice of a tensor onto the subspace spanned by the columns of A
-#the input is a 3D array and we need to permute and reshape it such that we project the
-#correct slices
-if mode == "x"
+#x is a 3D array and we need to permute and reshape it such that we project the
+#correct slices. Every slice needs to become a column of the matrix (x) we projection onto the subspace in column-wise sense
 
-elseif mode == "y"
-
-elseif mode == "z"
-
-end
-  if orth == true
-     input .= A*(A'*input) ::Vector{TF}
-  else
-    input .= A*((A'*A)\(A'*input)) ::Vector{TF}
+  (n1,n2,n3)=size(x)
+  #permute and reshape
+  if mode == "x"
+    permutedims(x,[2;3;1]);
+    x = reshape(x,n2*n3,n1)
+  elseif mode == "y"
+    permutedims(x,[1;3;2]);
+    x = reshape(x,n1*n3,n2)
+  elseif mode == "z"
+    x = reshape(x,n1*n2,n3) #there are n3 slices of dimension n1*n2
   end
 
-input = vec(input)
+  #project every column of matrix x (a slice of the original tensor)
+  if orth == true
+     x .= A*(A'*x) ::Array{TF,2}
+  else
+    x .= A*((A'*A)\(A'*x)) ::Array{TF,2}
+  end
+
+  #permute back and vectorize
+  if mode == "x"
+    x = reshape(x,n2,n3,n1)
+    permutedims(x,[3;1;2]);
+  elseif mode == "y"
+    x = reshape(x,n1,n3,n2)
+    permutedims(x,[1;3;2]);
+  elseif mode == "z"
+    x = reshape(x,n1,n2,n3) #there are n3 slices of dimension n1*n2
+  end
+
+x = vec(x)
 end
