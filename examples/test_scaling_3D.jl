@@ -69,7 +69,7 @@ T_tot_parallel_multilevel=Vector{Any}(length(width))
 
 options.rho_ini = [1.0;1000.0;1000.0;1000.0;1.0]
 
-for i=4:-1:length(width)
+for i=length(width):-1:1
   print(i)
 
   m=m_full[1:width[i],1:width[i],:];
@@ -79,6 +79,7 @@ for i=4:-1:length(width)
   N[i]=prod(size(m));
 
   #serial
+  @everywhere gc()
   println("")
   println("serial")
   options.parallel=false
@@ -93,6 +94,7 @@ for i=4:-1:length(width)
   T_tot_serial[i]=t;
 
   #parallel
+  @everywhere gc()
   println("")
   println("parallel")
   options.parallel=true
@@ -106,6 +108,7 @@ for i=4:-1:length(width)
   T_tot_parallel[i]=t;
 
   #serial multilevel
+  @everywhere gc()
   println("")
   println("serial multilevel")
   BLAS.set_num_threads(8)
@@ -121,6 +124,7 @@ for i=4:-1:length(width)
   T_tot_serial_multilevel[i]=t;
 
   #parallel multilevel
+  @everywhere gc()
   println("")
   println("parallel multilevel")
   BLAS.set_num_threads(4)
