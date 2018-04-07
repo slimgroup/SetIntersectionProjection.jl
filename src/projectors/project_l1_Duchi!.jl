@@ -14,7 +14,7 @@ function project_l1_Duchi!{TF<:Real}(v::Union{Vector{TF},Vector{Complex{TF}}}, b
 # % Author: John Duchi (jduchi@cs.berkeley.edu)
 # Translated to Julia 0.6 by Bas Peters
 
-if (b < TF(0))
+if (b <= TF(0))
   error("Radius of L1 ball is negative");
 end
 if norm(v, 1) <= b
@@ -25,16 +25,16 @@ u = Vector{TF}(lv)
 sv= Vector{TF}(lv)
 
 #u = sort(abs(v),'descend');
-u = sort(abs.(v), rev=true) #faster than the line below
+#u = sort(abs.(v), rev=true) #faster than the line below
 #u = sort(v, by=abs , rev=true)
 
 #use RadixSort for Float32 (short keywords)
-#u=copy(v)
-#if TF==Float32
-#  u = sort!(abs.(u), rev=true,alg=RadixSort)
-#else
-#  u = sort!(abs.(u), rev=true,alg=QuickSort)
-#end
+u=copy(v)
+if TF==Float32
+ u = sort!(abs.(u), rev=true,alg=RadixSort)
+else
+ u = sort!(abs.(u), rev=true,alg=QuickSort)
+end
 
 #sv = cumsum(u);
 sv = cumsum(u)

@@ -2,7 +2,7 @@ export constraint2coarse
 
 function constraint2coarse(constraint,comp_grid,coarsening_factor)
 
-  constraint_level=deepcopy(constraint)
+  #constraint=deepcopy(constraint)
 
   #bound constraints: same as on fine grid
 
@@ -21,8 +21,8 @@ if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3D
   # for i=1:3
   #   if haskey(constraint,string("use_TD_bounds_",i)) && (constraint[string("use_TD_bounds_",i)]==true)
   #     if (constraint[string("TDB_operator_",i)] in ["D_x","D_y","D_z","DFT"])
-  #       constraint_level[string("TD_LB_",i)]=constraint[string("TD_LB_",i)].*coarsening_factor
-  #       constraint_level[string("TD_UB_",i)]=constraint[string("TD_UB_",i)].*coarsening_factor
+  #       constraint[string("TD_LB_",i)]=constraint[string("TD_LB_",i)].*coarsening_factor
+  #       constraint[string("TD_UB_",i)]=constraint[string("TD_UB_",i)].*coarsening_factor
   #     end
   #   end
   # end
@@ -30,14 +30,14 @@ if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3D
   #for l1 norm in a transform-domain: on a 3D grid: ||.||_1(coarse)=||.||_1(fine)/(coarsening factor^3)
   for i=1:3
     if haskey(constraint,string("use_TD_l1_",i)) && constraint[string("use_TD_l1_",i)]==true
-      constraint_level[string("TD_l1_sigma_",i)]=constraint[string("TD_l1_sigma_",i)]/(coarsening_factor^3)
+      constraint[string("TD_l1_sigma_",i)]=constraint[string("TD_l1_sigma_",i)]/(coarsening_factor^3)
     end
   end
 
   #for l2 norm in a transform-domain: on a 3D grid: ||.||_2(coarse)=||.||_2(fine)/sqrt(coarsening factor^3)
   for i=1:3
     if haskey(constraint,string("use_TD_l2_",i)) && constraint[string("use_TD_l2_",i)]==true
-      constraint_level[string("TD_l2_sigma_",i)]=constraint[string("TD_l2_sigma_",i)]/(sqrt(coarsening_factor^3))
+      constraint[string("TD_l2_sigma_",i)]=constraint[string("TD_l2_sigma_",i)]/(sqrt(coarsening_factor^3))
     end
   end
 
@@ -47,8 +47,8 @@ else #use 2D
   # for i=1:3
   #   if haskey(constraint,string("use_TD_bounds_",i)) && (constraint[string("use_TD_bounds_",i)]==true)
   #     if (constraint[string("TDB_operator_",i)] in ["D_x","D_y","D_z","DFT"])
-  #       constraint_level[string("TD_LB_",i)]=constraint[string("TD_LB_",i)].*coarsening_factor
-  #       constraint_level[string("TD_UB_",i)]=constraint[string("TD_UB_",i)].*coarsening_factor
+  #       constraint[string("TD_LB_",i)]=constraint[string("TD_LB_",i)].*coarsening_factor
+  #       constraint[string("TD_UB_",i)]=constraint[string("TD_UB_",i)].*coarsening_factor
   #     end
   #   end
   # end
@@ -56,20 +56,20 @@ else #use 2D
     #for l1 norm in a transform-domain: on a 2D grid: ||.||_1(coarse)=||.||_1(fine)/(coarsening factor^2)
     for i=1:3
       if haskey(constraint,string("use_TD_l1_",i)) && constraint[string("use_TD_l1_",i)]==true
-        constraint_level[string("TD_l1_sigma_",i)]=constraint[string("TD_l1_sigma_",i)]/(coarsening_factor^2)
+        constraint[string("TD_l1_sigma_",i)]=constraint[string("TD_l1_sigma_",i)]/(coarsening_factor^2)
       end
     end
 
     #for l2 norm in a transform-domain: on a 2D grid: ||.||_2(coarse)=||.||_2(fine)/(coarsening factor)
     for i=1:3
       if haskey(constraint,string("use_TD_l2_",i)) && constraint[string("use_TD_l2_",i)]==true
-        constraint_level[string("TD_l2_sigma_",i)]=constraint[string("TD_l2_sigma_",i)]/(coarsening_factor)
+        constraint[string("TD_l2_sigma_",i)]=constraint[string("TD_l2_sigma_",i)]/(coarsening_factor)
       end
     end
 
     #nuclear norm:
-    if haskey(constraint,"use_nuclear") && constraint["use_nuclear"]== true
-      constraint_level["nuclear_norm"]=constraint["nuclear_norm"]/2.7
+    if haskey(constraint,string("use_TD_nuclear_",i)) && constraint[string("use_TD_nuclear_",i)]== true
+      constraint[string("TD_nuclear_norm_",i)]=constraint[string("TD_nuclear_norm_",i)]/2.7
     end
 
 end #END if 2D or 3D
@@ -82,5 +82,5 @@ end #END if 2D or 3D
 
 
 
-return constraint_level
+return constraint
 end

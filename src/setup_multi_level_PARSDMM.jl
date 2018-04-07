@@ -55,6 +55,8 @@ P_sub_levels[i]     = P_sub
 TD_Prop_levels[i]   = TD_Prop
 comp_grid_levels[i] = comp_grid
 
+constraint_level=deepcopy(constraint)
+
 for i=2:n_levels
 
   #new number of grid points on this level
@@ -78,7 +80,7 @@ for i=2:n_levels
   # 'translate' constraints to coarser grids
   # the constraints are originally defined on the grid of the model on the finest grid.
   # We need to define the equivalent constraints on coarser grids
-  constraint_level = constraint2coarse(constraint,comp_grid_levels[i],coarsening_factor)
+  constraint_level = constraint2coarse(constraint_level,comp_grid_levels[i],coarsening_factor)
 
   #set up constraints on new level
   (P_sub_l,TD_OP_l,TD_Prop_l) = setup_constraints(constraint_level,comp_grid_levels[i],TF)
@@ -124,5 +126,5 @@ end #for loop
 #   m_levels[i]=vec(m_levels[i])
 # end
 
-return m_levels, TD_OP_levels, AtA_levels, P_sub_levels, TD_Prop_levels, comp_grid_levels
+return m_levels, TD_OP_levels, AtA_levels, P_sub_levels, TD_Prop_levels, comp_grid_levels, constraint_level
 end #end setup_multi_level_PARSDMM
