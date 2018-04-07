@@ -90,7 +90,7 @@ constraint["use_bounds"]=true
 constraint["m_min"]=0.0
 constraint["m_max"]=255.0
 
-constraint["use_TD_hist_eq_relax_1"]=false
+constraint["use_TD_hist_eq_relax_1"]=true
 constraint["hist_eq_LB_1"] = observations["hist_min"]
 constraint["hist_eq_UB_1"] = observations["hist_max"]
 constraint["TD_hist_eq_operator_1"]= "identity"

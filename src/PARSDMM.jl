@@ -93,25 +93,10 @@ x_solve_tol_ref=TF(1.0) #scalar required to determine tolerance for x-minimizati
 log_PARSDMM.T_ini=toq();
 
 for i=1:maxit #main loop
+  
   #form right hand side for x-minimization
   tic();
   rhs=rhs_compose(rhs,l,y,rho,TD_OP,p,Blas_active,parallel)
-  # if parallel==true
-  #   rhs = @parallel (+) for ii = 1:p
-  #   TD_OP[ii]'*(rho[ii].*y[ii].+l[ii])
-  #   end
-  # else
-  #   fill!(rhs,0);
-  #   if Blas_active
-  #     for ii=1:p
-  #       BLAS.axpy!(TF(1.0), TD_OP[ii]'*(rho[ii].*y[ii].+l[ii]), rhs)
-  #     end
-  #   else
-  #     for ii=1:p
-  #       rhs = rhs.+TD_OP[ii]'*(rho[ii].*y[ii].+l[ii])
-  #     end
-  #   end
-  # end #end creating new rhs
   log_PARSDMM.T_rhs = log_PARSDMM.T_rhs+toq();
 
   # x-minimization

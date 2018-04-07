@@ -99,12 +99,12 @@ d_G_hat_d=distribute(d_G_hat)
 l_hat_0_d=distribute(l_hat_0)
 
 #distributed computation
-[ @spawnat pid  adapt_rho_gamma_parallel(gamma_d[:L],rho_d[:L],true,true,"BB",y_d[:L],y_old_d[:L],s_d[:L],s_0_d[:L],l_d[:L],l_hat_0_d[:L],
+[ @spawnat pid  adapt_rho_gamma_parallel(gamma_d[:L],rho_d[:L],true,true,y_d[:L],y_old_d[:L],s_d[:L],s_0_d[:L],l_d[:L],l_hat_0_d[:L],
                                          l_0_d[:L],l_old_d[:L],y_0_d[:L],l_hat_d[:L],d_l_hat_d[:L],d_H_hat_d[:L],d_l_d[:L],d_G_hat_d[:L]) for pid in y_d.pids]
 
 
 #serial computation
-(rho,gamma,l_hat,d_l_hat,d_H_hat,d_l,d_G_hat)=adapt_rho_gamma(i,gamma,rho,true,true,"BB",y,y_old,s,s_0,l,l_hat_0,l_0,l_old,y_0,p,l_hat,d_l_hat,d_H_hat,d_l,d_G_hat);
+(rho,gamma,l_hat,d_l_hat,d_H_hat,d_l,d_G_hat)=adapt_rho_gamma(i,gamma,rho,true,true,y,y_old,s,s_0,l,l_hat_0,l_0,l_old,y_0,p,l_hat,d_l_hat,d_H_hat,d_l,d_G_hat);
 
 #see if output is the same
 @test rho_d==rho

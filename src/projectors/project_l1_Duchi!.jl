@@ -25,8 +25,16 @@ u = Vector{TF}(lv)
 sv= Vector{TF}(lv)
 
 #u = sort(abs(v),'descend');
-u = sort(abs.(v), rev=true)
+u = sort(abs.(v), rev=true) #faster than the line below
 #u = sort(v, by=abs , rev=true)
+
+#use RadixSort for Float32 (short keywords)
+#u=copy(v)
+#if TF==Float32
+#  u = sort!(abs.(u), rev=true,alg=RadixSort)
+#else
+#  u = sort!(abs.(u), rev=true,alg=QuickSort)
+#end
 
 #sv = cumsum(u);
 sv = cumsum(u)

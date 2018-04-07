@@ -19,6 +19,30 @@ function project_subspace!{TF<:Real}(
 end
 
 function project_subspace!{TF<:Real}(
+                          x     ::Array{TF,2},
+                          A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
+                          orth  ::Bool,
+                          mode  ::String
+                          )
+(n1,n2)=size(x)
+if mode == "x" #project each x[:,i] onto the subspace, so each column of x
+  if orth == true
+     x .= A*(A'*x)
+  else
+    x .= A*((A'*A)\(A'*x))
+  end
+elseif mode == "y" #project each x[i,:] onto the subspace, so each row of x
+  if orth == true
+     x .= (A*(A'*x'))'
+  else
+    x .= (A*((A'*A)\(A'*x')))'
+  end
+end
+
+x = vec(x)
+end
+
+function project_subspace!{TF<:Real}(
                           x     ::Array{TF,3},
                           A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
                           orth  ::Bool,

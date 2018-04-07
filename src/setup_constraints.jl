@@ -24,7 +24,7 @@ for i=1:length(keylist)
     constraint[keylist[i]]=convert(TF,constraint[keylist[i]])
   elseif typeof(constraint[keylist[i]])<:Vector #convert vectors
     constraint[keylist[i]]=convert(Vector{TF},constraint[keylist[i]])
-  elseif typeof(constraint[keylist[i]])<:Integer  #convert integers
+  elseif typeof(constraint[keylist[i]])<:Integer && typeof(constraint[keylist[i]]) != Bool#convert integers
     constraint[keylist[i]]=convert(TI,constraint[keylist[i]])
   end
 end
@@ -183,6 +183,21 @@ for i in ["x","y","z"]
   end
 end
 
+#subspace contraints per row/column of a matrix
+for i in ["x","y"]
+  if haskey(constraint,string("use_subspace_row_column_",i)) && constraint[string("use_subspace_row_column_",i)]== true
+    P_sub[counter]            = x -> project_subspace!(reshape(x,comp_grid.n),constraint[string("A_row_column_",i)],constraint[string("subspace_row_column_",i,"_orthogonal")],i)
+    TD_Prop.ncvx[counter]     = false
+    TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
+    TD_Prop.AtA_diag[counter] = true
+    TD_Prop.dense[counter]    = false
+    TD_Prop.banded[counter]   = true
+    TD_Prop.TD_n[counter]     = comp_grid.n
+    TD_Prop.tag[counter]      = (string("subspace_row_column_",i), "identity")
+    counter                   = counter+1;
+  end
+end
+
 #Nuclear norm constraints for a matrix
 for i=1:3
   if  haskey(constraint,string("use_TD_nuclear_",i)) && constraint[string("use_TD_nuclear_",i)]== true
@@ -302,7 +317,7 @@ function setup_transform_domain_bound_constraints(ind,P_sub,TD_OP,TD_Prop,comp_g
   return P_sub, TD_OP, TD_Prop
 end
 
-function setup_transform_domain_bound_constraints_fiber(mode,ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,LB,UB,TF,special_operator_list)
+function setup_transform_domain_bound_constraints_fiber(mode,ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,TD_LB,TD_UB,TF,special_operator_list)
 
   if operator_type in special_operator_list
     if operator_type=="DCT"
@@ -325,6 +340,7 @@ function setup_transform_domain_bound_constraints_fiber(mode,ind,P_sub,TD_OP,TD_
     TD_Prop.banded[ind]     = true
     #P_sub[ind]              = x -> copy!(x,A'*project_bounds!(A*reshape(x,comp_grid.n),TD_LB,TD_UB))
     if mode=="x"; coord=1; elseif  mode=="y"; coord=2; elseif mode=="z"; coord=3; end
+    #P_sub[ind]               = x -> copy!(x,vec(idct(project_bounds!(dct(reshape(x,comp_grid.n),coord),TD_LB,TD_UB,mode),coord)))
     P_sub[ind]               = x -> copy!(x,vec(idct(project_bounds!(dct(reshape(x,comp_grid.n),coord),TD_LB,TD_UB,mode),coord)))
     TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
   else

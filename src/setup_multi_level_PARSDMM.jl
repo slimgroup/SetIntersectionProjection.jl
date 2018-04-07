@@ -31,7 +31,6 @@ if options.parallel==false
 else
   #TD_OP_levels   = Vector{DistributedArrays.DArray{SparseMatrixCSC{TF,TI},1,Array{SparseMatrixCSC{TF,TI},1}}}(n_levels)
   TD_OP_levels   = Vector{DistributedArrays.DArray{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1,Array{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1}}}(n_levels)
-
 end
 AtA_levels       = Vector{Vector{SparseMatrixCSC{TF,TI}}}(n_levels)
 P_sub_levels     = Vector{Vector{Any}}(n_levels)

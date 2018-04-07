@@ -285,7 +285,7 @@ ax[:semilogy]([0;cumsum(cg_it)],feasibility_err_dyk[:,2],linestyle="--",color="r
 #ax[:semilogy]([0 ; cumsum(ARADMM_it)],ones(size(feasibility_err_dyk,1)).*feas_tol_target,label="target");
 title("relative set feasibility error", fontsize=16)
 xlabel("number of sequential CG iterations", fontsize=16)
-ax[:legend]()
+ax[:legend](fontsize=12)
 ax[:tick_params]("both",labelsize=12)
 savefig("Dykstra_vs_PARSDMM_feasibility_CG2.eps",bbox_inches="tight",dpi=1200)
 savefig("Dykstra_vs_PARSDMM_feasibility_CG2.png",bbox_inches="tight")
@@ -298,6 +298,6 @@ ax[:semilogy](cumsum(ARADMM_it[2:end]),abs.(diff(obj)./obj[1:end-1]),color="r",l
 title(L"relative change in $|| \mathbf{m} - \mathbf{x} ||$", fontsize=16);
 xlabel("number of sequential SVDs", fontsize=16)
 ax[:legend](fontsize=12)
-ax[:tick_params]("both",labelsize=12) 
+ax[:tick_params]("both",labelsize=12)
 savefig("Dykstra_vs_PARSDMM_obj_change2.eps",bbox_inches="tight",dpi=1200)
 savefig("Dykstra_vs_PARSDMM_obj_change2.png",bbox_inches="tight")

@@ -69,21 +69,21 @@
 
   #test mode that projects each fibre of a tensor separately (either in x,y or z direction)
   X=randn(50,60,30)
-  project_cardinality!(X,7,"x")
+  project_cardinality!(X,7,"x_fiber")
   for i=1:size(x,2)
     for j=1:size(x,3)
       @test countnz(X[:,i,j])==7
     end
   end
   X=randn(50,60,30)
-  project_cardinality!(X,6,"y")
+  project_cardinality!(X,6,"y_fiber")
   for i=1:size(x,1)
     for j=1:size(x,3)
       @test countnz(X[i,:,j])==6
     end
   end
   X=randn(50,60,30)
-  project_cardinality!(X,4,"z")
+  project_cardinality!(X,4,"z_fiber")
   for i=1:size(x,1)
     for j=1:size(x,2)
       @test countnz(X[i,j,:])==4

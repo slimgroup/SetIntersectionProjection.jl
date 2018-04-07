@@ -34,7 +34,7 @@ function project_bounds!{TF<:Real}(x::Array{TF,2},LB::Vector{TF},UB::Vector{TF},
     Threads.@threads for i=1:size(x,2)
       @inbounds x[:,i].=min.(max.(x[:,i],LB),UB)
     end
-  elseif mode == "z"
+  elseif mode == "y"
     Threads.@threads for i=1:size(x,1)
       @inbounds x[i,:].=min.(max.(x[i,:],LB),UB)
     end
