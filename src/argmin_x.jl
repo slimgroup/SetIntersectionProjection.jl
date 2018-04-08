@@ -32,7 +32,11 @@ function argmin_x{TF<:Real}(
   if x_min_solver == "CG_normal" # for package: KrylovMethods
     if typeof(Q)==Array{TF,2}
       Af(in) =  (fill!(Ax_out,0); CDS_MVp_MT(size(Q,1),size(Q,2),Q,Q_offsets,in,Ax_out); return Ax_out)
-      x_solve_tol_ref = max(TF(0.1)*norm(Af(x)-rhs)/norm(rhs),TF(10)*eps(TF))
+      if i<3
+        x_solve_tol_ref = max(TF(0.1)*norm(Af(x)-rhs)/norm(rhs),TF(10)*eps(TF))
+      else
+        x_solve_tol_ref = min(max(TF(0.1)*norm(Af(x)-rhs)/norm(rhs),TF(10)*eps(TF)),x_solve_tol_ref)
+      end
       #x_solve_tol_ref = min(TF(0.1)*norm(Af(x)-rhs)/norm(rhs),x_solve_tol_ref)
       (x,flag,relres,iter) = cg(Af,rhs,tol=x_solve_tol_ref,maxIter=1000,x=x,out=0);
     else

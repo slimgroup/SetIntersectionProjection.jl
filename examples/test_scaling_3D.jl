@@ -1,5 +1,6 @@
 @everywhere using SetIntersectionProjection
 using HDF5
+ENV["MPLBACKEND"]="qt5agg"
 using PyPlot
 data_dir = "/data/slim/bpeters/SetIntersection_data_results"
 

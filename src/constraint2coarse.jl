@@ -68,8 +68,10 @@ else #use 2D
     end
 
     #nuclear norm:
-    if haskey(constraint,string("use_TD_nuclear_",i)) && constraint[string("use_TD_nuclear_",i)]== true
-      constraint[string("TD_nuclear_norm_",i)]=constraint[string("TD_nuclear_norm_",i)]/2.7
+    for i=1:3
+      if haskey(constraint,string("use_TD_nuclear_",i)) && constraint[string("use_TD_nuclear_",i)]== true
+        constraint[string("TD_nuclear_norm_",i)]=constraint[string("TD_nuclear_norm_",i)]/2.7
+      end
     end
 
 end #END if 2D or 3D
