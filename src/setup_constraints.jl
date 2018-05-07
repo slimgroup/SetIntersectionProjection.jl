@@ -171,7 +171,7 @@ end
 #subspace contraints per slice of a tensor
 for i in ["x","y","z"]
   if haskey(constraint,string("use_subspace_slice_",i)) && constraint[string("use_subspace_slice_",i)]== true
-    P_sub[counter]            = x -> project_subspace!(reshape(x,comp_grid.n),constraint[string("A_slice_",i)],constraint[string("subspace_slice_",i,"_orthogonal")],i)
+    P_sub[counter]            = x -> project_subspace!(reshape(x,comp_grid.n),constraint[string("A_slice_",i)],constraint[string("subspace_slice_orthogonal_",i)],i)
     TD_Prop.ncvx[counter]     = false
     TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
     TD_Prop.AtA_diag[counter] = true

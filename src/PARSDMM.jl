@@ -71,6 +71,7 @@ x_min_solver,rho_update_frequency,adjust_gamma,adjust_rho,adjust_feasibility_rho
 if stop==true #stop if feasibility of input is detected by PARSDMM_initialize
   copy!(x,m)
   if options.Minkowski == true
+    if length(x)==length(m)
     x = [x ; zeros(TF,length(x)) ]
   end
   log_PARSDMM.obj             = log_PARSDMM.obj[[1]]
@@ -93,7 +94,7 @@ x_solve_tol_ref=TF(1.0) #scalar required to determine tolerance for x-minimizati
 log_PARSDMM.T_ini=toq();
 
 for i=1:maxit #main loop
-  
+
   #form right hand side for x-minimization
   tic();
   rhs=rhs_compose(rhs,l,y,rho,TD_OP,p,Blas_active,parallel)

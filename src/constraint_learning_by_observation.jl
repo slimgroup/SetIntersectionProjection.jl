@@ -24,6 +24,8 @@ observations["nuclear_Dx"]   = zeros(TF,n_train_ex)
 observations["nuclear_Dz"]   = zeros(TF,n_train_ex)
 observations["rank_095"]     = zeros(TI,n_train_ex)
 observations["TV"]           = zeros(TF,n_train_ex)
+observations["Dx_l1"]        = zeros(TF,n_train_ex)
+observations["Dz_l1"]        = zeros(TF,n_train_ex)
 observations["curvelet_l1"]  = zeros(TF,n_train_ex)
 observations["DFT_l1"]       = zeros(TF,n_train_ex)
 observations["DFT_card_095"] = zeros(TI,n_train_ex)
@@ -97,6 +99,10 @@ for i=1:n_train_ex #can be changed to a parallel loop for larger datasets
 
     #observe anisotropic total-variation
     observations["TV"][i]=norm(TV_OP*training_image,1)
+
+    #different direction separately
+    observations["Dx_l1"][i] = norm(Dx_OP*training_image,1)
+    observations["Dz_l1"][i] = norm(Dz_OP*training_image,1)
 
     #observe l2 norm of discrete gradients (i.e., l2 version of anisotripic TV)
     observations["D_l2"][i]=norm(TV_OP*training_image,2)

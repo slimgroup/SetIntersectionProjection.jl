@@ -1,7 +1,5 @@
 @everywhere using SetIntersectionProjection
 using HDF5
-ENV["MPLBACKEND"]="qt5agg"
-using PyPlot
 data_dir = "/data/slim/bpeters/SetIntersection_data_results"
 
 @everywhere type compgrid
@@ -79,27 +77,12 @@ for i=length(width):-1:1
 
   N[i]=prod(size(m));
 
-  #serial
-  @everywhere gc()
-  println("")
-  println("serial")
-  options.parallel=false
-  #options.rho_ini = [10.0]
-  BLAS.set_num_threads(8)
-  (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
-  (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-  val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-  println(t)
-  log_T_serial[i]=log_PARSDMM;
-  T_tot_serial[i]=t;
-
   #parallel
   @everywhere gc()
   println("")
   println("parallel")
   options.parallel=true
-  BLAS.set_num_threads(4)
+  @everywhere BLAS.set_num_threads(2)
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
   (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
   (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
@@ -108,11 +91,26 @@ for i=length(width):-1:1
   log_T_parallel[i]=log_PARSDMM;
   T_tot_parallel[i]=t;
 
+  #serial
+  @everywhere gc()
+  println("")
+  println("serial")
+  options.parallel=false
+  #options.rho_ini = [10.0]
+  BLAS.set_num_threads(4)
+  (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+  (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+  val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+  println(t)
+  log_T_serial[i]=log_PARSDMM;
+  T_tot_serial[i]=t;
+
   #serial multilevel
   @everywhere gc()
   println("")
   println("serial multilevel")
-  BLAS.set_num_threads(8)
+  BLAS.set_num_threads(4)
   #options.rho_ini = [1000.0]
   options.parallel=false
   n_levels=3
@@ -128,7 +126,7 @@ for i=length(width):-1:1
   @everywhere gc()
   println("")
   println("parallel multilevel")
-  BLAS.set_num_threads(4)
+  @everywhere BLAS.set_num_threads(2)
   options.parallel=true
   n_levels=3
   coarsening_factor=2
@@ -141,6 +139,8 @@ for i=length(width):-1:1
 
 end
 
+ENV["MPLBACKEND"]="qt5agg"
+using PyPlot
 #plot results
 fig, ax = subplots()
 ax[:loglog](N, T_tot_serial, marker="o", markersize=10, label="serial",linewidth=5)

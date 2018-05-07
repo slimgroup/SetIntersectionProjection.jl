@@ -20,7 +20,7 @@ end
 if norm(v, 1) <= b
   return v
 end
-const lv=length(v)
+lv=length(v)
 u = Vector{TF}(lv)
 sv= Vector{TF}(lv)
 
@@ -42,12 +42,12 @@ sv = cumsum(u)
 #rho = find(u > (sv - b) ./ (1:length(u))', 1, 'last');
 #tmp = (u .> ((sv.-b)./ LinSpace(1,lv,lv)))#::BitVector
 
-const rho = findlast(u .> ((sv.-b)./ (1.0:1.0:lv)))
+rho = findlast(u .> ((sv.-b)./ (1.0:1.0:lv)))
 #convert(TF,rho) why was this here...
 #rho = findlast(tmp)::Int64
 
 #theta = max(0, (sv(rho) - b) / rho);
-const theta = max.(TF(0) , (sv[rho] .- b) ./ rho)::TF
+theta = max.(TF(0) , (sv[rho] .- b) ./ rho)::TF
 
 #w = sign(v) .* max(abs(v) - theta, 0);
 v .= sign.(v) .* max.(abs.(v).-theta, TF(0))
