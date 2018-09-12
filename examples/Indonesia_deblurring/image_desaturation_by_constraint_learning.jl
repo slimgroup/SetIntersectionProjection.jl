@@ -195,6 +195,8 @@ for i=1:length(options.rho_ini)
   end
 end
 
+
+using StatsBase
 for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
  [@spawnat pid y[:L][1]=TD_OP[:L][1]*x_ini for pid in y.pids]
@@ -205,6 +207,7 @@ for i=1:size(d_obs,1)
   @time (x,log_PARSDMM) = PARSDMM(p2proj,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options,x_ini,[],y)
   m_est[i,:,:]=reshape(x,comp_grid.n)
   println("SNR:", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:])),2))
+  println("PSNR:", round(psnr(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:]),maximum(m_evaluation[i,:,:])),2))
 
   if i+1<=size(d_obs,1)
     data = vec(d_obs[i+1,:,:])
@@ -241,6 +244,15 @@ savefig(joinpath(data_dir,"training_data_all.eps"),bbox_inches="tight",dpi=600)
 savefig(joinpath(data_dir,"training_data_all.png"),bbox_inches="tight")
 close()
 
+#First 8 in 1 figure
+figure();
+for i=1:8
+  subplot(2,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
+end
+savefig(joinpath(data_dir,"training_data_first8.eps"),bbox_inches="tight",dpi=600)
+savefig(joinpath(data_dir,"training_data_first8.png"),bbox_inches="tight")
+close()
+
 for i=1:16
   figure();title(string("training image", i), fontsize=10)
   imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
@@ -262,6 +274,21 @@ for i=1:size(m_est,1)
     savefig(joinpath(data_dir,string("desaturation_evaluation",i,".png")),bbox_inches="tight")
     close()
 end
+
+figure()
+for i=1:size(m_est,1)
+  subplot(3,4,i);imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("Observed");
+end
+for i=1:size(m_est,1)
+  subplot(3,4,i+8);imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, PSNR=", round(psnr(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:]),maximum(m_evaluation[i,:,:])),2)))
+end
+for i=1:size(m_est,1)
+  subplot(3,4,i+4);imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
+end
+savefig(joinpath(data_dir,string("desaturation_results.eps")),bbox_inches="tight",dpi=300)
+savefig(joinpath(data_dir,string("desaturation_results.png")),bbox_inches="tight")
+
+
 
 #plot histograms of reconstructed on top of true
 nbins=10

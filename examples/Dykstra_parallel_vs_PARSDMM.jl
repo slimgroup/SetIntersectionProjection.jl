@@ -82,7 +82,7 @@ figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,
 
 # parallel Dykstra: first set up projectors onto complicated sets
 #use same stopping conditions as for PARSDMM
-maxit_dyk=200
+maxit_dyk=20
 dyk_feas_tol = deepcopy(options.feas_tol)
 obj_dyk_tol  = deepcopy(options.obj_tol)
 
@@ -126,18 +126,18 @@ closed_form[3]=false
 
 figure();imshow(reshape(m2,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
 
-@time (x,obj,feasibility_err_dyk,cg_it,ARADMM_it,l1_P,bounds_P)=Dykstra_prox_parallel(m2,P,P_sub,TD_OP,closed_form,maxit_dyk,dyk_feas_tol,obj_dyk_tol)
+@time (x,obj,feasibility_err_dyk,cg_it,ARADMM_it,l1_P,bounds_P,evol_x_PDyk)=Dykstra_prox_parallel(m2,P,P_sub,TD_OP,closed_form,maxit_dyk,dyk_feas_tol,obj_dyk_tol)
 
 figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection Dykstra (bounds, bounds on D_z, TV)")
 
 
 fig, ax = subplots()
-ax[:semilogy](feas_axis,log_PARSDMM.set_feasibility[:,1],color="b",label="PARSDMM - bounds");
-ax[:semilogy](feas_axis,log_PARSDMM.set_feasibility[:,2],color="r",label="PARSDMM - monotonicity");
-ax[:semilogy](feas_axis,log_PARSDMM.set_feasibility[:,3],color="k",label="PARSDMM - TV");
-ax[:semilogy]([0 ; cumsum(ARADMM_it)],feasibility_err_dyk[:,1],linestyle="--",color="b",label="Parallel Dykstra - bounds");
-ax[:semilogy]([0 ; cumsum(ARADMM_it)],feasibility_err_dyk[:,2],linestyle="--",color="r",label="Parallel Dykstra - monotonicity");
-ax[:semilogy]([0 ; cumsum(ARADMM_it)],feasibility_err_dyk[:,3],linestyle="--",color="k",label="Parallel Dykstra - TV");
+ax[:semilogy](feas_axis,log_PARSDMM.set_feasibility[:,1],color="b",label="PARSDMM - bounds",linewidth=5);
+ax[:semilogy](feas_axis,log_PARSDMM.set_feasibility[:,2],color="r",label="PARSDMM - monotonicity",linewidth=5);
+ax[:semilogy](feas_axis,log_PARSDMM.set_feasibility[:,3],color="k",label="PARSDMM - TV",linewidth=5);
+ax[:semilogy]([0 ; cumsum(ARADMM_it)],feasibility_err_dyk[:,1],linestyle=":",color="b",label="Parallel Dykstra - bounds",linewidth=5);
+ax[:semilogy]([0 ; cumsum(ARADMM_it)],feasibility_err_dyk[:,2],linestyle=":",color="r",label="Parallel Dykstra - monotonicity",linewidth=5);
+ax[:semilogy]([0 ; cumsum(ARADMM_it)],feasibility_err_dyk[:,3],linestyle=":",color="k",label="Parallel Dykstra - TV",linewidth=5);
 # ax[:loglog](feas_axis,log_PARSDMM.set_feasibility[:,3],color="k",label="PARSDMM - TV");
 # ax[:loglog](feas_axis,log_PARSDMM.set_feasibility[:,1],color="b",label="PARSDMM - bounds");
 # ax[:loglog](feas_axis,log_PARSDMM.set_feasibility[:,2],color="r",label="PARSDMM - monotonicity");
@@ -147,19 +147,19 @@ ax[:semilogy]([0 ; cumsum(ARADMM_it)],feasibility_err_dyk[:,3],linestyle="--",co
 #ax[:semilogy]([0 ; cumsum(ARADMM_it)],ones(size(feasibility_err_dyk,1)).*feas_tol_target,label="target");
 title("relative set feasibility error", fontsize=16)
 xlabel(L"number of sequential $\ell_1$ projections", fontsize=16)
-ax[:legend](fontsize=12)
+ax[:legend](fontsize=10)
 ax[:tick_params]("both",labelsize=12)
 savefig("Dykstra_vs_PARSDMM_feasibility.eps",bbox_inches="tight",dpi=1200)
 savefig("Dykstra_vs_PARSDMM_feasibility.png",bbox_inches="tight")
 
 
 fig, ax = subplots()
-ax[:semilogy](cg_axis,log_PARSDMM.set_feasibility[1:end-1,1],color="b",label="PARSDMM - bounds");
-ax[:semilogy](cg_axis,log_PARSDMM.set_feasibility[1:end-1,2],color="r",label="PARSDMM - monotonicity");
-ax[:semilogy](cg_axis,log_PARSDMM.set_feasibility[1:end-1,3],color="k",label="PARSDMM - TV");
-ax[:semilogy]([0;cumsum(cg_it)],feasibility_err_dyk[:,1],linestyle="--",color="b",label="Parallel Dykstra - bounds");
-ax[:semilogy]([0;cumsum(cg_it)],feasibility_err_dyk[:,2],linestyle="--",color="r",label="Parallel Dykstra - monotonicity");
-ax[:semilogy]([0;cumsum(cg_it)],feasibility_err_dyk[:,3],linestyle="--",color="k",label="Parallel Dykstra - TV");
+ax[:semilogy](cg_axis,log_PARSDMM.set_feasibility[1:end-1,1],color="b",label="PARSDMM - bounds",linewidth=5);
+ax[:semilogy](cg_axis,log_PARSDMM.set_feasibility[1:end-1,2],color="r",label="PARSDMM - monotonicity",linewidth=5);
+ax[:semilogy](cg_axis,log_PARSDMM.set_feasibility[1:end-1,3],color="k",label="PARSDMM - TV",linewidth=5);
+ax[:semilogy]([0;cumsum(cg_it)],feasibility_err_dyk[:,1],linestyle=":",color="b",label="Parallel Dykstra - bounds",linewidth=5);
+ax[:semilogy]([0;cumsum(cg_it)],feasibility_err_dyk[:,2],linestyle=":",color="r",label="Parallel Dykstra - monotonicity",linewidth=5);
+ax[:semilogy]([0;cumsum(cg_it)],feasibility_err_dyk[:,3],linestyle=":",color="k",label="Parallel Dykstra - TV",linewidth=5);
 # ax[:loglog](cg_axis,log_PARSDMM.set_feasibility[1:end-1,1],color="b",label="PARSDMM - bounds");
 # ax[:loglog](cg_axis,log_PARSDMM.set_feasibility[1:end-1,2],color="r",label="PARSDMM - monotonicity");
 # ax[:loglog](cg_axis,log_PARSDMM.set_feasibility[1:end-1,3],color="k",label="PARSDMM - TV");
@@ -170,22 +170,24 @@ ax[:semilogy]([0;cumsum(cg_it)],feasibility_err_dyk[:,3],linestyle="--",color="k
 #ax[:semilogy]([0 ; cumsum(ARADMM_it)],ones(size(feasibility_err_dyk,1)).*feas_tol_target,label="target");
 title("relative set feasibility error", fontsize=16)
 xlabel("number of sequential CG iterations", fontsize=16)
-ax[:legend](fontsize=12)
+ax[:legend](fontsize=10)
 ax[:tick_params]("both",labelsize=12)
 savefig("Dykstra_vs_PARSDMM_feasibility_CG.eps",bbox_inches="tight",dpi=1200)
 savefig("Dykstra_vs_PARSDMM_feasibility_CG.png",bbox_inches="tight")
 
 
 fig, ax = subplots()
-ax[:semilogy](abs.(diff(log_PARSDMM.obj)./log_PARSDMM.obj[1:end-1]),color="b",label="PARSDMM");
-ax[:semilogy](cumsum(ARADMM_it[2:end]),abs.(diff(obj)./obj[1:end-1]),color="r",label="Parallel Dykstra");
+#ax[:semilogy](abs.(diff(log_PARSDMM.obj)./log_PARSDMM.obj[1:end-1]),color="b",label="PARSDMM",linewidth=5);
+ax[:semilogy](cumsum(ARADMM_it[1:end]),evol_x_PDyk[1:end-1,1],color="r",linestyle=":",label="Parallel Dykstra",linewidth=5);
+ax[:semilogy](log_PARSDMM.evol_x[3:end],color="b",label="PARSDMM",linewidth=5);
 #ax[:semilogy](ones(sum(ARADMM_it[2:end])).*obj_tol_target,label="target");
-title(L"relative change in $|| \mathbf{m} - \mathbf{x} ||$", fontsize=16)
+#title(L"relative change in $|| \mathbf{m} - \mathbf{x} ||$", fontsize=16)
+title(L"relative change in $|| x^k - x^{k-1} ||$", fontsize=16)
 xlabel(L"number of sequential $\ell_1$ projections", fontsize=16)
-ax[:legend](fontsize=12)
+ax[:legend](fontsize=10)
 ax[:tick_params]("both",labelsize=12)
-savefig("Dykstra_vs_PARSDMM_obj_change.eps",bbox_inches="tight",dpi=1200)
-savefig("Dykstra_vs_PARSDMM_obj_change.png",bbox_inches="tight")
+savefig("Dykstra_vs_PARSDMM_x_evol.eps",bbox_inches="tight",dpi=1200)
+savefig("Dykstra_vs_PARSDMM_x_evol.png",bbox_inches="tight")
 
 #######################################################################################
 #######################################################################################
@@ -223,7 +225,7 @@ zmax = comp_grid.d[2]*comp_grid.n[2]
 vmi=1500
 vma=4500
 figure();imshow(reshape(m,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
-figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection PARSDMM (bounds, bounds on D_z, TV))")
+figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection PARSDMM (bounds, rank)")
 
 # parallel Dykstra: first set up projectors onto complicated sets
 #use same stopping conditions as for PARSDMM
@@ -257,47 +259,47 @@ closed_form=Vector{Bool}(2)
 closed_form[1]=true
 closed_form[2]=false
 
-figure();imshow(reshape(m2,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
+figure();imshow(reshape(m,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
 
-@time (x,obj,feasibility_err_dyk,cg_it,ARADMM_it,svd_P)=Dykstra_prox_parallel(m2,P,P_sub,TD_OP,closed_form,maxit_dyk,dyk_feas_tol,obj_dyk_tol)
+@time (x,obj,feasibility_err_dyk,cg_it,ARADMM_it,svd_P,~,evol_x_PDyk)=Dykstra_prox_parallel(m,P,P_sub,TD_OP,closed_form,maxit_dyk,dyk_feas_tol,obj_dyk_tol)
 
 figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection Dykstra (bounds, bounds on D_z, TV)")
 
 fig, ax = subplots()
-ax[:semilogy](feas_axis,log_PARSDMM.set_feasibility[:,1],color="b",label="PARSDMM - bounds");
-ax[:semilogy](feas_axis,log_PARSDMM.set_feasibility[:,2],color="r",label="PARSDMM - TD rank");
-ax[:semilogy]([0 ; cumsum(ARADMM_it)],feasibility_err_dyk[:,1],linestyle="--",color="b",label="Parallel Dykstra - bounds");
-ax[:semilogy]([0 ; cumsum(ARADMM_it)],feasibility_err_dyk[:,2],linestyle="--",color="r",label="Parallel Dykstra - TD rank");
+ax[:semilogy](feas_axis,log_PARSDMM.set_feasibility[:,1],color="b",label="PARSDMM - bounds",linewidth=5);
+ax[:semilogy](feas_axis,log_PARSDMM.set_feasibility[:,2],color="r",label="PARSDMM - TD rank",linewidth=5);
+ax[:semilogy]([0 ; cumsum(ARADMM_it)],feasibility_err_dyk[:,1],linestyle=":",color="b",label="Parallel Dykstra - bounds",linewidth=5);
+ax[:semilogy]([0 ; cumsum(ARADMM_it)],feasibility_err_dyk[:,2],linestyle=":",color="r",label="Parallel Dykstra - TD rank",linewidth=5);
 #ax[:semilogy]([0 ; cumsum(ARADMM_it)],ones(size(feasibility_err_dyk,1)).*feas_tol_target,label="target");
 title("relative set feasibility error", fontsize=16)
 xlabel("number of sequential SVDs", fontsize=16)
-ax[:legend](fontsize=12)
+ax[:legend](fontsize=10)
 ax[:tick_params]("both",labelsize=12)
 savefig("Dykstra_vs_PARSDMM_feasibility2.eps",bbox_inches="tight",dpi=1200)
 savefig("Dykstra_vs_PARSDMM_feasibility2.png",bbox_inches="tight")
 
 
 fig, ax = subplots()
-ax[:semilogy](cg_axis,log_PARSDMM.set_feasibility[1:end-1,1],color="b",label="PARSDMM - bounds");
-ax[:semilogy](cg_axis,log_PARSDMM.set_feasibility[1:end-1,2],color="r",label="PARSDMM - TD rank");
-ax[:semilogy]([0;cumsum(cg_it)],feasibility_err_dyk[:,1],linestyle="--",color="b",label="Parallel Dykstra - bounds");
-ax[:semilogy]([0;cumsum(cg_it)],feasibility_err_dyk[:,2],linestyle="--",color="r",label="Parallel Dykstra - TD rank");
+ax[:semilogy](cg_axis,log_PARSDMM.set_feasibility[1:end-1,1],color="b",label="PARSDMM - bounds",linewidth=5);
+ax[:semilogy](cg_axis,log_PARSDMM.set_feasibility[1:end-1,2],color="r",label="PARSDMM - TD rank",linewidth=5);
+ax[:semilogy]([0;cumsum(cg_it)],feasibility_err_dyk[:,1],linestyle=":",color="b",label="Parallel Dykstra - bounds",linewidth=5);
+ax[:semilogy]([0;cumsum(cg_it)],feasibility_err_dyk[:,2],linestyle=":",color="r",label="Parallel Dykstra - TD rank",linewidth=5);
 #ax[:semilogy]([0 ; cumsum(ARADMM_it)],ones(size(feasibility_err_dyk,1)).*feas_tol_target,label="target");
 title("relative set feasibility error", fontsize=16)
 xlabel("number of sequential CG iterations", fontsize=16)
-ax[:legend](fontsize=12)
+ax[:legend](fontsize=10)
 ax[:tick_params]("both",labelsize=12)
 savefig("Dykstra_vs_PARSDMM_feasibility_CG2.eps",bbox_inches="tight",dpi=1200)
 savefig("Dykstra_vs_PARSDMM_feasibility_CG2.png",bbox_inches="tight")
 
 
 fig, ax = subplots()
-ax[:semilogy](abs.(diff(log_PARSDMM.obj)./log_PARSDMM.obj[1:end-1]),color="b",label="PARSDMM");
-ax[:semilogy](cumsum(ARADMM_it[2:end]),abs.(diff(obj)./obj[1:end-1]),color="r",label="Parallel Dykstra");
+ax[:semilogy](log_PARSDMM.evol_x[3:end],color="b",label="PARSDMM",linewidth=5);
+ax[:semilogy](cumsum(ARADMM_it[1:end]),evol_x_PDyk[1:end-1,1],color="r",label="Parallel Dykstra",linewidth=5);
 #ax[:semilogy](ones(sum(ARADMM_it[2:end])).*obj_tol_target,label="target");
-title(L"relative change in $|| \mathbf{m} - \mathbf{x} ||$", fontsize=16);
+title(L"relative change in $|| x^k - x^{k-1} ||$", fontsize=16)
 xlabel("number of sequential SVDs", fontsize=16)
-ax[:legend](fontsize=12)
+ax[:legend](fontsize=10)
 ax[:tick_params]("both",labelsize=12)
-savefig("Dykstra_vs_PARSDMM_obj_change2.eps",bbox_inches="tight",dpi=1200)
-savefig("Dykstra_vs_PARSDMM_obj_change2.png",bbox_inches="tight")
+savefig("Dykstra_vs_PARSDMM_x_evol2.eps",bbox_inches="tight",dpi=1200)
+savefig("Dykstra_vs_PARSDMM_x_evol2.png",bbox_inches="tight")

@@ -42,7 +42,7 @@ sv = cumsum(u)
 #rho = find(u > (sv - b) ./ (1:length(u))', 1, 'last');
 #tmp = (u .> ((sv.-b)./ LinSpace(1,lv,lv)))#::BitVector
 
-rho = findlast(u .> ((sv.-b)./ (1.0:1.0:lv)))
+rho = max(lv,findlast(u .> ((sv.-b)./ (1.0:1.0:lv))))
 #convert(TF,rho) why was this here...
 #rho = findlast(tmp)::Int64
 

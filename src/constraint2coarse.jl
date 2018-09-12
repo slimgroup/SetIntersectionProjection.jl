@@ -6,9 +6,20 @@ function constraint2coarse(constraint,comp_grid,coarsening_factor)
 
   #bound constraints: same as on fine grid
 
-  #rank: same as on fine grid
+  #rank: same as on fine grid (limit by minimum dimension)
+  for i=1:3
+    if haskey(constraint,string("use_TD_rank_",i)) && constraint[string("use_TD_rank_",i)]==true
+      constraint[string("TD_max_rank_",i)] = min(constraint[string("TD_max_rank_",i)],minimum(comp_grid.n))
+    end
+  end
 
-  #cardinality in a transform-domain: same as on fine grid
+  #cardinality in a transform-domain: same as on fine grid (limit by number of elements)
+  for i=1:3
+    if haskey(constraint,string("use_TD_card_",i)) && constraint[string("use_TD_card_",i)]==true
+      constraint[string("card_",i)] = min(constraint[string("card_",i)],prod(comp_grid.n))
+    end
+  end
+
 
   #define below what to do with norms (l1, l2 and nuclear)
   # will probably depend on constraints and interpolation type that is used

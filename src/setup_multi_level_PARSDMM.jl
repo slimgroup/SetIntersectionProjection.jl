@@ -126,5 +126,7 @@ end #for loop
 #   m_levels[i]=vec(m_levels[i])
 # end
 
-return m_levels, TD_OP_levels, AtA_levels, P_sub_levels, TD_Prop_levels, comp_grid_levels, constraint_level
+#return m_levels, TD_OP_levels, AtA_levels, P_sub_levels, TD_Prop_levels, comp_grid_levels, constraint_level
+return TD_OP_levels, AtA_levels, P_sub_levels, TD_Prop_levels, comp_grid_levels, constraint_level
+
 end #end setup_multi_level_PARSDMM

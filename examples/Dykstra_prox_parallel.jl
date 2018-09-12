@@ -50,6 +50,7 @@ p=Vector{Vector{TF}}(m)
 
 obj=zeros(TF,maxit_dyk)
 rel_feasibility_err=zeros(TF,maxit_dyk+1,m)
+evol_x = zeros(TF,maxit_dyk+1,m);
 
 l1_P=zeros(Int64,maxit_dyk)
 bounds_P=zeros(Int64,maxit_dyk)
@@ -114,6 +115,7 @@ for n=1:maxit_dyk
 
     #log objective
     obj[n].=0.5*norm(ptp-x,2).^2;
+    evol_x[n]=norm(x_old-x)/norm(x)
 
     #updating
     for i=1:m
@@ -140,5 +142,5 @@ end
 #obj=obj[1:n]
 #rel_feasibility_err=rel_feasibility_err[1:n,:]
 
-return x,obj,rel_feasibility_err,cg_it,ARADMM_it,l1_P,bounds_P
+return x,obj,rel_feasibility_err,cg_it,ARADMM_it,l1_P,bounds_P,evol_x
 end

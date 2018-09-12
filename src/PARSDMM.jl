@@ -72,7 +72,8 @@ if stop==true #stop if feasibility of input is detected by PARSDMM_initialize
   copy!(x,m)
   if options.Minkowski == true
     if length(x)==length(m)
-    x = [x ; zeros(TF,length(x)) ]
+      x = [x ; zeros(TF,length(x)) ]
+    end
   end
   log_PARSDMM.obj             = log_PARSDMM.obj[[1]]
   log_PARSDMM.evol_x          = log_PARSDMM.evol_x[[1]]

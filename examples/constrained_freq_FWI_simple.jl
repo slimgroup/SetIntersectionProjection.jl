@@ -65,7 +65,7 @@ yrec = [0.0];
 zrec = 0.0:50.0:L[1];
 
 # Frequencies to compute
-freqs = [3.0 ; 5.0 ; 8.0]#[5.0;10.0;15.0];
+freqs = [3.0 ; 5.0 ; 7.0]# ; 8.0]#[5.0;10.0;15.0];
 
 # Maximum wavelength
 λ = vel_background/maximum(freqs);
@@ -164,7 +164,7 @@ max_func_evals = 10
 # end
 
 #Frequency continuation my own
-size_freq_batch = 2
+size_freq_batch = 3
 overlap = 1
 freq_partition = partition(nfreq,size_freq_batch,overlap)
 vest = v0
@@ -239,7 +239,7 @@ end
 
 CFWI(ini_model,projector) = run_CFWI(freq_partition,nsrc,nfreq,v,Q,D,model,opts1,options_SPG,projector,ini_model,max_func_evals)
 
-constraint_strategy_list=[2 3 4 5 6 7 8 9]# 2 3 4 5 6]
+constraint_strategy_list=[4 5 6]# 7 8 9]#][1 2 3 4 5]#
 for j in constraint_strategy_list
   if j==1
     keyword="bounds_only"
@@ -253,7 +253,7 @@ for j in constraint_strategy_list
   # various types of cardinality and rank
 elseif j==2
 		keyword="cardmat_cardcol_rank_bounds"
-    title_str="h) fiber and matrix grad. card. & rank & bounds"
+    title_str="g) fiber, matrix grad. card. & rank & bounds"
 
 		constraint=Dict()
 		constraint["use_bounds"]=true
@@ -297,24 +297,10 @@ elseif j==2
       (TV,dummy1,dummy2,dummy3)=get_TD_operator(comp_grid,"TV",options.FL)
       constraint["TD_l1_sigma_1"]=norm(TV*vec(v),1)
 
-    elseif j==4
-      keyword="rank_bounds"
-      title_str="rank & bounds"
-
-      constraint=Dict()
-      constraint["use_bounds"]=true
-      constraint["m_min"] = minimum(v)-50.0
-      constraint["m_max"] = maximum(v)+50.0
-
-      #rank constraint
-  		constraint["use_TD_rank_1"]=true
-  	  constraint["TD_max_rank_1"]=3
-      constraint["TD_rank_operator_1"]="identity"
-
       # various types of cardinality
-    elseif j==5
+    elseif j==4
     			keyword="cardmat_cardcol_bounds"
-          title_str="g) fiber and matrix grad. card. & bounds"
+          title_str="f) fiber, matrix grad. card. & bounds"
 
     			constraint=Dict()
     			constraint["use_bounds"]=true
@@ -339,9 +325,9 @@ elseif j==2
     			constraint["card_2"]=round(Integer,3*0.33*n[1])
     			constraint["TD_card_operator_2"]="D_z"
 
-        elseif j==6
+        elseif j==5
     				keyword="cardmat_bounds"
-            title_str="f) matrix grad. card. & bounds"
+            title_str="e) matrix grad. card. & bounds"
 
     				constraint=Dict()
     				constraint["use_bounds"]=true
@@ -362,54 +348,9 @@ elseif j==2
         	  constraint["TD_max_rank_1"]=3
             constraint["TD_rank_operator_1"]="identity"
 
-          elseif j==7
-    					keyword="cardcol_bounds"
-              title_str="e) fiber grad. card. & bounds"
-
-    					constraint=Dict()
-    					constraint["use_bounds"]=true
-              constraint["m_min"] = minimum(v)-50.0
-              constraint["m_max"] = maximum(v)+50.0
-
-    					#cardinality on derivatives (column and row wise)
-    					constraint["use_TD_card_fiber_x"]			= true
-    					constraint["card_fiber_x"] 						= 2
-    					constraint["TD_card_fiber_x_operator"]= "D_x"
-
-    					constraint["use_TD_card_fiber_z"]=true
-    					constraint["card_fiber_z"]=2
-    					constraint["TD_card_fiber_z_operator"]="D_z"
-
-              #rank constraint
-          		constraint["use_TD_rank_1"]=false
-          	  constraint["TD_max_rank_1"]=3
-              constraint["TD_rank_operator_1"]="identity"
-
-            elseif j==8
-              keyword="rank_TVrank_bounds"
-              title_str="rank, grad. rank, bounds"
-
-              constraint=Dict()
-              constraint["use_bounds"]=true
-              constraint["m_min"] = minimum(v)-50.0
-              constraint["m_max"] = maximum(v)+50.0
-
-              #rank constraint
-          		constraint["use_TD_rank_1"]=true
-          	  constraint["TD_max_rank_1"]=3
-              constraint["TD_rank_operator_1"]="identity"
-
-              constraint["use_TD_rank_2"]=true;
-              constraint["TD_max_rank_2"]=3
-              constraint["TD_rank_operator_2"]="D_x"
-
-              constraint["use_TD_rank_3"]=true;
-              constraint["TD_max_rank_3"]=3
-              constraint["TD_rank_operator_3"]="D_z"
-
-            elseif j==9
+          elseif j==6
               keyword="cardmat_cardcol_cardDxz_rank_bounds"
-              title_str="i) fiber and matrix grad. card. & Dxz card. & rank & bounds"
+              title_str="i) fiber, matrix grad. card. & Dxz card. & rank & bounds"
 
           		constraint=Dict()
           		constraint["use_bounds"]=true

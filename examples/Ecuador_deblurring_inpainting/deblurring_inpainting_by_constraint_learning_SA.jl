@@ -73,7 +73,7 @@ FWD_OP = convert(SparseMatrixCSC{TF,TI},mask*BF)
 for i=1:size(d_obs,1)
   temp = FWD_OP*vec(m_evaluation[i,:,:])
   #add noise (integers between -2 and 2 for each  nonzero observation point)
-  noise = rand([-2,-1,0,1,2],countnz(temp));
+  noise = rand((-10:10),countnz(temp));
   nz_ind = find(temp)
   temp[nz_ind].= temp[nz_ind].+noise
   d_obs[i,:,:] = reshape(temp,comp_grid.n[1]-bkl,comp_grid.n[2])
@@ -102,44 +102,44 @@ constraint["TD_hist_eq_operator_2"]= "TV"
 
 constraint["use_TD_rank_1"]=false;
 observations["rank_095"]=sort(vec(observations["rank_095"]))
-constraint["TD_max_rank_1"] = convert(TI,round(quantile(observations["rank_095"],0.50)))
+constraint["TD_max_rank_1"] = convert(TI,round(quantile(observations["rank_095"],0.25)))
 constraint["TD_rank_operator_1"]="identity"
 
 constraint["use_TD_nuclear_1"]=true;
 constraint["TD_nuclear_operator_1"]="identity"
-constraint["TD_nuclear_norm_1"] = convert(TF,quantile(vec(observations["nuclear_norm"]),0.50))
+constraint["TD_nuclear_norm_1"] = convert(TF,quantile(vec(observations["nuclear_norm"]),0.25))
 
 constraint["use_TD_nuclear_2"]=true;
 constraint["TD_nuclear_operator_2"]="D_x"
-constraint["TD_nuclear_norm_2"] = convert(TF,quantile(vec(observations["nuclear_Dx"]),0.50))
+constraint["TD_nuclear_norm_2"] = convert(TF,quantile(vec(observations["nuclear_Dx"]),0.25))
 
 constraint["use_TD_nuclear_3"]=true;
 constraint["TD_nuclear_operator_3"]="D_z"
-constraint["TD_nuclear_norm_3"] = convert(TF,quantile(vec(observations["nuclear_Dz"]),0.50))
+constraint["TD_nuclear_norm_3"] = convert(TF,quantile(vec(observations["nuclear_Dz"]),0.25))
 
 constraint["use_TD_l1_1"]=true
 constraint["TD_l1_operator_1"]="TV"
-constraint["TD_l1_sigma_1"] = convert(TF,quantile(vec(observations["TV"]),0.50))
+constraint["TD_l1_sigma_1"] = convert(TF,quantile(vec(observations["TV"]),0.25))
 
 # constraint["use_TD_l1_1"]=true
 # constraint["TD_l1_operator_1"]="D_x"
-# constraint["TD_l1_sigma_1"] = convert(TF,quantile(vec(observations["Dx_l1"]),0.50))
+# constraint["TD_l1_sigma_1"] = convert(TF,quantile(vec(observations["Dx_l1"]),0.25))
 #
 # constraint["use_TD_l1_2"]=true
 # constraint["TD_l1_operator_2"]="D_z"
-# constraint["TD_l1_sigma_2"] = convert(TF,quantile(vec(observations["Dz_l1"]),0.50))
+# constraint["TD_l1_sigma_2"] = convert(TF,quantile(vec(observations["Dz_l1"]),0.25))
 
 constraint["use_TD_l2_1"]=true
 constraint["TD_l2_operator_1"]="TV"
-constraint["TD_l2_sigma_1"] = convert(TF,quantile(vec(observations["D_l2"]),0.50))
+constraint["TD_l2_sigma_1"] = convert(TF,quantile(vec(observations["D_l2"]),0.25))
 
 constraint["use_TD_l1_2"]=false
 constraint["TD_l1_operator_2"]="curvelet"
-constraint["TD_l1_sigma_2"] = 0.5f0*convert(TF,quantile(vec(observations["curvelet_l1"]),0.50))
+constraint["TD_l1_sigma_2"] = 0.5f0*convert(TF,quantile(vec(observations["curvelet_l1"]),0.25))
 
 constraint["use_TD_l1_3"]=false
 constraint["TD_l1_operator_3"]="DFT"
-constraint["TD_l1_sigma_3"] = convert(TF,quantile(vec(observations["DFT_l1"]),0.50))
+constraint["TD_l1_sigma_3"] = convert(TF,quantile(vec(observations["DFT_l1"]),0.25))
 
 constraint["use_TD_bounds_1"]=true
 constraint["TDB_operator_1"]="D_x"
@@ -171,13 +171,13 @@ constraint["card_2"]=convert(TI,round(quantile(vec(observations["TV_card_095"]),
 
 constraint["use_TD_annulus_1"]=true
 constraint["TD_annulus_operator_1"]="identity"
-constraint["TD_annulus_sigma_max_1"]=maximum(observations["annulus"])
-constraint["TD_annulus_sigma_min_1"]=minimum(observations["annulus"])
+constraint["TD_annulus_sigma_max_1"]=quantile(observations["annulus"],0.85)
+constraint["TD_annulus_sigma_min_1"]=quantile(observations["annulus"],0.15)
 
 constraint["use_TD_annulus_2"]=true
 constraint["TD_annulus_operator_2"]="TV"
-constraint["TD_annulus_sigma_max_2"]=maximum(observations["TV_annulus"])
-constraint["TD_annulus_sigma_min_2"]=minimum(observations["TV_annulus"])
+constraint["TD_annulus_sigma_max_2"]=quantile(observations["TV_annulus"],0.85)
+constraint["TD_annulus_sigma_min_2"]=quantile(observations["TV_annulus"],0.15)
 
 #PARSDMM options:
 options=PARSDMM_options()
@@ -212,8 +212,8 @@ push!(TD_Prop.tag,("subsampling blurring filer","x-motion-blur"))
 
 #also add a projector onto the data constraint: i.e. ||A*x-m||=< sigma, or l<=(A*x-m)<=u
 data = vec(d_obs[1,:,:])
-LBD=data.-2.0;  LBD=convert(Vector{TF},LBD)
-UBD=data.+2.0;  UBD=convert(Vector{TF},UBD)
+LBD=data.-15.0;  LBD=convert(Vector{TF},LBD)
+UBD=data.+15.0;  UBD=convert(Vector{TF},UBD)
 push!(P_sub,x -> project_bounds!(x,LBD,UBD))
 println("finished setting up constraints")
 
@@ -229,15 +229,17 @@ for i=1:length(options.rho_ini)
   end
 end
 
+using StatsBase
 for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
   @time (x,log_PARSDMM) = PARSDMM(dummy,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options)
   m_est[i,:,:]=reshape(x,comp_grid.n)
   println("SNR:", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(m_est[i,(bkl*2):end-(bkl*2),:])),2))
+  println("PSNR:", round(psnr(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(m_est[i,(bkl*2):end-(bkl*2),:]),maximum(m_evaluation[i,:,:])),2))
   if i+1<=size(d_obs,1)
     data = vec(d_obs[i+1,:,:])
-    LBD=data.-2.0;  LBD=convert(Vector{TF},LBD);
-    UBD=data.+2.0;  UBD=convert(Vector{TF},UBD);
+    LBD=data.-15.0;  LBD=convert(Vector{TF},LBD);
+    UBD=data.+15.0;  UBD=convert(Vector{TF},UBD);
     P_sub[end] = x -> project_bounds!(x,LBD,UBD)
   end
 end
@@ -262,6 +264,15 @@ for i=1:35
 end
 close("all")
 
+#plot first 8 training in 1 figure
+figure();
+for i=1:8
+  subplot(2,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
+end
+savefig(joinpath(data_dir,"training_data_first8.eps"),bbox_inches="tight",dpi=600)
+savefig(joinpath(data_dir,"training_data_first8.png"),bbox_inches="tight")
+close()
+
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 
 for i=1:size(m_est,1)
@@ -275,7 +286,6 @@ for i=1:size(m_est,1)
     savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".eps")),bbox_inches="tight",dpi=600)
     savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".png")),bbox_inches="tight")
 end
-
 
 file = matopen(joinpath(data_dir,"m_est.mat"), "w")
 write(file, "m_est", convert(Array{Float64,3},m_est))
@@ -298,19 +308,20 @@ write(file, "FWD_OP", convert(SparseMatrixCSC{Float64,Int64},FWD_OP))
 close(file)
 
 #load TFOCS matlab results and plot
- file = matopen("x_TFOCS_tv_save_SA.mat")
- x_TFOCS_tv_save=read(file, "x_TFOCS_tv_save_SA")
- x_TFOCS_tv_save=reshape(x_TFOCS_tv_save,4,comp_grid.n[1],comp_grid.n[2])
-SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
-for i=1:size(m_evaluation,1)
-  figure()
-  imshow(x_TFOCS_tv_save[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("TFOCS BPDN-TV, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(x_TFOCS_tv_save[i,(bkl*2):end-(bkl*2),:])),2)))
-  savefig(joinpath(data_dir,string("TFOCS_TV_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
-  savefig(joinpath(data_dir,string("TFOCS_TV_inpainting",i,".png")),bbox_inches="tight")
-end
+#  file = matopen("x_TFOCS_tv_save_SA.mat")
+#  x_TFOCS_tv_save=read(file, "x_TFOCS_tv_save_SA")
+#  x_TFOCS_tv_save=reshape(x_TFOCS_tv_save,4,comp_grid.n[1],comp_grid.n[2])
+# SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
+# for i=1:size(m_evaluation,1)
+#   figure()
+#   imshow(x_TFOCS_tv_save[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("TFOCS BPDN-TV, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(x_TFOCS_tv_save[i,(bkl*2):end-(bkl*2),:])),2)))
+#   savefig(joinpath(data_dir,string("TFOCS_TV_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
+#   savefig(joinpath(data_dir,string("TFOCS_TV_inpainting",i,".png")),bbox_inches="tight")
+# end
 
 file = matopen("x_SPGL1_wavelet_save_SA.mat")
 x_SPGL_wavelet_save=read(file, "x_SPGL1_wavelet_save_SA")
+x_SPGL_wavelet_save = convert(Array{TF,3},x_SPGL_wavelet_save)
 #x_TFOCS_tv_save=reshape(x_TFOCS_tv_save,4,comp_grid.n[1],comp_grid.n[2])
 
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
@@ -319,4 +330,47 @@ for i=1:size(m_evaluation,1)
   imshow(x_SPGL_wavelet_save[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("SPGL1 BPDN-wavelet, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(x_SPGL_wavelet_save[i,:,:])),2)))
   savefig(joinpath(data_dir,string("SPGL1_wavelet_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
   savefig(joinpath(data_dir,string("SPGL1_wavelet_inpainting",i,".png")),bbox_inches="tight")
+end
+
+#all results in one figure (PARSDMM + SPGL1)
+figure()
+for i=1:size(m_est,1)
+  subplot(4,4,i);imshow(d_obs[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
+end
+for i=1:size(m_est,1)
+  subplot(4,4,i+8);imshow(m_est[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(m_est[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)])),2)))
+end
+for i=1:size(m_est,1)
+  subplot(4,4,i+4);imshow(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title("True")
+end
+for i=1:size(m_est,1)
+  subplot(4,4,i+12);imshow(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title(string("BPDN-wavelet, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)])),2)))
+end
+
+figure()
+for i=1:size(m_est,1)
+  subplot(4,4,i);imshow(d_obs[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
+end
+for i=1:size(m_est,1)
+  subplot(4,4,i+8);imshow(m_est[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, PSNR=", round(psnr(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(m_est[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),maximum(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)])),2)))
+end
+for i=1:size(m_est,1)
+  subplot(4,4,i+4);imshow(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title("True")
+end
+for i=1:size(m_est,1)
+  subplot(4,4,i+12);imshow(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title(string("BPDN-wavelet, PSNR=", round(psnr(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),maximum(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)])),2)))
+end
+savefig(joinpath(data_dir,string("deblurring_inpainting_results.eps")),bbox_inches="tight",dpi=300)
+savefig(joinpath(data_dir,string("deblurring_inpainting_results.png")),bbox_inches="tight")
+#tight_layout()
+
+    # figure();imshow(d_obs[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
+    # savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".eps")),bbox_inches="tight",dpi=600)
+    # savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".png")),bbox_inches="tight")
+    # figure();imshow(m_est[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(m_est[i,(bkl*2):end-(bkl*2),:])),2)))
+    # savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
+    # savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".png")),bbox_inches="tight")
+    # figure();imshow(m_evaluation[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
+    # savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".eps")),bbox_inches="tight",dpi=600)
+    # savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".png")),bbox_inches="tight")
 end
