@@ -33,7 +33,7 @@
   #use Q_update:
     TI=Int64
     TF=Float64
-    TD_Prop=transform_domain_properties(zeros(99),zeros(99),zeros(99),Vector{Tuple{TI,TI}}(99),Vector{Tuple{String,String}}(99),zeros(99),Vector{Vector{TI}}(99))
+    TD_Prop=set_properties(zeros(99),zeros(99),zeros(99),Vector{Tuple{TI,TI}}(99),Vector{Tuple{String,String}}(99),zeros(99),Vector{Vector{TI}}(99))
     A2=Q_update!(A2,B2,TD_Prop,rho,ind_updated,log_PARSDMM,i,[])
 
     x=randn(size(A,2))

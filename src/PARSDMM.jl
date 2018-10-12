@@ -3,7 +3,7 @@ export PARSDMM
 function PARSDMM{TF<:Real,TI<:Integer}(m         ::Vector{TF},
                                        AtA       ::Union{Vector{SparseMatrixCSC{TF,TI}},Vector{Array{TF,2}}},
                                        TD_OP     ::Union{Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}},DistributedArrays.DArray{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1,Array{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1}} },
-                                       TD_Prop,
+                                       set_Prop,
                                        P_sub     ::Union{Vector{Any},DistributedArrays.DArray{Any,1,Array{Any,1}}},
                                        comp_grid,
                                        options,
@@ -12,45 +12,34 @@ function PARSDMM{TF<:Real,TI<:Integer}(m         ::Vector{TF},
                                        y=[]
                                        )
 
-                                        #::
+"""
+Computes the projection onto an intersection of sets
+min_x 1/2||x-m||2^2 s.t. x in C_1(A_1*x), x in C_2(A_2*x), ... , x in C_p(A_p*x)
 
-#SDMM based function to solve a class of projection problems of a vector (y) onto a
-# constraint set, which is the intersection of multiple sets (C), possibly defined in a transform domain. Theory assumes
-#a closed and convex set C. Algorithm may still work when nonconvex sets
-#are used.
+input:
+      m                   - vector to be projected
+      TD_OP               - vector of linear operators [A_1;A_2;...;A_p]
+      set_Prop            - set properties, structure where each property is vector which has a lenght of the number of sets
+                            (see SetIntersectionProjection.jl and setup_constraints.jl)
+      comp_grid           - structure with grid info. comp_grid.d = (dx,dy,dz), comp_grid.n = (nx,ny,nz)
+      P_sub               - vector of projection functions onto C: P_sub = [P_C_1(.); P_C_2(.); ... ; P_C_p(.)]
+      options             - structure with options, see SetIntersectionProjection.jl
+      x                   - output vector
+      l                   - vector of vector of Lagrangian multipliers l = [l_1;l_2,...;l_p] (optional)
+      y                   - vector of vector of auxiliary vectors y = [y_1;y_2,...;y_p] (optional)
 
-# Solves: min_(x,z) (1/2)||x-y||^2_2 s.t. Ax in C
-# formulated as
-# min_(x,z) (1/2)||x-y||^2_2 + I_C(z) s.t. Ax=z
-# where I_C is the indicator function for set C and A is a matrix defining
-# the transform domain (discrete gradient, TV, a basis, etc)
-#
-# This version uses the scaled form ADMM. Most of the code (and notation) is modeled
-# after:
-#
-# input:
-#       x                   -   vector to be projected onto C
-#       funProj             -   funProj(input) projects input on C (output as vector)
-#       A                   -   Transform domain operator, explicit (sparse) matrix or SPOT operator
-#       options.
-#           options.maxit   -   maximum number of iterations
-#           options.evol_rel_tol- tolerance on relative evolution between iterations: exit if norm(x-x_old)/norm(x_old) becomes too small
-#           options.rho     -   initial vaue of penalty parameter
-#           options.adjust_rho - if (=1) adjust rho heuristically
-#           options.feas_tol-  feasibility tolerance for warning message, not for stopping condition
-#       R                   -   (optional) Cholesky factor of (...) in case factorization caching is used in combination with a fixed augmented-Lagrangian penalty parameter rho
-#
-# output:
-#       x           -   result
-#       log_PARSDMM.        -   constains log information about various quantities per iteration
-# Author: Bas Peters
+output:
+      x           -   result
+      log_PARSDMM -   constains log information about various quantities per iteration
+
+"""
 
 tic()
 # Parse default options
 convert_options!(options,TF,TI)
 @unpack  x_min_solver,maxit,evol_rel_tol,feas_tol,obj_tol,rho_ini,rho_update_frequency,gamma_ini,
 adjust_rho,adjust_gamma,adjust_feasibility_rho,Blas_active,
-linear_inv_prob_flag,FL,parallel,zero_ini_guess = options
+feasibility_only,FL,parallel,zero_ini_guess = options
 
 # Input checks
 # PARSDMM can work with imaginary numbers, but we want to keep it real
@@ -60,12 +49,12 @@ end
 
 # initialize
 const pp=length(TD_OP);
-if linear_inv_prob_flag==false; pp=pp-1; end;
+if feasibility_only==false; pp=pp-1; end;
 
 (ind_ref,N,TD_OP,AtA,p,rho_update_frequency,adjust_gamma,adjust_rho,adjust_feasibility_rho,gamma_ini,rho,gamma,y,y_0,y_old,l,l_0,l_old,
 l_hat_0,x_0,x_old,r_dual,rhs,s,s_0,Q,prox,log_PARSDMM,l_hat,x_hat,r_pri,d_l_hat,d_H_hat,d_l,
-d_G_hat,P_sub,Q_offsets,stop,feasibility_initial,set_feas,Ax_out)=PARSDMM_initialize(x,l,y,AtA,TD_OP,TD_Prop,P_sub,comp_grid,maxit,rho_ini,gamma_ini,
-x_min_solver,rho_update_frequency,adjust_gamma,adjust_rho,adjust_feasibility_rho,m,parallel,options,zero_ini_guess,linear_inv_prob_flag)
+d_G_hat,P_sub,Q_offsets,stop,feasibility_initial,set_feas,Ax_out)=PARSDMM_initialize(x,l,y,AtA,TD_OP,set_Prop,P_sub,comp_grid,maxit,rho_ini,gamma_ini,
+x_min_solver,rho_update_frequency,adjust_gamma,adjust_rho,adjust_feasibility_rho,m,parallel,options,zero_ini_guess,feasibility_only)
 
 
 if stop==true #stop if feasibility of input is detected by PARSDMM_initialize
@@ -98,7 +87,7 @@ for i=1:maxit #main loop
 
   #form right hand side for x-minimization
   tic();
-  rhs=rhs_compose(rhs,l,y,rho,TD_OP,p,Blas_active,parallel)
+  rhs               = rhs_compose(rhs,l,y,rho,TD_OP,p,Blas_active,parallel)
   log_PARSDMM.T_rhs = log_PARSDMM.T_rhs+toq();
 
   # x-minimization
@@ -112,9 +101,9 @@ for i=1:maxit #main loop
   # y-minimization & l-update
   tic()
   if parallel==true
-    [ @spawnat pid  update_y_l_parallel(x,i,Blas_active,
+    [ @spawnat pid update_y_l_parallel(x,i,Blas_active,
       y[:L],y_old[:L],l[:L],l_old[:L],rho[:L],gamma[:L],prox[:L],TD_OP[:L],P_sub[:L],
-      x_hat[:L],r_pri[:L],s[:L],set_feas[:L],linear_inv_prob_flag) for pid in y.pids]
+      x_hat[:L],r_pri[:L],s[:L],set_feas[:L],feasibility_only) for pid in y.pids]
 
     # [@spawnat pid update_y_l_parallel_exp(x,i,Blas_active,
     #   y[:L][1],y_old[:L][1],l[:L][1],l_old[:L][1],rho[:L][1],gamma[:L][1],prox[:L][1],TD_OP[:L][1],P_sub[:L],
@@ -130,7 +119,7 @@ for i=1:maxit #main loop
         counter+=1
       end
   else
-    (y,l,r_pri,s,log_PARSDMM,counter,y_old,l_old)=update_y_l(x,p,i,Blas_active,y,y_old,l,l_old,rho,gamma,prox,TD_OP,log_PARSDMM,P_sub,counter,x_hat,r_pri,s,linear_inv_prob_flag);
+    (y,l,r_pri,s,log_PARSDMM,counter,y_old,l_old)=update_y_l(x,p,i,Blas_active,y,y_old,l,l_old,rho,gamma,prox,TD_OP,log_PARSDMM,P_sub,counter,x_hat,r_pri,s,feasibility_only);
     log_PARSDMM.r_dual_total[i] = sum(log_PARSDMM.r_dual[i,:]);
   end
 
@@ -156,7 +145,7 @@ for i=1:maxit #main loop
   end
   log_PARSDMM.T_stop=log_PARSDMM.T_stop+toq();
 
-  # adjust penalty parameter rho and relaxation parameter gamma
+  # adjust penalty parameters rho and relaxation parameters gamma
   tic()
   if i==1
     if parallel==true
@@ -202,7 +191,7 @@ for i=1:maxit #main loop
          end
      end #end adjust rho and gamma
 
-     #adjust rho to seat-feasibility estimates
+     #adjust rho to set-feasibility estimates
      if parallel==true
         rho=convert(Vector{TF},rho); #gather rho
      end
@@ -213,31 +202,30 @@ for i=1:maxit #main loop
          #primal residual and (hopefully) feasibility error
         (max_set_feas,max_set_feas_ind) = findmax(log_PARSDMM.set_feasibility[counter-1,:])
         sort_feas = sort(log_PARSDMM.set_feasibility[counter-1,:]);
-        if i>10 #&& ( max_set_feas>TF(2.0)*minimum(log_PARSDMM.set_feasibility[counter-1,:]) ||  max_set_feas>TF(2.0)*mean(log_PARSDMM.set_feasibility[counter-1,:]) ||  max_set_feas>TF(2.0)*sort_feas[end-1] )
-          rho[max_set_feas_ind].=TF(2.0).*rho[max_set_feas_ind]
-          #println("adjusting feasibility rho")
+        if i>10
+          rho[max_set_feas_ind] .= TF(2.0).*rho[max_set_feas_ind]
         end
      end #end adjust_feasibility_rho
 
      #enforce max and min values for rho, to prevent the condition number of Q -> inf
-     rho = max.(min.(rho,TF(1e5)),TF(1e-2));
+     rho = max.(min.(rho,TF(1e5)),TF(1e-2)) #hardcoded bounds
      log_PARSDMM.T_adjust_rho_gamma=log_PARSDMM.T_adjust_rho_gamma+toq();
 
      tic()
-     ind_updated = find(rho .!= log_PARSDMM.rho[i,:]) #::Vector{Integer}# locate changed rho index
+     ind_updated = find(rho .!= log_PARSDMM.rho[i,:]) # locate changed rho index
      ind_updated = convert(Array{TI,1},ind_updated)
 
      #re-assemble total transform domain operator as a matrix
      if isempty(findin(p,ind_updated))==false
-       if parallel==true && linear_inv_prob_flag==false
+       if parallel==true && feasibility_only==false
          prox=convert(Vector{Any},prox); #gather rho
          prox[p] = input -> prox_l2s!(input,rho[p],m)
          prox=distribute(prox)
-       elseif linear_inv_prob_flag==false
+       elseif feasibility_only==false
          prox[p] = input -> prox_l2s!(input,rho[p],m)
        end
      end
-     Q=Q_update!(Q,AtA,TD_Prop,rho,ind_updated,log_PARSDMM,i,Q_offsets)
+     Q=Q_update!(Q,AtA,set_Prop,rho,ind_updated,log_PARSDMM,i,Q_offsets)
      if parallel==true
        rho=distribute(rho) #distribute again (gather -> process -> distribute is a ugly hack, fix this later)
      end
@@ -270,12 +258,6 @@ function output_check_PARSDMM(x,TD_OP,AtA,log_PARSDMM,i,counter)
   log_PARSDMM.set_feasibility = log_PARSDMM.set_feasibility[1:counter,:]
   log_PARSDMM.gamma           = log_PARSDMM.gamma[1:i,:]
   log_PARSDMM.rho             = log_PARSDMM.rho[1:i,:]
-
-  # pop!(AtA)
-  #
-  # if nprocs()==1
-  #   pop!(TD_OP)
-  # end
 
   return TD_OP , AtA , log_PARSDMM
 end #end output_check_PARSDMM

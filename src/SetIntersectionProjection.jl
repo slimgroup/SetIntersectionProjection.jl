@@ -6,8 +6,8 @@ using Interpolations
 using DistributedArrays
 using JOLI
 using SortingAlgorithms
-#using Images
-export log_type_PARSDMM, transform_domain_properties, PARSDMM_options
+
+export log_type_PARSDMM, set_properties, PARSDMM_options
 
 #main scripts
 include("PARSDMM.jl")
@@ -44,7 +44,7 @@ include("setup_multi_level_PARSDMM.jl")
 include("constraint2coarse.jl")
 include("interpolate_y_l.jl")
 
-#scripts to set up constraints
+#scripts for setting up constraints, projetors, linear operators
 include("default_PARSDMM_options.jl")
 include("convert_options!.jl")
 include("get_discrete_Grad.jl");
@@ -63,10 +63,8 @@ include("projectors/project_annulus!.jl");
 include("projectors/project_subspace!.jl");
 include("projectors/project_histogram_relaxed.jl");
 
+#other proximal maps
 include("prox_l2s!.jl")
-
-#scripts for linear inverse problems
-#include("ICLIP_inpainting.jl")
 
 #scripts that are required to run examples
 include("constraint_learning_by_observation.jl")
@@ -94,26 +92,26 @@ mutable struct log_type_PARSDMM
 end
 
 @with_kw mutable struct PARSDMM_options
-  x_min_solver          :: String  = "CG_normal" #"CG_normal_plus_GMG","CG_normal_plus_AMG", "CG_normal_plus_ParSpMatVec","AMG"
-  maxit                 :: Integer   = 200
-  evol_rel_tol          :: Real = 1e-4
-  feas_tol              :: Real = 5e-2
-  obj_tol               :: Real = 1e-3
-  rho_ini               :: Vector{Real} = [10.0]
-  rho_update_frequency  :: Integer = 2
-  gamma_ini             :: Real = 1.0
-  adjust_rho            :: Bool    = true
-  adjust_gamma          :: Bool    = true
-  adjust_feasibility_rho:: Bool    = true
-  Blas_active           :: Bool    = true
-  linear_inv_prob_flag  :: Bool    = false
-  FL                    :: DataType = Float32
-  parallel              :: Bool    = false
-  zero_ini_guess        :: Bool    = true
-  Minkowski             :: Bool    = false
+  x_min_solver          :: String       = "CG_normal" #what algorithm to use for the x-minimization (CG appied to normal equations)
+  maxit                 :: Integer      = 200         #max number of PARSDMM iterations
+  evol_rel_tol          :: Real         = 1e-3        #stop PARSDMM if ||x^k - X^{k-1}||_2 / || x^k || < options.evol_rel_tol AND options.feas_tol is reached
+  feas_tol              :: Real         = 5e-2        #stop PARSDMM if the transform-domain relative feasibility error is < options.feas_tol AND options.evol_rel_tol is reached
+  obj_tol               :: Real         = 1e-3        #optional stopping criterion for change in distance from point that we want to project
+  rho_ini               :: Vector{Real} = [10.0]      #initial values for the augmented-Lagrangian penalty parameters. One value in array or one value per constraint set in array
+  rho_update_frequency  :: Integer      = 2           #update augmented-Lagrangian penalty parameters and relaxation parameters every X number of PARSDMM iterations
+  gamma_ini             :: Real         = 1.0         #initial value for all relaxation parameters (scalar)
+  adjust_rho            :: Bool         = true        #adapt augmented-Lagrangian penalty parameters or not
+  adjust_gamma          :: Bool         = true        #adapt relaxation parameters in PARSDMM
+  adjust_feasibility_rho:: Bool         = true        #adapt augmented-Lagrangian penalty parameters based on constraint set feasibility errors (can be used in combination with options.adjust_rho)
+  Blas_active           :: Bool         = true        #use direct BLAS calls, otherwise the code will use Julia loop-fusion where possible
+  linear_inv_prob_flag  :: Bool         = false
+  FL                    :: DataType     = Float32     #type of Float: Float32 or Float64
+  parallel              :: Bool         = false       #comput proximal mappings, multiplier updates, rho and gamma updates in parallel
+  zero_ini_guess        :: Bool         = true        #zero initial guess for primal, auxilliary, and multipliers
+  Minkowski             :: Bool         = false       #the intersection of sets includes a Minkowski set
 end
 
-type transform_domain_properties
+type set_properties #save properties of the constraint set and its linear operator (not all are currently used in the code)
            ncvx       ::Vector{Bool}
            AtA_diag   ::Vector{Bool}
            dense      ::Vector{Bool}

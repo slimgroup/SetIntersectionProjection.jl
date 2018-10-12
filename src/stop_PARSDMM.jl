@@ -11,7 +11,10 @@ function stop_PARSDMM{TF<:Real}(
                     ind_ref                  ::Integer,
                     counter                  ::Integer
                     )
-
+"""
+implement stopping conditions for PARSDMM.jl
+if activated, we set the flag stop==true and pass it back to PARSDMM.jl
+"""
     stop = false;
 
     #stop if objective value does not change and x is sufficiently feasible for all sets
@@ -19,12 +22,13 @@ function stop_PARSDMM{TF<:Real}(
         println("stationary objective and reached feasibility, exiting PARSDMM (iteration ",i,")")
         stop=true;
     end
-    #stop if x doesn't change significantly anyjore
 
+    #stop if x doesn't change significantly anyjore
     if i>5 && maximum(log_PARSDMM.evol_x[i-5:i])<evol_rel_tol
       println("relative evolution to small, exiting PARSDMM (iteration ",i,")")
       stop=true;
     end
+
     # fix rho to ensure regular ADMM convergence if primal residual does not decrease over a 20 iteration window
     if i>20 && adjust_rho==true && log_PARSDMM.r_pri_total[i]>maximum(log_PARSDMM.r_pri_total[(i-1):-1:max((i-50),1)])
       println("no primal residual reduction, fixing PARSDMM rho & gamma (iteration ",i,")")
@@ -38,6 +42,8 @@ function stop_PARSDMM{TF<:Real}(
       end
       ind_ref = i;
     end
+
+    #if rho is fixed and still no decrease in primal residual is observed over a window, we give up
     if adjust_rho==false && i>(ind_ref+25) && log_PARSDMM.r_pri_total[i]>maximum(log_PARSDMM.r_pri_total[(i-1):-1:max(ind_ref,max((i-50),1))])
       println("no primal residual reduction, exiting PARSDMM (iteration ",i,")")
       stop = true;

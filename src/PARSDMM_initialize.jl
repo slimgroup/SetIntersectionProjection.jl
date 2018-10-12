@@ -1,30 +1,32 @@
 export PARSDMM_initialize
-#deal with psub
+
 function PARSDMM_initialize{TF<:Real,TI<:Integer}(
-                            x                   ::Vector{TF},
-                            l                   ::Union{Vector{Vector{TF}},DistributedArrays.DArray{Array{TF,1},1,Array{Array{TF,1},1}},Array{Any,1}},
-                            y                   ::Union{Vector{Vector{TF}},DistributedArrays.DArray{Array{TF,1},1,Array{Array{TF,1},1}},Array{Any,1}},
-                            AtA                 ::Union{Vector{SparseMatrixCSC{TF,TI}},Vector{Array{TF,2}}},
-                            TD_OP               ::Union{Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}},DistributedArrays.DArray{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1,Array{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1}} },
-                            TD_Prop,
-                            P_sub               ::Union{Vector{Any},DistributedArrays.DArray{Any,1,Array{Any,1}}},
+                            x                       ::Vector{TF},
+                            l                       ::Union{Vector{Vector{TF}},DistributedArrays.DArray{Array{TF,1},1,Array{Array{TF,1},1}},Array{Any,1}},
+                            y                       ::Union{Vector{Vector{TF}},DistributedArrays.DArray{Array{TF,1},1,Array{Array{TF,1},1}},Array{Any,1}},
+                            AtA                     ::Union{Vector{SparseMatrixCSC{TF,TI}},Vector{Array{TF,2}}},
+                            TD_OP                   ::Union{Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}},DistributedArrays.DArray{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1,Array{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1}} },
+                            set_Prop,
+                            P_sub                   ::Union{Vector{Any},DistributedArrays.DArray{Any,1,Array{Any,1}}},
                             comp_grid,
-                            maxit               ::Integer,
-                            rho_ini             ::Vector{Real},
-                            gamma_ini           ::TF,
-                            x_min_solver        ::String,
-                            rho_update_frequency::Integer,
-                            adjust_gamma        ::Bool,
-                            adjust_rho          ::Bool,
-                            adjust_feasibility_rho::Bool,
-                            m                   ::Vector{TF},
-                            parallel            ::Bool,
+                            maxit                   ::Integer,
+                            rho_ini                 ::Vector{Real},
+                            gamma_ini               ::TF,
+                            x_min_solver            ::String,
+                            rho_update_frequency    ::Integer,
+                            adjust_gamma            ::Bool,
+                            adjust_rho              ::Bool,
+                            adjust_feasibility_rho  ::Bool,
+                            m                       ::Vector{TF},
+                            parallel                ::Bool,
                             options,
-                            zero_ini_guess      ::Bool,
-                            linear_inv_prob_flag=false ::Bool
+                            zero_ini_guess          ::Bool,
+                            feasibility_only=false  ::Bool
                             )
 
-#
+"""
+subfunctions that initializes and checks, and distributes some quantities required for PARSDMM
+"""
                             ind_ref = maxit
                             if options.Minkowski == false
                               const N = length(x)
@@ -44,14 +46,14 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             # end
                             # push!(TD_OP,speye(TF,N));
                             #
-                            # push!(TD_Prop.AtA_offsets,[0])
-                            # push!(TD_Prop.banded,true)
-                            # push!(TD_Prop.AtA_diag,true)
-                            # push!(TD_Prop.dense,false)
+                            # push!(set_Prop.AtA_offsets,[0])
+                            # push!(set_Prop.banded,true)
+                            # push!(set_Prop.AtA_diag,true)
+                            # push!(set_Prop.dense,false)
 
                             const p     = length(TD_OP); #number of terms in in the sum of functions of the projeciton problem
                             pp=p-1;
-                            if linear_inv_prob_flag==true; pp=p; end;
+                            if feasibility_only==true; pp=p; end;
 
                             rho     = Vector{TF}(p)
                             if length(rho_ini)==1
@@ -60,7 +62,7 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                               copy!(rho,rho_ini)
                             end
                             prox = copy(P_sub)
-                            if linear_inv_prob_flag==false
+                            if feasibility_only==false
                               #define prox for all terms in the sum (projectors onto sets)
                               #add prox for the data fidelity term 0.5||m-x||_2^2
                               m_orig = deepcopy(m) ::Vector{TF}
@@ -100,7 +102,7 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
 
                             # if one of the sets is non-convex, use different lambda and rho update frequency, don't update gamma and set a different fixed gamma
                             for ii=1:pp
-                                if TD_Prop.ncvx[ii] == true
+                                if set_Prop.ncvx[ii] == true
                                     println("non-convex set(s) involved, using special settings")
                                     rho_update_frequency  = 3;
                                     adjust_gamma          = false
@@ -189,13 +191,13 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             elseif typeof(AtA[1])==Array{TF,2}
                               all_offsets=zeros(TI,999,99)
                               for i=1:length(AtA) #find all unique offset
-                                all_offsets[1:length(TD_Prop.AtA_offsets[i]),i]=TD_Prop.AtA_offsets[i]
+                                all_offsets[1:length(set_Prop.AtA_offsets[i]),i]=set_Prop.AtA_offsets[i]
                               end
                               Q_offsets=convert(Vector{TI},unique(all_offsets))
                               Q=zeros(TF,size(AtA[1],1),length(Q_offsets))
                               for i=1:length(AtA)
-                                for j=1:length(TD_Prop.AtA_offsets[i])
-                                  Q_current_col = findin(Q_offsets,TD_Prop.AtA_offsets[i][j])
+                                for j=1:length(set_Prop.AtA_offsets[i])
+                                  Q_current_col = findin(Q_offsets,set_Prop.AtA_offsets[i][j])
                                   Q[:,Q_current_col] .= Q[:,Q_current_col] .+ rho[i] .* AtA[i][:,j]
                                 end
                               end
@@ -232,20 +234,20 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
 
                             #fill distributed vectors with zeros (from 1 entry to N entries, because this is faster than first fill and then dist. Should be able to do in one go ideally)
                             if parallel == true
-                              [@spawnat pid y_0[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
-                              [@spawnat pid y_old[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
-                              [@spawnat pid l_0[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
-                              [@spawnat pid l_old[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
-                              [@spawnat pid l_hat_0[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
-                              [@spawnat pid l_hat[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
-                              [@spawnat pid x_hat[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
-                              [@spawnat pid s_0[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
-                              [@spawnat pid s[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
-                              [@spawnat pid r_pri[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
-                              [@spawnat pid d_l_hat[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
-                              [@spawnat pid d_H_hat[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
-                              [@spawnat pid d_l[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
-                              [@spawnat pid d_G_hat[:L][1]=zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid y_0[:L][1]     = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid y_old[:L][1]   = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid l_0[:L][1]     = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid l_old[:L][1]   = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid l_hat_0[:L][1] = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid l_hat[:L][1]   = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid x_hat[:L][1]   = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid s_0[:L][1]     = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid s[:L][1]       = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid r_pri[:L][1]   = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid d_l_hat[:L][1] = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid d_H_hat[:L][1] = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid d_l[:L][1]     = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
+                              [@spawnat pid d_G_hat[:L][1] = zeros(TF,size(TD_OP[:L][1],1)) for pid in y_0.pids]
                             end
 
                             #distribute y and l if they are not already distributed

@@ -71,16 +71,16 @@ options.zero_ini_guess       = true
 BLAS.set_num_threads(2)
 FFTW.set_num_threads(2)
 
-(P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL) #obtain projector and transform-domain operator pairs
+(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL) #obtain projector and transform-domain operator pairs
 
 #add the transform-domain matrix corresponding to the data constraint
 push!(TD_OP,convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n))))
-push!(TD_Prop.AtA_offsets,[0]) #these are dummy values, actual ofsetts are automatically detected
-push!(TD_Prop.ncvx,false)
-push!(TD_Prop.banded,true)
-push!(TD_Prop.AtA_diag,true)
-push!(TD_Prop.dense,false)
-push!(TD_Prop.tag,("data term","identity"))
+push!(set_Prop.AtA_offsets,[0]) #these are dummy values, actual ofsetts are automatically detected
+push!(set_Prop.ncvx,false)
+push!(set_Prop.banded,true)
+push!(set_Prop.AtA_diag,true)
+push!(set_Prop.dense,false)
+push!(set_Prop.tag,("data term","identity"))
 
 #also add a projector onto the data constraint:
 #i.e. , or l<=(A*x-m)<=u or, a norm ||A*x-m||=< sigma
@@ -98,12 +98,12 @@ push!(P_sub,input -> project_bounds!(input,LBD,UBD))
 # to do this, we add the transform-domain operator and a proximal mapping for the l1-norm
 (TV_OP, dummy1, dummy2, TD_n_TV)=get_TD_operator(comp_grid,"TV",TF)
 push!(TD_OP,TV_OP)
-push!(TD_Prop.AtA_offsets,[0]) #these are dummy values, actual ofsetts are automatically detected
-push!(TD_Prop.ncvx,false)
-push!(TD_Prop.banded,true)
-push!(TD_Prop.AtA_diag,false)
-push!(TD_Prop.dense,false)
-push!(TD_Prop.tag,("tv_obj","TV"))
+push!(set_Prop.AtA_offsets,[0]) #these are dummy values, actual ofsetts are automatically detected
+push!(set_Prop.ncvx,false)
+push!(set_Prop.banded,true)
+push!(set_Prop.AtA_diag,false)
+push!(set_Prop.dense,false)
+push!(set_Prop.tag,("tv_obj","TV"))
 
 push!(P_sub,input -> prox_l1!(input,1000f0))
 
@@ -111,12 +111,12 @@ options.adjust_rho             = false
 options.adjust_feasibility_rho = false
 
 dummy=zeros(TF,prod(comp_grid.n))
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
 
 for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 
-  @time (x,log_PARSDMM) = PARSDMM(dummy,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options)
+  @time (x,log_PARSDMM) = PARSDMM(dummy,AtA,TD_OP,set_Prop,P_sub,comp_grid,options)
   m_est_TV_BPDN[i,:,:]=reshape(x,comp_grid.n)
   println("SNR:", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est_TV_BPDN[i,:,:])),2))
 

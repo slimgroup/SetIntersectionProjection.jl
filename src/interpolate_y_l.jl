@@ -3,16 +3,19 @@ export interpolate_y_l
 function interpolate_y_l{TF<:Real}(
                         l                ::Vector{Vector{TF}},
                         y                ::Vector{Vector{TF}},
-                        TD_Prop_levels   ::Vector{Any},
+                        set_Prop_levels   ::Vector{Any},
                         comp_grid_levels ::Vector{Any},
                         dim3             ::Bool,
                         i                ::Integer
                         )
-
+"""
+Interpolate l (vectors of Lagrangian multipliers in ADMM-based algorithms)
+and y (auxiliary variable vectors) to finer grids
+"""
   for j=1:length(l) #loop over the various constraint sets
 
 
-    if TD_Prop_levels[i].tag[j][2] == "TV" || TD_Prop_levels[i].tag[j][2]=="D2D" || TD_Prop_levels[i].tag[j][2]=="D3D"#this tag contains the transform-domain operator type as a string
+    if set_Prop_levels[i].tag[j][2] == "TV" || set_Prop_levels[i].tag[j][2]=="D2D" || set_Prop_levels[i].tag[j][2]=="D3D"#this tag contains the transform-domain operator type as a string
       if dim3 #use 3D
         p1e = (comp_grid_levels[i+1].n[1]-1)*comp_grid_levels[i+1].n[2]*comp_grid_levels[i+1].n[3]
         p2e = (comp_grid_levels[i+1].n[1]-1)*comp_grid_levels[i+1].n[2]*comp_grid_levels[i+1].n[3] + comp_grid_levels[i+1].n[1]*(comp_grid_levels[i+1].n[2]-1)*comp_grid_levels[i+1].n[3]
@@ -68,20 +71,20 @@ function interpolate_y_l{TF<:Real}(
         y[j]=[vec(y_1_fine);vec(y_2_fine)]
       end
     else #for TD-operator is identity,D_z,D_x , etc
-      
+
       #compute how many gridpoints more/less the transform-domain 'image' has
       #in each dimension compared to the model grid for x and m
-      s = ( comp_grid_levels[i].n .- TD_Prop_levels[i].TD_n[j] )
+      s = ( comp_grid_levels[i].n .- set_Prop_levels[i].TD_n[j] )
       #y and l have same dimensions
-      itp_l   = interpolate(reshape(l[j],TD_Prop_levels[i+1].TD_n[j]), BSpline(Constant()), OnGrid())
-      itp_y   = interpolate(reshape(y[j],TD_Prop_levels[i+1].TD_n[j]), BSpline(Constant()), OnGrid())
+      itp_l   = interpolate(reshape(l[j],set_Prop_levels[i+1].TD_n[j]), BSpline(Constant()), OnGrid())
+      itp_y   = interpolate(reshape(y[j],set_Prop_levels[i+1].TD_n[j]), BSpline(Constant()), OnGrid())
 
       if dim3
-        l_fine = itp_l[linspace(1,TD_Prop_levels[i+1].TD_n[j][1],comp_grid_levels[i].n[1]-s[1]), linspace(1,TD_Prop_levels[i+1].TD_n[j][2],comp_grid_levels[i].n[2]-s[2]), linspace(1,TD_Prop_levels[i+1].TD_n[j][3],comp_grid_levels[i].n[3]-s[3])]
-        y_fine = itp_y[linspace(1,TD_Prop_levels[i+1].TD_n[j][1],comp_grid_levels[i].n[1]-s[1]), linspace(1,TD_Prop_levels[i+1].TD_n[j][2],comp_grid_levels[i].n[2]-s[2]), linspace(1,TD_Prop_levels[i+1].TD_n[j][3],comp_grid_levels[i].n[3]-s[3])]
+        l_fine = itp_l[linspace(1,set_Prop_levels[i+1].TD_n[j][1],comp_grid_levels[i].n[1]-s[1]), linspace(1,set_Prop_levels[i+1].TD_n[j][2],comp_grid_levels[i].n[2]-s[2]), linspace(1,set_Prop_levels[i+1].TD_n[j][3],comp_grid_levels[i].n[3]-s[3])]
+        y_fine = itp_y[linspace(1,set_Prop_levels[i+1].TD_n[j][1],comp_grid_levels[i].n[1]-s[1]), linspace(1,set_Prop_levels[i+1].TD_n[j][2],comp_grid_levels[i].n[2]-s[2]), linspace(1,set_Prop_levels[i+1].TD_n[j][3],comp_grid_levels[i].n[3]-s[3])]
       else
-        l_fine = itp_l[linspace(1,TD_Prop_levels[i+1].TD_n[j][1],comp_grid_levels[i].n[1]-s[1]), linspace(1,TD_Prop_levels[i+1].TD_n[j][2],comp_grid_levels[i].n[2]-s[2])]
-        y_fine = itp_y[linspace(1,TD_Prop_levels[i+1].TD_n[j][1],comp_grid_levels[i].n[1]-s[1]), linspace(1,TD_Prop_levels[i+1].TD_n[j][2],comp_grid_levels[i].n[2]-s[2])]
+        l_fine = itp_l[linspace(1,set_Prop_levels[i+1].TD_n[j][1],comp_grid_levels[i].n[1]-s[1]), linspace(1,set_Prop_levels[i+1].TD_n[j][2],comp_grid_levels[i].n[2]-s[2])]
+        y_fine = itp_y[linspace(1,set_Prop_levels[i+1].TD_n[j][1],comp_grid_levels[i].n[1]-s[1]), linspace(1,set_Prop_levels[i+1].TD_n[j][2],comp_grid_levels[i].n[2]-s[2])]
       end
       l[j]=vec(l_fine)
       y[j]=vec(y_fine)

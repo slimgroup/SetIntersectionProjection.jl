@@ -1,10 +1,13 @@
 export get_bound_constraints
 
 function get_bound_constraints(comp_grid,constraint)
-#sets up bound constraints, based on global min and max values, possibly specific bounds for the water layer and possible bound relative to a reference/start model
-# Bas Peters
-#constraint["m_min"] = convert(Float64,constraint["m_min"])
-#constraint["m_max"] = convert(Float64,constraint["m_max"])
+"""
+sets up bound constraints, based on global min and max values,
+possibly specific bounds for the water layer in marine seismic imaging
+Only returns a vector of the vectorized model size if necessary,
+because projections onto bounds using a scalar is faster
+"""
+
 
 if typeof(constraint["m_min"])<:Real && typeof(constraint["m_max"])<:Real && haskey(constraint,"water_depth")==false
   LB = constraint["m_min"]

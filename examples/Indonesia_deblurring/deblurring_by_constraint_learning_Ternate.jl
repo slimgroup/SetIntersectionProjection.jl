@@ -198,16 +198,16 @@ options.parallel             = true
 options.zero_ini_guess       = true
 BLAS.set_num_threads(2)
 
-(P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL) #obtain projector and transform-domain operator pairs
+(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL) #obtain projector and transform-domain operator pairs
 
 #add the blurring filer sparse matrix as a transform domain matrix, along with the properties
 push!(TD_OP,BF)
-push!(TD_Prop.AtA_offsets,convert(Vector{TI},0:bkl))
-push!(TD_Prop.ncvx,false)
-push!(TD_Prop.banded,true)
-push!(TD_Prop.AtA_diag,true)
-push!(TD_Prop.dense,false)
-push!(TD_Prop.tag,("blurring filer","x-motion-blur"))
+push!(set_Prop.AtA_offsets,convert(Vector{TI},0:bkl))
+push!(set_Prop.ncvx,false)
+push!(set_Prop.banded,true)
+push!(set_Prop.AtA_diag,true)
+push!(set_Prop.dense,false)
+push!(set_Prop.tag,("blurring filer","x-motion-blur"))
 
 #also add a projector onto the data constraint: i.e. ||A*x-m||=< sigma, or l<=(A*x-m)<=u
 data = vec(d_obs[1,:,:])
@@ -216,11 +216,11 @@ UBD=data.+2.0;  UBD=convert(Vector{TF},UBD);
 push!(P_sub,x -> project_bounds!(x,LBD,UBD))
 
 dummy=zeros(TF,size(BF,2))
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
 
 for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
-  @time (x,log_PARSDMM) = PARSDMM(dummy,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options)
+  @time (x,log_PARSDMM) = PARSDMM(dummy,AtA,TD_OP,set_Prop,P_sub,comp_grid,options)
   m_est[i,:,:]=reshape(x,comp_grid.n)
   println("SNR:", round(SNR(vec(m_evaluation[i,(bkl+1):end-(bkl+1),:]),vec(m_est[i,(bkl+1):end-(bkl+1),:])),2))
 

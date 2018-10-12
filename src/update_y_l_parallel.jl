@@ -16,8 +16,12 @@ function update_y_l_parallel{TF<:Real,TI<:Integer}(
   r_pri                 ::Vector{Vector{TF}},
   s                     ::Vector{Vector{TF}},
   set_feas              ::Vector{TF},
-  linear_inv_prob_flag=false ::Bool
+  feasibility_only=false::Bool
   )
+
+"""
+  update l and compute y . This is a subfunction for PARSDMM.jl
+"""
 
 rho1=TF
 const rho1=TF(1.0)./rho[1];
@@ -26,15 +30,15 @@ const rho1=TF(1.0)./rho[1];
   copy!(l_old[1],l[1]);
 
   s[1] = TD_OP[1]*x;
-  if Blas_active  #&& i>5
-    if gamma[1]==1 #use SDMM
+  if Blas_active
+    if gamma[1]==1 #without relaxation
       copy!(y[1],s[1])
       #y[1]       = prox[1]( Base.LinAlg.axpy!(-rho1[1],l[1],y[1]) )
       Base.LinAlg.axpy!(-rho1[1],l[1],y[1])
       prox[1](y[1])
       @. r_pri[1]   = -s[1]+y[1];
       Base.LinAlg.axpy!(rho[1],r_pri[1],l[1]);
-    else #use relaxed SDMM
+    else #relaxed iterations
       @. x_hat[1]   = gamma[1]*s[1]
       Base.LinAlg.axpy!(TF(1.0)-gamma[1],y[1],x_hat[1]);
       #y[1]       = copy(x_hat[1]);
@@ -46,13 +50,13 @@ const rho1=TF(1.0)./rho[1];
       Base.LinAlg.axpy!(rho[1],y[1]-x_hat[1],l[1]);
     end
   else
-    if gamma[1]==1 #use SDMM
+    if gamma[1]==1 #without relaxation
       #y[1]       = prox[1]( s[1]-l[1]*rho1[1] );
        @. y[1]      = s[1]-l[1]*rho1[1]
        prox[1](y[1]);
        @. r_pri[1]   = -s[1]+y[1];
        @. l[1]       = l[1]+rho[1]*r_pri[1];
-    else #use relaxed SDMM
+    else #relaxed iterations
        @. x_hat[1]   = gamma[1]*s[1] + ( TF(1.0)-gamma[1] )*y[1]
       #y[1]       = prox[1]( x_hat[1]-l[1]*rho1[1] );
        @. y[1]       = x_hat[1]-l[1]*rho1[1]
@@ -70,7 +74,7 @@ const rho1=TF(1.0)./rho[1];
 #  log_PARSDMM.r_dual[i,1] = norm( rho[1]*(TD_OP[1]'*(y[1]-y_old[1])) )
 # end
 #log feasibility
-if linear_inv_prob_flag==false
+if feasibility_only==false
   if mod(i,10)==0 && myid()<nprocs() #ii<length(P_sub)#log every 10 it, or whatever number is suitable
      copy!(x_hat[1],s[1])
      set_feas[1]=norm(P_sub[1](x_hat[1])-s[1])./(norm(s[1])+(100*eps(TF)))
@@ -90,4 +94,4 @@ end
 
 #return y,l,r_pri,s,log_PARSDMM,counter,y_old,l_old,x_hat,set_feas_vec
 
-end #end function yodate_y_l
+end #end of function

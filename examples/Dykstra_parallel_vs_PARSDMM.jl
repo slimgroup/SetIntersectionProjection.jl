@@ -60,11 +60,11 @@ constraint["TD_l1_sigma_1"]    = 0.1*norm(TV_OP*m,1)
 
 
 BLAS.set_num_threads(2) #2 is fine for a small problem
-(P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
 
 println("PARSDMM serial (bounds, bounds on D_z and TV):")
-@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 
 cg_axis=[0 ; cumsum(log_PARSDMM.cg_it)];
 cg_axis=cg_axis[1:10:end]
@@ -105,9 +105,9 @@ constraint["use_TD_bounds_1"]=true;
 constraint["TDB_operator_1"]="D_z";
 constraint["TD_LB_1"]=0;
 constraint["TD_UB_1"]=1e6;
-(P_sub2,TD_OP2,TD_Prop2) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP2,AtA2,l,y) = PARSDMM_precompute_distribute(TD_OP2,TD_Prop2,comp_grid,options)
-P[2] = inp -> PARSDMM(inp,AtA2,TD_OP2,TD_Prop2,P_sub2,comp_grid,options) #projector onto transform-domain bounds
+(P_sub2,TD_OP2,set_Prop2) = setup_constraints(constraint,comp_grid,options.FL)
+(TD_OP2,AtA2,l,y) = PARSDMM_precompute_distribute(TD_OP2,set_Prop2,comp_grid,options)
+P[2] = inp -> PARSDMM(inp,AtA2,TD_OP2,set_Prop2,P_sub2,comp_grid,options) #projector onto transform-domain bounds
 
 # Set up ARADMM to project onto anisotropic-TV set (PARSDMM with 1 constraint set is equivalent to ARADMM)
 constraint=Dict()
@@ -115,9 +115,9 @@ constraint["use_TD_l1_1"]      = true
 constraint["TD_l1_operator_1"] = "TV"
 (TV_OP, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"TV",TF)
 constraint["TD_l1_sigma_1"]    = 0.1*norm(TV_OP*m,1)
-(P_sub3,TD_OP3,TD_Prop3) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP3,AtA3,l,y) = PARSDMM_precompute_distribute(TD_OP3,TD_Prop3,comp_grid,options)
-P[3] = inp -> PARSDMM(inp,AtA3,TD_OP3,TD_Prop3,P_sub3,comp_grid,options) #projector onto transform-domain bounds
+(P_sub3,TD_OP3,set_Prop3) = setup_constraints(constraint,comp_grid,options.FL)
+(TD_OP3,AtA3,l,y) = PARSDMM_precompute_distribute(TD_OP3,set_Prop3,comp_grid,options)
+P[3] = inp -> PARSDMM(inp,AtA3,TD_OP3,set_Prop3,P_sub3,comp_grid,options) #projector onto transform-domain bounds
 
 closed_form=Vector{Bool}(3)
 closed_form[1]=true
@@ -208,11 +208,11 @@ constraint["TD_max_rank_1"]=15
 
 
 BLAS.set_num_threads(2) #2 is fine for a small problem
-(P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
 
 println("PARSDMM serial (bounds, bounds on D_z and TV):")
-@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 
 cg_axis=[0 ; cumsum(log_PARSDMM.cg_it)];
 cg_axis=cg_axis[1:10:end]
@@ -251,9 +251,9 @@ constraint=Dict()
 constraint["use_TD_rank_1"]=true;
 constraint["TD_rank_operator_1"]="D_z";
 constraint["TD_max_rank_1"]=15;
-(P_sub2,TD_OP2,TD_Prop2) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP2,AtA2,l,y) = PARSDMM_precompute_distribute(TD_OP2,TD_Prop2,comp_grid,options)
-P[2] = inp -> PARSDMM(inp,AtA2,TD_OP2,TD_Prop2,P_sub2,comp_grid,options) #projector onto set of transform-domain rank
+(P_sub2,TD_OP2,set_Prop2) = setup_constraints(constraint,comp_grid,options.FL)
+(TD_OP2,AtA2,l,y) = PARSDMM_precompute_distribute(TD_OP2,set_Prop2,comp_grid,options)
+P[2] = inp -> PARSDMM(inp,AtA2,TD_OP2,set_Prop2,P_sub2,comp_grid,options) #projector onto set of transform-domain rank
 
 closed_form=Vector{Bool}(2)
 closed_form[1]=true

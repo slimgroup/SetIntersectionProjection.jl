@@ -23,8 +23,11 @@ function adapt_rho_gamma{TF<:Real}(
                                   d_G_hat         ::Vector{Vector{TF}}
                                   )
 
-    # Barzilai-Borwein type for Douglash-Rachford splitting on the dual problem
-    #hardcoded and suggested value by the paper based on numerical evidence
+"""
+Barzilai-Borwein scaling for Douglash-Rachford splitting on the dual problem related to standard ADMM.
+Updates relaxation and augmented-Lagrangian penalty parameter.
+To be used in serial version of PARSDMM.
+"""
 
     if TF==Float64
         safeguard = 1e-10
@@ -32,7 +35,7 @@ function adapt_rho_gamma{TF<:Real}(
         safeguard = 1f-6
     end
 
-  const eps_correlation = TF(0.3);
+  const eps_correlation = TF(0.3) #hardcoded and suggested value by the paper based on numerical evidence
 
   #Threads.@threads for ii = 1:p
   for ii = 1:p

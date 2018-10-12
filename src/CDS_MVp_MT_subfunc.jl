@@ -8,6 +8,11 @@ function CDS_MVp_MT_subfunc{TF<:Real}(
         r1::Int,
         i::Int)
 
+"""
+wrapper around Julia threads to compute a multi-threaded matrix vector product in CDS formulated
+This is a subfunction of CDS_MVp_MT.jl
+"""
+
       #s=rind-1
   @Threads.threads for r = r0 : r1
       c = r - r0 + c0 #original

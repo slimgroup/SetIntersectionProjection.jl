@@ -1,12 +1,15 @@
 export get_discrete_Grad
 
 function get_discrete_Grad{TF<:Real}(n1,n2,h1::TF,h2::TF,TD_type::String)
-# input: n1 : number of grid points in the lateral dimension (x)
-#        n2 : number of grid points in the vertical (depth) dimension (z)
-#        h1 : distance between grid points in the lateral dimension (x) (assumed constant)
-#        h2 : distance between grid points in the vertical (depth) dimension (z) (assumed constant)
-# output : TD_OP : transform domain operator as a sparse matrix or matrix-free object
-# Bas Peters
+"""
+2D version
+ input: n1 : number of grid points in the first dimension
+        n2 : number of grid points in the second dimension
+        h1 : distance between grid points in the first dimension
+        h2 : distance between grid points in the second dimension
+        TD_type : type of derivative operator as a string
+ output : TD_OP : transform domain operator as a sparse matrix
+"""
 
 if TF==Float64
   TI=Int64
@@ -39,12 +42,17 @@ return D_OP
 end
 
 function get_discrete_Grad{TF<:Real}(n1,n2,n3,h1::TF,h2::TF,h3::TF,TD_type::String)
-# input: n1 : number of grid points in the lateral dimension (x)
-#        n2 : number of grid points in the vertical (depth) dimension (z)
-#        h1 : distance between grid points in the lateral dimension (x) (assumed constant)
-#        h2 : distance between grid points in the vertical (depth) dimension (z) (assumed constant)
-# output : TD_OP : transform domain operator as a sparse matrix or matrix-free object
-# Bas Peters
+"""
+  3D version
+  input: n1 : number of grid points in the first dimension
+         n2 : number of grid points in the second dimension
+         n3 : number of grid points in the third dimension
+         h1 : distance between grid points in the first dimension
+         h2 : distance between grid points in the second dimension
+         h3 : distance between grid points in the third dimension
+         TD_type : type of derivative operator as a string
+   output : TD_OP : transform domain operator as a sparse matrix
+"""
 
 if TF==Float64
   TI=Int64

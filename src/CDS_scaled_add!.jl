@@ -6,7 +6,11 @@ function CDS_scaled_add!{TF<:Real,TI<:Integer}(
                   B_offsets   ::Vector{TI},
                   alpha       ::TF
                   )
-# Computes A = A + alpha * B for A and B in the compressed diagonal storage format (CDS/DIA)
+
+"""
+ Computes A = A + alpha * B for A and B in the compressed diagonal storage format (CDS/DIA)
+ TO DO: make this function multi-threaded per column of A and B
+"""
 
 for k=1:length(B_offsets)
   A_update_col = findin(A_offsets,B_offsets[k])

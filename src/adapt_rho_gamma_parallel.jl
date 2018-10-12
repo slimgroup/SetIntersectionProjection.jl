@@ -21,10 +21,13 @@ function adapt_rho_gamma_parallel{TF<:Real}(
                                   d_G_hat         ::Vector{Vector{TF}}
                                   )
 
-    # Barzilai-Borwein type for Douglash-Rachford splitting on the dual problem
-    #hardcoded and suggested value by the paper based on numerical evidence
+"""
+Barzilai-Borwein scaling for Douglash-Rachford splitting on the dual problem related to standard ADMM.
+Updates relaxation and augmented-Lagrangian penalty parameter.
+To be used in parallel version of PARSDMM.
+"""
 
-  const eps_correlation = TF(0.3);
+  const eps_correlation = TF(0.3) #hardcoded and suggested value by the paper based on numerical evidence
 
 
       if TF==Float64
@@ -40,23 +43,6 @@ function adapt_rho_gamma_parallel{TF<:Real}(
       # @. d_l[1]     = l[1] - l_0[1]
       # @. d_G_hat[1] = -(y[1] - y_0[1])
 
-      #super!slow
-      # Threads.@threads for j=1:length(l_hat[1])
-      #   @inbounds l_hat[1][j] = l_old[1][j] + rho[1] * ( -s[1][j] + y_old[1][j] )
-      # end
-      # Threads.@threads for j=1:length(d_l_hat[1])
-      #   @inbounds d_l_hat[1][j] = l_hat[1][j] - l_hat_0[1][j]
-      # end
-      # Threads.@threads for j=1:length(d_H_hat[1])
-      #   @inbounds d_H_hat[1][j] = s[1][j] - s_0[1][j]
-      # end
-      # Threads.@threads for j=1:length(d_l[1])
-      #   @inbounds d_l[1][j] = l[1][j] - l_0[1][j]
-      # end
-      # Threads.@threads for j=1:length(d_G_hat[1])
-      #   @inbounds d_G_hat[1][j] = y_0[1][j] - y[1][j]
-      # end
-
       #wrap multi-theading inside a function
       a_is_b_min_c_MT!(d_l_hat[1],l_hat[1],l_hat_0[1])
       a_is_b_min_c_MT!(d_H_hat[1],s[1],s_0[1])
@@ -71,19 +57,6 @@ function adapt_rho_gamma_parallel{TF<:Real}(
       n_d_l_hat   = norm(d_l_hat[1])
       n_d_l       = norm(d_l[1])
       n_d_G_hat   = norm(d_G_hat[1])
-
-
-      # alpha_reliable = false;
-      # if (n_d_H_hat*n_d_l_hat) > safeguard && (n_d_H_hat.^2) > safeguard && d_dHh_dlh>safeguard
-      #   alpha_reliable = true
-      #   alpha_correlation = d_dHh_dlh./( n_d_H_hat*n_d_l_hat  );
-      # end
-
-      # beta_reliable = false;
-      # if (n_d_G_hat*n_d_l) > safeguard && (n_d_G_hat^2) > safeguard && d_dGh_dl > safeguard
-      #   beta_reliable = true
-      #   beta_correlation  = d_dGh_dl./( n_d_G_hat*n_d_l );
-      # end
 
       alpha_comp = false
       #print(alpha_comp)

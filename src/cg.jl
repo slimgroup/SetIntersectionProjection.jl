@@ -9,7 +9,10 @@ end
 cg(A,b::Vector;kwargs...) = cg(x -> A*x,b;kwargs...)
 
 """
+This is a slightly modified version from the Julia Package KrylovMethods
+
 x,flag,err,iter,resvec = cg(A,b,tol=1e-2,maxIter=100,M=1,x=[],out=0)
+
 
 (Preconditioned) Conjugate Gradient applied to the linear system A*x = b, where A is assumed
 to be symmetric positive semi definite.

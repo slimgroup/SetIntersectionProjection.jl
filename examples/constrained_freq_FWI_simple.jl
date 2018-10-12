@@ -419,15 +419,15 @@ elseif j==2
 end
 
   #set up constraints, precompute some things and define projector
-  (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+  (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
   options.rho_ini      = ones(length(TD_OP))*10.0
   # for i=1:length(options.rho_ini)
-  #   if TD_Prop.ncvx[i]==true
+  #   if set_Prop.ncvx[i]==true
   #     options.rho_ini[i]=1.0
   #   end
   # end
-  proj_intersection = x-> PARSDMM(x,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options)
+  proj_intersection = x-> PARSDMM(x,AtA,TD_OP,set_Prop,P_sub,comp_grid,options)
   # function prj!{T}(dst::T, src::T)
   #   (dst[:],dummy1,dummy2,dymmy3) = proj_intersection(src)
   #   return dst

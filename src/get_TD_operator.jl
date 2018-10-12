@@ -1,10 +1,11 @@
 export get_TD_operator
 
 function get_TD_operator(comp_grid,TD_type,TF)
-  # input: TD_type: string indicates which transform-domain operator to return
-  #      : comp_grid: structure with computational grid information; comp_grid.n = [x z] number of gridpoints in each direction; comp_grid.d = [d1 d2] spacing between gridpoints in each direction.
-  # output : TD_OP : transform domain operator as a sparse matrix or matrix-free object
-  # Bas Peters
+"""
+   input: TD_type   : string indicates which transform-domain operator to return
+        : comp_grid : structure with computational grid information; comp_grid.n = [n1 n2] number of gridpoints in each direction; comp_grid.d = [d1 d2] spacing between gridpoints in each direction.
+   output : TD_OP   : transform domain operator as a sparse matrix or matrix-free object
+"""
 
 if TF==Float64
   TI=Int64
@@ -43,7 +44,7 @@ if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3d version
   elseif TD_type == "curvelet" || TD_type == "Curvelet"
       error("currently no 3D DFT implemented, needs to be done soon")
   else
-      error("provided an unknown transform domain operator. check function get_TD_operator(comp_grid,TD_type) for options")
+      error("provided an unknown transform domain operator. check function get_TD_operator(comp_grid,TD_type,TF) for options")
   end
 else #use 2d version
   #(D2D, D2x, D2z) = get_discrete_Grad(n1,n2,h1,h2);
@@ -74,7 +75,7 @@ else #use 2d version
     TD_OP = joCurvelet2D(convert(Int64,n1),convert(Int64,n2);DDT=TF,RDT=TF,real_crvlts=true,all_crvlts=true)
     AtA_diag = true ; dense = true ; TD_n = (0,0) ; banded=false
     else
-      error("provided an unknown transform domain operator. check function get_TD_operator(comp_grid,TD_type) for options")
+      error("provided an unknown transform domain operator. check function get_TD_operator(comp_grid,TD_type,TF) for options")
     end
 end
 

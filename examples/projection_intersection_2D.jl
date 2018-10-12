@@ -12,8 +12,8 @@ type compgrid
 end
 
 #PARSDMM options:
-options=PARSDMM_options()
-options.FL=Float32
+options    = PARSDMM_options()
+options.FL = Float32
 #options=default_PARSDMM_options(options,options.FL)
 options.adjust_gamma           = true
 options.adjust_rho             = true
@@ -41,7 +41,7 @@ m=m[1:341,200:600];
 m=m';
 
 #set up computational grid (25 and 6 m are the original distances between grid points)
-comp_grid = compgrid((TF(25), TF(6)),(size(m,1), size(m,2)))
+comp_grid = compgrid((TF(25.0), TF(6.0)),(size(m,1), size(m,2)))
 m=convert(Vector{TF},vec(m))
 
 #define axis limits and colorbar limits
@@ -53,24 +53,24 @@ vma=4500
 #constraints
 constraint=Dict()
 
-constraint["use_bounds"]=true
-constraint["m_min"]=1500
-constraint["m_max"]=4500
+constraint["use_bounds"] = true
+constraint["m_min"]      = 1500.0
+constraint["m_max"]      = 4500.0
 
-constraint["use_TD_bounds_1"]=true;
-constraint["TDB_operator_1"]="D_z";
-constraint["TD_LB_1"]=0;
-constraint["TD_UB_1"]=1e6;
+constraint["use_TD_bounds_1"] = true
+constraint["TDB_operator_1"]  = "D_z"
+constraint["TD_LB_1"]         = 0.0
+constraint["TD_UB_1"]         = 1e6
 
-options.parallel             = false
-(P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+options.parallel       = false
+(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+(TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
 
 println("")
 println("PARSDMM serial (bounds and bounds on D_z):")
-@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 
 #plot
 figure();imshow(reshape(m,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
@@ -96,12 +96,12 @@ savefig("PARSDMM_logs.png",bbox_inches="tight")
 println("")
 println("PARSDMM parallel (bounds and bounds on D_z):")
 options.parallel             = true
-(P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
 
-@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 
 #plot
 figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (bounds and bounds on D_z)")
@@ -114,14 +114,14 @@ n_levels=2
 coarsening_factor=3
 
 #set up all required quantities for each level
-#(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
-(TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+#(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+(TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
 
 println("")
 println("PARSDMM multilevel-serial (bounds and bounds on D_z):")
-@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
-@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
-@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
 
 figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (bounds and bounds on D_z)")
 
@@ -133,14 +133,14 @@ n_levels=2
 coarsening_factor=3
 
 #set up all required quantities for each level
-(TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+(TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
 
 println("")
 println("PARSDMM multilevel-parallel (bounds and bounds on D_z):")
 BLAS.set_num_threads(2)
-@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
-@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
-@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
 
 figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (bounds and bounds on D_z)")
 
@@ -158,12 +158,12 @@ figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,
 # (TV_OP, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"TV",TF)
 # constraint["TD_l1_sigma_1"]    = 0.25*norm(TV_OP*m,1)
 #
-# (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-# (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+# (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+# (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
 #
 # println("PARSDMM serial (bounds and TV):")
-# @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-# @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+# @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+# @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 #
 # figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (bounds and total-variation)")
 #
@@ -211,11 +211,11 @@ figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,
 #
 #
 # #set up constraints
-# (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL);
+# (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL);
 #
 # parallel=true
-# @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-# @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+# @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+# @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 #
 # figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (bounds, l2 on lateral gradient, cardinality on vertical gradient")
 # #plot PARSDMM logs
@@ -235,9 +235,9 @@ figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,
 # constraint["TDB_operator_1"]="D_x";
 # constraint["TD_LB_1"]=-1;
 # constraint["TD_UB_1"]=1;
-# (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL);
-# @time (x,log_PARSDMM) = compute_projection_intersection_PARSDMM(x,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
-# #@time (x,log_PARSDMM) = compute_projection_intersection_PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+# (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL);
+# @time (x,log_PARSDMM) = compute_projection_intersection_PARSDMM(x,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+# #@time (x,log_PARSDMM) = compute_projection_intersection_PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 # using PyPlot
 # figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))');colorbar
 #
@@ -279,8 +279,8 @@ figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,
 # options.feas_tol=1e-5
 # options.adjust_rho=true
 # options.adjust_feasibility_rho=true
-# (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL);
+# (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL);
 # ini=copy(m)
-#  @time (x,log_PARSDMM) = compute_projection_intersection_PARSDMM(m,ini,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options,FL,linear_inv_prob_flag);
+#  @time (x,log_PARSDMM) = compute_projection_intersection_PARSDMM(m,ini,AtA,TD_OP,set_Prop,P_sub,comp_grid,options,FL,linear_inv_prob_flag);
 #  using PyPlot
 #   figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))');colorbar

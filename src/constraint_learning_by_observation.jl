@@ -1,13 +1,19 @@
 export constraint_learning_by_obseration
 
 function constraint_learning_by_obseration{TF<:Real}(comp_grid,m_train::Array{TF})
+"""
+Compute matrix/image properties and return the results in a dictionary.
+m is a tensor where the first index is the image index.
+i.e., m[i,:,:] is one image
+"""
+
+
 if TF==Float64
   TI=Int64
 else
   TI=Int32
 end
-#m is an image, or m is a tensor where the first index is the image index.
-# i.e., m[i,:,:] is one image
+
 
 if length(size(m_train))==3
   (n_train_ex,t2,t3)=size(m_train)

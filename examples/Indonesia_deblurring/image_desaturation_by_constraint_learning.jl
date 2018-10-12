@@ -159,16 +159,16 @@ options.zero_ini_guess       = false
 BLAS.set_num_threads(2)
 FFTW.set_num_threads(2)
 
-(P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL) #obtain projector and transform-domain operator pairs
+(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL) #obtain projector and transform-domain operator pairs
 
 #add the blurring filer sparse matrix as a transform domain matrix, along with the properties
 push!(TD_OP,convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n))))
-push!(TD_Prop.AtA_offsets,[0]) #these are dummy values, actual ofsetts are automatically detected
-push!(TD_Prop.ncvx,false)
-push!(TD_Prop.banded,true)
-push!(TD_Prop.AtA_diag,true)
-push!(TD_Prop.dense,false)
-push!(TD_Prop.tag,("data term","identity"))
+push!(set_Prop.AtA_offsets,[0]) #these are dummy values, actual ofsetts are automatically detected
+push!(set_Prop.ncvx,false)
+push!(set_Prop.banded,true)
+push!(set_Prop.AtA_diag,true)
+push!(set_Prop.dense,false)
+push!(set_Prop.tag,("data term","identity"))
 
 #also add a projector onto the data constraint:
 #i.e. , or l<=(A*x-m)<=u or, a norm ||A*x-m||=< sigma
@@ -183,14 +183,14 @@ UBD[ind_max_clip].=255.0f0
 push!(P_sub,input -> project_bounds!(input,LBD,UBD))
 
 dummy=zeros(TF,prod(comp_grid.n))
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
 x_ini= vec(d_obs[1,:,:])
 x_ini[ind_max_clip]=225.0f0
 x_ini[ind_min_clip]=0.0f0
 
 options.rho_ini      = ones(TF,length(TD_OP))*1000f0
 for i=1:length(options.rho_ini)
-  if TD_Prop.ncvx[i]==true
+  if set_Prop.ncvx[i]==true
     options.rho_ini[i]=10f0
   end
 end
@@ -204,7 +204,7 @@ for i=1:size(d_obs,1)
 
 
   p2proj = deepcopy(x_ini) #don't couple initial guess and point to project.
-  @time (x,log_PARSDMM) = PARSDMM(p2proj,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options,x_ini,[],y)
+  @time (x,log_PARSDMM) = PARSDMM(p2proj,AtA,TD_OP,set_Prop,P_sub,comp_grid,options,x_ini,[],y)
   m_est[i,:,:]=reshape(x,comp_grid.n)
   println("SNR:", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:])),2))
   println("PSNR:", round(psnr(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:]),maximum(m_evaluation[i,:,:])),2))

@@ -31,10 +31,10 @@ m = convert(Vector{TF},vec(m))
 mt=vec(m_evaluation[1,:,:])
 
 if multi_level==false
-  (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+  (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
 else
   #set up all required quantities for each level
-  (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+  (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
 end
 
 if FWD_OP=="mask" && multi_level == false
@@ -45,13 +45,13 @@ if FWD_OP=="mask" && multi_level == false
   mask_mat=convert(SparseMatrixCSC{TF,TI},mask_mat)
   #also add transform-domain properties
   push!(TD_OP,mask_mat)
-  push!(TD_Prop.AtA_offsets,[0])
-  push!(TD_Prop.ncvx,false)
-  push!(TD_Prop.banded,true)
-  push!(TD_Prop.AtA_diag,true)
-  push!(TD_Prop.dense,false)
-  push!(TD_Prop.tag,("Lin forward OP","mask"))
-  push!(TD_Prop.TD_n,comp_grid.n )
+  push!(set_Prop.AtA_offsets,[0])
+  push!(set_Prop.ncvx,false)
+  push!(set_Prop.banded,true)
+  push!(set_Prop.AtA_diag,true)
+  push!(set_Prop.dense,false)
+  push!(set_Prop.tag,("Lin forward OP","mask"))
+  push!(set_Prop.TD_n,comp_grid.n )
 
   #add a projector onto the data constraint: i.e. ||A*x-m||=< sigma, or l<=(A*x-m)<=u . m is the observed part of the image
   nonzero_ind=find(m);
@@ -71,13 +71,13 @@ elseif FWD_OP=="mask" && multi_level == true
     mask_mat=convert(SparseMatrixCSC{TF,TI},mask_mat)
     #also add transform-domain properties
     push!(TD_OP_levels[i],mask_mat)
-    push!(TD_Prop_levels[i].AtA_offsets,[0])
-    push!(TD_Prop_levels[i].ncvx,false)
-    push!(TD_Prop_levels[i].banded,true)
-    push!(TD_Prop_levels[i].AtA_diag,true)
-    push!(TD_Prop_levels[i].dense,false)
-    push!(TD_Prop_levels[i].tag,("Lin forward OP","mask"))
-    push!(TD_Prop_levels[i].TD_n,comp_grid_levels[i].n )
+    push!(set_Prop_levels[i].AtA_offsets,[0])
+    push!(set_Prop_levels[i].ncvx,false)
+    push!(set_Prop_levels[i].banded,true)
+    push!(set_Prop_levels[i].AtA_diag,true)
+    push!(set_Prop_levels[i].dense,false)
+    push!(set_Prop_levels[i].tag,("Lin forward OP","mask"))
+    push!(set_Prop_levels[i].TD_n,comp_grid_levels[i].n )
 
     #add a projector onto the data constraint: i.e. ||A*x-m||=< sigma, or l<=(A*x-m)<=u . m is the observed part of the image
     nonzero_ind=find(m_levels[i]);
@@ -92,7 +92,7 @@ elseif FWD_OP=="mask" && multi_level == true
     #add new precomputed TD_OP'*TD_OP in compressed diagonal format:
     (temp_CDS_mat,offset)=mat2CDS(mask_mat'*mask_mat)
      push!(AtA_levels[i],temp_CDS_mat)
-     #note that in general we also need to update the offsets of AtA[end] (in TD_Prop.AtA_offsets) but masks are always diagonal in this case so we leave it out
+     #note that in general we also need to update the offsets of AtA[end] (in set_Prop.AtA_offsets) but masks are always diagonal in this case so we leave it out
   end
 end
 
@@ -101,17 +101,17 @@ mask_save[1]=mask_mat
 
 if multi_level==false
   #precompute and distribute some stuff
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,TD_Prop,options)
+  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(m,TD_OP,set_Prop,options)
 end
 
 println("imaging inpainting with PARSDMM serial (with many constraints):")
 for i=1:size(m_evaluation,1)
 
   if multi_level==false
-    @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+    @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
     m_est[i,:,:].=reshape(x,comp_grid.n)
   else
-    @time (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
+    @time (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
     m_est[i,:,:].=reshape(x,comp_grid.n)
   end
 
@@ -152,7 +152,7 @@ for i=1:size(m_evaluation,1)
       #add new precomputed TD_OP'*TD_OP in compressed diagonal format:
       (temp_CDS_mat,offset)=mat2CDS(mask_mat'*mask_mat)
        AtA[end]=temp_CDS_mat
-       #note that in general we also need to update the offsets of AtA[end] (in TD_Prop.AtA_offsets) but masks are always diagonal in this case so we leave it out
+       #note that in general we also need to update the offsets of AtA[end] (in set_Prop.AtA_offsets) but masks are always diagonal in this case so we leave it out
   elseif FWD_OP=="mask" && multi_level == true
     LBD=Vector{Vector{TF}}(n_levels)
     UBD=Vector{Vector{TF}}(n_levels)

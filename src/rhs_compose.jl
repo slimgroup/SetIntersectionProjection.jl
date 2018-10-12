@@ -10,7 +10,7 @@ function rhs_compose{TF<:Real,TI<:Integer}(
                               parallel    ::Bool
                               )
 """
-form the right-hand-side for the linear system in PARSDMM
+form the right-hand-side for the linear system in PARSDMM for the x-minimization
 """
 
 

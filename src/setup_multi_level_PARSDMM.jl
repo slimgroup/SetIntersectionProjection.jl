@@ -1,20 +1,25 @@
 export setup_multi_level_PARSDMM
 
 function setup_multi_level_PARSDMM{TF<:Real}(
-                                   m        ::Vector{TF},
-                                   n_levels ::Integer,
-                                   coarsening_factor,
+                                   m                  ::Vector{TF},
+                                   n_levels           ::Integer,
+                                   coarsening_factor  ::Union{TF,Integer},
                                    comp_grid,
                                    constraint,
                                    options
                                    )
+"""
+Generate projectors, linear operators, grid information, constraints, set information
+on all grids for multilevel PARSDMM
+"""
 
 if TF==Float64
   TI = Int64
 elseif TF==Float32
   TI = Int32
 end
-[@spawnat pid comp_grid for pid in workers()]
+
+[@spawnat pid comp_grid for pid in workers()] #send computational grid to all workers
 
 #detect 2D or 3D
 if length(comp_grid.n)==3 && comp_grid.n[3]>1
@@ -34,13 +39,13 @@ else
 end
 AtA_levels       = Vector{Vector{SparseMatrixCSC{TF,TI}}}(n_levels)
 P_sub_levels     = Vector{Vector{Any}}(n_levels)
-TD_Prop_levels   = Vector{Any}(n_levels)
+set_Prop_levels  = Vector{Any}(n_levels)
 comp_grid_levels = Vector{Any}(n_levels)
 
 # set up constraints and matrices on coarse level
 #1st level is the grid corresponding to the original model m (matrix or tensor)
-(P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,TF)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,TF)
+(TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
 
 if typeof(AtA)==Vector{Array{TF,2}} #change AtA to CDS
   #AtA=convert(Vector{Array{TF,2}},AtA);
@@ -52,7 +57,7 @@ m_levels[i]         = m
 TD_OP_levels[i]     = TD_OP
 AtA_levels[i]       = AtA
 P_sub_levels[i]     = P_sub
-TD_Prop_levels[i]   = TD_Prop
+set_Prop_levels[i]   = set_Prop
 comp_grid_levels[i] = comp_grid
 
 constraint_level=deepcopy(constraint)
@@ -63,11 +68,11 @@ for i=2:n_levels
   n = round.( comp_grid.n./coarsening_factor^(i-1) )
 
   #coarsen original model to new grids
-  itp_m       = interpolate(reshape(m,comp_grid.n), BSpline(Constant()), OnGrid())
+  itp_m     = interpolate(reshape(m,comp_grid.n), BSpline(Constant()), OnGrid())
   if dim3
-    m_level     = itp_m[linspace(1,comp_grid.n[1],n[1]), linspace(1,comp_grid.n[2],n[2]), linspace(1,comp_grid.n[3],n[3])]
+    m_level = itp_m[linspace(1,comp_grid.n[1],n[1]), linspace(1,comp_grid.n[2],n[2]), linspace(1,comp_grid.n[3],n[3])]
   else
-    m_level     = itp_m[linspace(1,comp_grid.n[1],n[1]), linspace(1,comp_grid.n[2],n[2])]
+    m_level = itp_m[linspace(1,comp_grid.n[1],n[1]), linspace(1,comp_grid.n[2],n[2])]
   end
   m_levels[i] = vec(m_level)
   #m_levels[i] = vec(restrict(reshape(m_levels[i-1],comp_grid_levels[i-1].n))
@@ -83,14 +88,14 @@ for i=2:n_levels
   constraint_level = constraint2coarse(constraint_level,comp_grid_levels[i],coarsening_factor)
 
   #set up constraints on new level
-  (P_sub_l,TD_OP_l,TD_Prop_l) = setup_constraints(constraint_level,comp_grid_levels[i],TF)
-  (TD_OP_l,AtA_l,dummy1,dummy2) = PARSDMM_precompute_distribute(TD_OP_l,TD_Prop_l,comp_grid_levels[i],options)
+  (P_sub_l,TD_OP_l,set_Prop_l)  = setup_constraints(constraint_level,comp_grid_levels[i],TF)
+  (TD_OP_l,AtA_l,dummy1,dummy2) = PARSDMM_precompute_distribute(TD_OP_l,set_Prop_l,comp_grid_levels[i],options)
 
   #save information
-  TD_OP_levels[i]     = TD_OP_l
-  AtA_levels[i]       = AtA_l
-  P_sub_levels[i]     = P_sub_l
-  TD_Prop_levels[i]   = TD_Prop_l
+  TD_OP_levels[i]    = TD_OP_l
+  AtA_levels[i]      = AtA_l
+  P_sub_levels[i]    = P_sub_l
+  set_Prop_levels[i] = set_Prop_l
 
 end #for loop
 
@@ -126,7 +131,7 @@ end #for loop
 #   m_levels[i]=vec(m_levels[i])
 # end
 
-#return m_levels, TD_OP_levels, AtA_levels, P_sub_levels, TD_Prop_levels, comp_grid_levels, constraint_level
-return TD_OP_levels, AtA_levels, P_sub_levels, TD_Prop_levels, comp_grid_levels, constraint_level
+#return m_levels, TD_OP_levels, AtA_levels, P_sub_levels, set_Prop_levels, comp_grid_levels, constraint_level
+return TD_OP_levels, AtA_levels, P_sub_levels, set_Prop_levels, comp_grid_levels, constraint_level
 
 end #end setup_multi_level_PARSDMM

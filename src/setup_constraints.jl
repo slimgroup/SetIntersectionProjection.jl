@@ -1,13 +1,15 @@
 export setup_constraints
 
 function setup_constraints(constraint,comp_grid,TF)
-# input: constraint: structure with information about which constraints to use and their specifications
-#      : comp_grid: structure with computational grid information; comp_grid.n = [x z] number of gridpoints in each direction; comp_grid.d = [d1 d2] spacing between gridpoints in each direction.
-#      : FL : Floating point precision (either 32 or 64)
-# output : P :
-#        : P_sub
-#        : TD_OP
-# Bas Peters
+"""
+ input: constraint: dictionary with information about which constraints to use and their specifications
+      : comp_grid: structure with computational grid information; comp_grid.n = (nx,ny,nz) number of gridpoints in each direction; comp_grid.d = (dx,dy,dz) spacing between gridpoints in each direction.
+      : TF : Floating point precision (either Float32 or Float64)
+ output: P_sub    - vector of projection functions onto C: P_sub = [P_C_1(.); P_C_2(.); ... ; P_C_p(.)]
+       : TD_OP    - vector of linear operators [A_1;A_2;...;A_p]
+       : set_Prop - set properties, structure where each property is vector which has a lenght of the number of sets
+                             (see SetIntersectionProjection.jl and setup_constraints.jl)
+"""
 
 if    TF == Float64
   TI = Int64
@@ -34,7 +36,7 @@ P_sub = Vector{Any}(99)
 TD_OP = Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}}(99);
 AtA   = Vector{SparseMatrixCSC{TF,TI}}(99);
 
-TD_Prop=transform_domain_properties(zeros(99),zeros(99),zeros(99),Vector{Tuple{TI,TI}}(99),Vector{Tuple{String,String}}(99),zeros(99),Vector{Vector{TI}}(99))
+set_Prop=set_properties(zeros(99),zeros(99),zeros(99),Vector{Tuple{TI,TI}}(99),Vector{Tuple{String,String}}(99),zeros(99),Vector{Vector{TI}}(99))
 
 special_operator_list = ["DFT" "DCT"]
 N =  prod(comp_grid.n)
@@ -52,8 +54,8 @@ if haskey(constraint,"use_bounds") && constraint["use_bounds"] == true
     end
     P_sub[counter]        = x -> project_bounds!(x,LB,UB)
     TD_OP[counter]        = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
-    TD_Prop.ncvx[counter] = false ;TD_Prop.AtA_diag[counter] = true ; TD_Prop.dense[counter] = false ; TD_Prop.TD_n[counter] = comp_grid.n ; TD_Prop.banded[counter] = true
-    TD_Prop.tag[counter]  = ("bounds","identity")
+    set_Prop.ncvx[counter] = false ;set_Prop.AtA_diag[counter] = true ; set_Prop.dense[counter] = false ; set_Prop.TD_n[counter] = comp_grid.n ; set_Prop.banded[counter] = true
+    set_Prop.tag[counter]  = ("bounds","identity")
     counter               = counter+1;
 end
 
@@ -63,9 +65,9 @@ end
 #Transform domain bound-constraints & slope constraints
 for i=1:3
   if haskey(constraint,string("use_TD_bounds_",i)) && constraint[string("use_TD_bounds_",i)]==true
-    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_bound_constraints(counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TDB_operator_",i)],constraint[string("TD_LB_",i)],constraint[string("TD_UB_",i)],TF,special_operator_list)
-    TD_Prop.ncvx[counter]   = false
-    TD_Prop.tag[counter]    = (string("TD-bounds ",i), constraint[string("TDB_operator_",i)])
+    (P_sub, TD_OP, set_Prop) = setup_transform_domain_bound_constraints(counter,P_sub,TD_OP,set_Prop,comp_grid,constraint[string("TDB_operator_",i)],constraint[string("TD_LB_",i)],constraint[string("TD_UB_",i)],TF,special_operator_list)
+    set_Prop.ncvx[counter]   = false
+    set_Prop.tag[counter]    = (string("TD-bounds ",i), constraint[string("TDB_operator_",i)])
     counter                 = counter+1;
   end
 end
@@ -73,9 +75,9 @@ end
 #Transform domain bounds constraints for each column/row/fiber for a 2D or 3D model
 for i in ["x","y","z"]
     if haskey(constraint,string("use_TD_bounds_fiber_",i)) && constraint[string("use_TD_bounds_fiber_",i)]== true
-      (P_sub, TD_OP, TD_Prop) = setup_transform_domain_bound_constraints_fiber(i,counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_bounds_fiber_",i,"_operator")],constraint[string("TD_LB_fiber_",i)],constraint[string("TD_UB_fiber_",i)],TF,special_operator_list)
-      TD_Prop.ncvx[counter]   = false
-      TD_Prop.tag[counter]    = ( string("TD_bounds_fiber_",i) , constraint[string("TD_bounds_fiber_",i,"_operator")] )
+      (P_sub, TD_OP, set_Prop) = setup_transform_domain_bound_constraints_fiber(i,counter,P_sub,TD_OP,set_Prop,comp_grid,constraint[string("TD_bounds_fiber_",i,"_operator")],constraint[string("TD_LB_fiber_",i)],constraint[string("TD_UB_fiber_",i)],TF,special_operator_list)
+      set_Prop.ncvx[counter]   = false
+      set_Prop.tag[counter]    = ( string("TD_bounds_fiber_",i) , constraint[string("TD_bounds_fiber_",i,"_operator")] )
       counter                 = counter+1;
     end
 end
@@ -83,9 +85,9 @@ end
 #Transform domain l1-norm constraints (including total-variation)
 for i=1:3
   if haskey(constraint,string("use_TD_l1_",i)) && constraint[string("use_TD_l1_",i)]==true
-    (P_sub, TD_OP, TD_Prop)=setup_transform_domain_l1_constraints(counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_l1_operator_",i)],constraint[string("TD_l1_sigma_",i)],TF,special_operator_list)
-    TD_Prop.ncvx[counter]= false
-    TD_Prop.tag[counter]  = (string("TDl1 ",i), constraint[string("TD_l1_operator_",i)])
+    (P_sub, TD_OP, set_Prop)=setup_transform_domain_l1_constraints(counter,P_sub,TD_OP,set_Prop,comp_grid,constraint[string("TD_l1_operator_",i)],constraint[string("TD_l1_sigma_",i)],TF,special_operator_list)
+    set_Prop.ncvx[counter]= false
+    set_Prop.tag[counter]  = (string("TDl1 ",i), constraint[string("TD_l1_operator_",i)])
     counter              = counter+1;
   end
 end
@@ -93,9 +95,9 @@ end
 #Transform domain l1-norm constraints for each slice (x-y,x-z or y-z) from a 3D model
 for i in ["x","y","z"]
   if haskey(constraint,string("use_TD_l1_slice_",i)) && constraint[string("use_TD_l1_slice_",i)]== true
-    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_l1_constraints_slice(string(i,"_slice"),counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_l1_slice_",i,"_operator")],constraint[string("TD_li1_sigma_slice_",i)],TF,special_operator_list)
-    TD_Prop.ncvx[counter]   = true
-    TD_Prop.tag[counter]    = ( string("TD_l1_slice_",i) , constraint[string("TD_l1_slice_",i,"_operator")] )
+    (P_sub, TD_OP, set_Prop) = setup_transform_domain_l1_constraints_slice(string(i,"_slice"),counter,P_sub,TD_OP,set_Prop,comp_grid,constraint[string("TD_l1_slice_",i,"_operator")],constraint[string("TD_li1_sigma_slice_",i)],TF,special_operator_list)
+    set_Prop.ncvx[counter]   = true
+    set_Prop.tag[counter]    = ( string("TD_l1_slice_",i) , constraint[string("TD_l1_slice_",i,"_operator")] )
     counter                 = counter+1;
   end
 end
@@ -103,9 +105,9 @@ end
 #Transform domain l2-norm constraints
 for i=1:3
   if haskey(constraint,string("use_TD_l2_",i)) && constraint[string("use_TD_l2_",i)]==true
-    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_l2_constraints(counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_l2_operator_",i)],constraint[string("TD_l2_sigma_",i)],TF,special_operator_list)
-    TD_Prop.ncvx[counter]   = false
-    TD_Prop.tag[counter]    = (string("TDl2 ",i), constraint[string("TD_l2_operator_",i)])
+    (P_sub, TD_OP, set_Prop) = setup_transform_domain_l2_constraints(counter,P_sub,TD_OP,set_Prop,comp_grid,constraint[string("TD_l2_operator_",i)],constraint[string("TD_l2_sigma_",i)],TF,special_operator_list)
+    set_Prop.ncvx[counter]   = false
+    set_Prop.tag[counter]    = (string("TDl2 ",i), constraint[string("TD_l2_operator_",i)])
     counter                 = counter+1;
   end
 end
@@ -113,9 +115,9 @@ end
 #Transform domain annulus constraints
 for i=1:3
   if haskey(constraint,string("use_TD_annulus_",i)) && constraint[string("use_TD_annulus_",i)]==true
-    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_annulus_constraints(counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_annulus_operator_",i)],constraint[string("TD_annulus_sigma_min_",i)],constraint[string("TD_annulus_sigma_max_",i)],TF,special_operator_list)
-    TD_Prop.ncvx[counter]   = true
-    TD_Prop.tag[counter]    = (string("TD_annulus ",i), constraint[string("TD_annulus_operator_",i)])
+    (P_sub, TD_OP, set_Prop) = setup_transform_domain_annulus_constraints(counter,P_sub,TD_OP,set_Prop,comp_grid,constraint[string("TD_annulus_operator_",i)],constraint[string("TD_annulus_sigma_min_",i)],constraint[string("TD_annulus_sigma_max_",i)],TF,special_operator_list)
+    set_Prop.ncvx[counter]   = true
+    set_Prop.tag[counter]    = (string("TD_annulus ",i), constraint[string("TD_annulus_operator_",i)])
     counter                 = counter+1;
   end
 end
@@ -123,9 +125,9 @@ end
 #Transform domain cardinality constraints (global for the full computational domain)
 for i=1:3
   if haskey(constraint,string("use_TD_card_",i)) && constraint[string("use_TD_card_",i)]== true
-    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_card_constraints(counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_card_operator_",i)],constraint[string("card_",i)],TF,special_operator_list)
-    TD_Prop.ncvx[counter]   = true
-    TD_Prop.tag[counter]    = (string("card_",i), constraint[string("TD_card_operator_",i)])
+    (P_sub, TD_OP, set_Prop) = setup_transform_domain_card_constraints(counter,P_sub,TD_OP,set_Prop,comp_grid,constraint[string("TD_card_operator_",i)],constraint[string("card_",i)],TF,special_operator_list)
+    set_Prop.ncvx[counter]   = true
+    set_Prop.tag[counter]    = (string("card_",i), constraint[string("TD_card_operator_",i)])
     counter                 = counter+1;
   end
 end
@@ -134,9 +136,9 @@ end
 for i in ["x","y","z"]
 for j=1:3
   if haskey(constraint,string("use_TD_card_slice_",i,j)) && constraint[string("use_TD_card_slice_",i,j)]== true
-    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_card_constraints_fiber_slice(string(i,"_slice"),counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_card_slice_",i,j,"_operator")],constraint[string("card_slice_",i,j)],TF,special_operator_list)
-    TD_Prop.ncvx[counter]   = true
-    TD_Prop.tag[counter]    = ( string("TD_card_slice_",i,j) , constraint[string("TD_card_slice_",i,j,"_operator")] )
+    (P_sub, TD_OP, set_Prop) = setup_transform_domain_card_constraints_fiber_slice(string(i,"_slice"),counter,P_sub,TD_OP,set_Prop,comp_grid,constraint[string("TD_card_slice_",i,j,"_operator")],constraint[string("card_slice_",i,j)],TF,special_operator_list)
+    set_Prop.ncvx[counter]   = true
+    set_Prop.tag[counter]    = ( string("TD_card_slice_",i,j) , constraint[string("TD_card_slice_",i,j,"_operator")] )
     counter                 = counter+1;
         println("working")
   end
@@ -147,9 +149,9 @@ end
 for i in ["x","y","z"]
 for j=1:3
   if haskey(constraint,string("use_TD_card_fiber_",i,j)) && constraint[string("use_TD_card_fiber_",i,j)]== true
-    (P_sub, TD_OP, TD_Prop) = setup_transform_domain_card_constraints_fiber_slice(string(i,"_fiber"),counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_card_fiber_",i,j,"_operator")],constraint[string("card_fiber_",i,j)],TF,special_operator_list)
-    TD_Prop.ncvx[counter]   = true
-    TD_Prop.tag[counter]    = ( string("TD_card_fiber_",i,j) , constraint[string("TD_card_fiber_",i,j,"_operator")] )
+    (P_sub, TD_OP, set_Prop) = setup_transform_domain_card_constraints_fiber_slice(string(i,"_fiber"),counter,P_sub,TD_OP,set_Prop,comp_grid,constraint[string("TD_card_fiber_",i,j,"_operator")],constraint[string("card_fiber_",i,j)],TF,special_operator_list)
+    set_Prop.ncvx[counter]   = true
+    set_Prop.tag[counter]    = ( string("TD_card_fiber_",i,j) , constraint[string("TD_card_fiber_",i,j,"_operator")] )
     counter                 = counter+1;
   end
 end
@@ -158,13 +160,13 @@ end
 #subspace constraints
 if haskey(constraint,"use_subspace") && constraint["use_subspace"]== true
   P_sub[counter]            = x -> project_subspace!(x,constraint["A"],constraint["subspace_orthogonal"])
-  TD_Prop.ncvx[counter]     = false
+  set_Prop.ncvx[counter]     = false
   TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
-  TD_Prop.AtA_diag[counter] = true
-  TD_Prop.dense[counter]    = false
-  TD_Prop.banded[counter]   = true
-  TD_Prop.TD_n[counter]     = comp_grid.n
-  TD_Prop.tag[counter]      = ("subspace", "identity")
+  set_Prop.AtA_diag[counter] = true
+  set_Prop.dense[counter]    = false
+  set_Prop.banded[counter]   = true
+  set_Prop.TD_n[counter]     = comp_grid.n
+  set_Prop.tag[counter]      = ("subspace", "identity")
   counter                   = counter+1;
 end
 
@@ -172,13 +174,13 @@ end
 for i in ["x","y","z"]
   if haskey(constraint,string("use_subspace_slice_",i)) && constraint[string("use_subspace_slice_",i)]== true
     P_sub[counter]            = x -> project_subspace!(reshape(x,comp_grid.n),constraint[string("A_slice_",i)],constraint[string("subspace_slice_orthogonal_",i)],i)
-    TD_Prop.ncvx[counter]     = false
+    set_Prop.ncvx[counter]     = false
     TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
-    TD_Prop.AtA_diag[counter] = true
-    TD_Prop.dense[counter]    = false
-    TD_Prop.banded[counter]   = true
-    TD_Prop.TD_n[counter]     = comp_grid.n
-    TD_Prop.tag[counter]      = (string("subspace_slice_",i), "identity")
+    set_Prop.AtA_diag[counter] = true
+    set_Prop.dense[counter]    = false
+    set_Prop.banded[counter]   = true
+    set_Prop.TD_n[counter]     = comp_grid.n
+    set_Prop.tag[counter]      = (string("subspace_slice_",i), "identity")
     counter                   = counter+1;
   end
 end
@@ -187,13 +189,13 @@ end
 for i in ["x","y"]
   if haskey(constraint,string("use_subspace_row_column_",i)) && constraint[string("use_subspace_row_column_",i)]== true
     P_sub[counter]            = x -> project_subspace!(reshape(x,comp_grid.n),constraint[string("A_row_column_",i)],constraint[string("subspace_row_column_",i,"_orthogonal")],i)
-    TD_Prop.ncvx[counter]     = false
+    set_Prop.ncvx[counter]     = false
     TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
-    TD_Prop.AtA_diag[counter] = true
-    TD_Prop.dense[counter]    = false
-    TD_Prop.banded[counter]   = true
-    TD_Prop.TD_n[counter]     = comp_grid.n
-    TD_Prop.tag[counter]      = (string("subspace_row_column_",i), "identity")
+    set_Prop.AtA_diag[counter] = true
+    set_Prop.dense[counter]    = false
+    set_Prop.banded[counter]   = true
+    set_Prop.TD_n[counter]     = comp_grid.n
+    set_Prop.tag[counter]      = (string("subspace_row_column_",i), "identity")
     counter                   = counter+1;
   end
 end
@@ -204,9 +206,9 @@ for i=1:3
     if length(comp_grid.n)==3 && comp_grid.n[3]>1 #test if provided model is 3D
        error("provided model is 3D, select 'use_nuclear_slice' instead of 'use_nuclear' ")
     end
-    (P_sub, TD_OP, TD_Prop)=setup_transform_domain_nuclear_constraints(counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_nuclear_operator_",i)],constraint[string("TD_nuclear_norm_",i)],TF,special_operator_list)
-    TD_Prop.ncvx[counter]= false
-    TD_Prop.tag[counter]  = (string("TD_nuclear_",i), constraint[string("TD_nuclear_operator_",i)])
+    (P_sub, TD_OP, set_Prop)=setup_transform_domain_nuclear_constraints(counter,P_sub,TD_OP,set_Prop,comp_grid,constraint[string("TD_nuclear_operator_",i)],constraint[string("TD_nuclear_norm_",i)],TF,special_operator_list)
+    set_Prop.ncvx[counter]= false
+    set_Prop.tag[counter]  = (string("TD_nuclear_",i), constraint[string("TD_nuclear_operator_",i)])
     counter              = counter+1;
   end
 end
@@ -218,13 +220,13 @@ for i in ["x","y","z"]
        error("provided model is 2D, select 'use_nuclear' instead of 'use_nuclear_slice' ")
     end
     P_sub[counter]            = x -> project_nuclear!(reshape(x,comp_grid.n),constraint[string("nuclear_norm_slice_",i)],i)
-    TD_Prop.ncvx[counter]     = false
+    set_Prop.ncvx[counter]     = false
     TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
-    TD_Prop.AtA_diag[counter] = true
-    TD_Prop.dense[counter]    = false
-    TD_Prop.banded[counter]   = true
-    TD_Prop.TD_n[counter]     = comp_grid.n
-    TD_Prop.tag[counter]      = (string("nuclear_norm_slice_",i), "identity")
+    set_Prop.AtA_diag[counter] = true
+    set_Prop.dense[counter]    = false
+    set_Prop.banded[counter]   = true
+    set_Prop.TD_n[counter]     = comp_grid.n
+    set_Prop.tag[counter]      = (string("nuclear_norm_slice_",i), "identity")
     counter                   = counter+1;
   end
 end
@@ -235,9 +237,9 @@ for i=1:3
     if length(comp_grid.n)==3 && comp_grid.n[3]>1 #test if provided model is 3D
        error("provided model is 3D, select 'use_rank_slice' instead of 'use_rank' ")
     end
-    (P_sub, TD_OP, TD_Prop)=setup_transform_domain_rank_constraints(counter,P_sub,TD_OP,TD_Prop,comp_grid,constraint[string("TD_rank_operator_",i)],constraint[string("TD_max_rank_",i)],TF,special_operator_list)
-    TD_Prop.ncvx[counter]= true
-    TD_Prop.tag[counter]  = (string("TD_rank_",i), constraint[string("TD_rank_operator_",i)])
+    (P_sub, TD_OP, set_Prop)=setup_transform_domain_rank_constraints(counter,P_sub,TD_OP,set_Prop,comp_grid,constraint[string("TD_rank_operator_",i)],constraint[string("TD_max_rank_",i)],TF,special_operator_list)
+    set_Prop.ncvx[counter]= true
+    set_Prop.tag[counter]  = (string("TD_rank_",i), constraint[string("TD_rank_operator_",i)])
     counter              = counter+1;
   end
 end
@@ -249,13 +251,13 @@ for i in ["x","y","z"]
        error("provided model is 2D, select 'use_rank' instead of 'use_rank_slice' ")
     end
     P_sub[counter]            = x -> project_rank!(reshape(x,comp_grid.n),constraint[string("max_rank_slice_",i)],i)
-    TD_Prop.ncvx[counter]     = true
+    set_Prop.ncvx[counter]     = true
     TD_OP[counter]            = convert(SparseMatrixCSC{TF,TI},speye(TF,N))
-    TD_Prop.AtA_diag[counter] = true
-    TD_Prop.dense[counter]    = false
-    TD_Prop.banded[counter]   = true
-    TD_Prop.TD_n[counter]     = comp_grid.n
-    TD_Prop.tag[counter]      = (string("use_rank_slice_",i), "identity")
+    set_Prop.AtA_diag[counter] = true
+    set_Prop.dense[counter]    = false
+    set_Prop.banded[counter]   = true
+    set_Prop.TD_n[counter]     = comp_grid.n
+    set_Prop.tag[counter]      = (string("use_rank_slice_",i), "identity")
     counter                   = counter+1;
   end
 end
@@ -264,9 +266,9 @@ end
 for i=1:3
   if haskey(constraint,string("use_TD_hist_eq_relax_",i)) && constraint[string("use_TD_hist_eq_relax_",i)]==true
     P_sub[counter]  = x -> project_histogram_relaxed!(x,constraint[string("hist_eq_LB_",i)],constraint[string("hist_eq_UB_",i)])
-    (TD_OP[counter],TD_Prop.AtA_diag[counter],TD_Prop.dense[counter],TD_Prop.TD_n[counter],TD_Prop.banded[counter]) = get_TD_operator(comp_grid,constraint[string("TD_hist_eq_operator_",i)],TF)
-    TD_Prop.ncvx[counter]     = false
-    TD_Prop.tag[counter]      = (string("histogram_",i), constraint[string("TD_hist_eq_operator_",i)])
+    (TD_OP[counter],set_Prop.AtA_diag[counter],set_Prop.dense[counter],set_Prop.TD_n[counter],set_Prop.banded[counter]) = get_TD_operator(comp_grid,constraint[string("TD_hist_eq_operator_",i)],TF)
+    set_Prop.ncvx[counter]     = false
+    set_Prop.tag[counter]      = (string("histogram_",i), constraint[string("TD_hist_eq_operator_",i)])
     counter                   = counter+1;
   end
 end
@@ -274,18 +276,18 @@ end
 P_sub = P_sub[1:counter-1]
 TD_OP = TD_OP[1:counter-1]
 
-TD_Prop.ncvx        = TD_Prop.ncvx[1:counter-1]
-TD_Prop.AtA_diag    = TD_Prop.AtA_diag[1:counter-1]
-TD_Prop.dense       = TD_Prop.dense[1:counter-1]
-TD_Prop.TD_n        = TD_Prop.TD_n[1:counter-1]
-TD_Prop.tag         = TD_Prop.tag[1:counter-1]
-TD_Prop.banded      = TD_Prop.banded[1:counter-1]
-TD_Prop.AtA_offsets = TD_Prop.AtA_offsets[1:counter-1]
+set_Prop.ncvx        = set_Prop.ncvx[1:counter-1]
+set_Prop.AtA_diag    = set_Prop.AtA_diag[1:counter-1]
+set_Prop.dense       = set_Prop.dense[1:counter-1]
+set_Prop.TD_n        = set_Prop.TD_n[1:counter-1]
+set_Prop.tag         = set_Prop.tag[1:counter-1]
+set_Prop.banded      = set_Prop.banded[1:counter-1]
+set_Prop.AtA_offsets = set_Prop.AtA_offsets[1:counter-1]
 
-return P_sub,TD_OP,TD_Prop
+return P_sub,TD_OP,set_Prop
 end #end setup_constraints
 
-function setup_transform_domain_bound_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,TD_LB,TD_UB,TF,special_operator_list)
+function setup_transform_domain_bound_constraints(ind,P_sub,TD_OP,set_Prop,comp_grid,operator_type,TD_LB,TD_UB,TF,special_operator_list)
   if length(TD_UB)==1
     TD_UB=convert(TF,TD_UB); TD_LB=convert(TF,TD_LB)
   else
@@ -300,24 +302,24 @@ function setup_transform_domain_bound_constraints(ind,P_sub,TD_OP,TD_Prop,comp_g
     end
     if TF==Float64; TI=Int64; else; TI=Int32; end
     TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
-    TD_Prop.AtA_diag[ind]   = true
-    TD_Prop.dense[ind]      = false
-    TD_Prop.TD_n[ind]       = comp_grid.n
-    TD_Prop.banded[ind]     = true
+    set_Prop.AtA_diag[ind]   = true
+    set_Prop.dense[ind]      = false
+    set_Prop.TD_n[ind]       = comp_grid.n
+    set_Prop.banded[ind]     = true
     P_sub[ind]              = x -> copy!(x,A'*project_bounds!(A*x,TD_LB,TD_UB))
     TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
   else
     P_sub[ind]              =  x -> project_bounds!(x,TD_LB,TD_UB)
     TD_OP[ind]              = A
-    TD_Prop.AtA_diag[ind]   = AtA_diag
-    TD_Prop.dense[ind]      = dense
-    TD_Prop.TD_n[ind]       = TD_n
-    TD_Prop.banded[ind]     = banded
+    set_Prop.AtA_diag[ind]   = AtA_diag
+    set_Prop.dense[ind]      = dense
+    set_Prop.TD_n[ind]       = TD_n
+    set_Prop.banded[ind]     = banded
   end
-  return P_sub, TD_OP, TD_Prop
+  return P_sub, TD_OP, set_Prop
 end
 
-function setup_transform_domain_bound_constraints_fiber(mode,ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,TD_LB,TD_UB,TF,special_operator_list)
+function setup_transform_domain_bound_constraints_fiber(mode,ind,P_sub,TD_OP,set_Prop,comp_grid,operator_type,TD_LB,TD_UB,TF,special_operator_list)
 
   if operator_type in special_operator_list
     if operator_type=="DCT"
@@ -334,10 +336,10 @@ function setup_transform_domain_bound_constraints_fiber(mode,ind,P_sub,TD_OP,TD_
     end
     if TF==Float64; TI=Int64; else; TI=Int32; end
     TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
-    TD_Prop.AtA_diag[ind]   = true
-    TD_Prop.dense[ind]      = false
-    TD_Prop.TD_n[ind]       = comp_grid.n
-    TD_Prop.banded[ind]     = true
+    set_Prop.AtA_diag[ind]   = true
+    set_Prop.dense[ind]      = false
+    set_Prop.TD_n[ind]       = comp_grid.n
+    set_Prop.banded[ind]     = true
     #P_sub[ind]              = x -> copy!(x,A'*project_bounds!(A*reshape(x,comp_grid.n),TD_LB,TD_UB))
     if mode=="x"; coord=1; elseif  mode=="y"; coord=2; elseif mode=="z"; coord=3; end
     #P_sub[ind]               = x -> copy!(x,vec(idct(project_bounds!(dct(reshape(x,comp_grid.n),coord),TD_LB,TD_UB,mode),coord)))
@@ -347,40 +349,40 @@ function setup_transform_domain_bound_constraints_fiber(mode,ind,P_sub,TD_OP,TD_
     (A,AtA_diag,dense,TD_n,banded)  = get_TD_operator(comp_grid,operator_type,TF)
     P_sub[ind]              =  x -> project_bounds!(reshape(x,TD_n),LB,UB,mode)
     TD_OP[ind]              = A
-    TD_Prop.AtA_diag[ind]   = AtA_diag
-    TD_Prop.dense[ind]      = dense
-    TD_Prop.TD_n[ind]       = TD_n
-    TD_Prop.banded[ind]     = banded
+    set_Prop.AtA_diag[ind]   = AtA_diag
+    set_Prop.dense[ind]      = dense
+    set_Prop.TD_n[ind]       = TD_n
+    set_Prop.banded[ind]     = banded
   end
-  return P_sub, TD_OP, TD_Prop
+  return P_sub, TD_OP, set_Prop
 end
 
-function setup_transform_domain_nuclear_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,nuclear_norm,TF,special_operator_list)
+function setup_transform_domain_nuclear_constraints(ind,P_sub,TD_OP,set_Prop,comp_grid,operator_type,nuclear_norm,TF,special_operator_list)
     (A,AtA_diag,dense,TD_n,banded)= get_TD_operator(comp_grid,operator_type,TF)
     P_sub[ind]              = x -> project_nuclear!(reshape(x,TD_n),nuclear_norm)
     TD_OP[ind]              = A
-    TD_Prop.AtA_diag[ind]   = AtA_diag
-    TD_Prop.dense[ind]      = dense
-    TD_Prop.TD_n[ind]       = TD_n
-    TD_Prop.banded[ind]     = banded
-  return P_sub, TD_OP, TD_Prop
+    set_Prop.AtA_diag[ind]   = AtA_diag
+    set_Prop.dense[ind]      = dense
+    set_Prop.TD_n[ind]       = TD_n
+    set_Prop.banded[ind]     = banded
+  return P_sub, TD_OP, set_Prop
 end
 
-function setup_transform_domain_rank_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,max_rank,TF,special_operator_list)
+function setup_transform_domain_rank_constraints(ind,P_sub,TD_OP,set_Prop,comp_grid,operator_type,max_rank,TF,special_operator_list)
     if operator_type in ["TV" "D2D" "D3D"]
       error("TV, D2D or D3D not available for transform-domain rank constraint, use two or three separate constraints with different derivatives (Dx,Dy,Dz)")
     end
     (A,AtA_diag,dense,TD_n,banded)= get_TD_operator(comp_grid,operator_type,TF)
     P_sub[ind]              = x -> project_rank!(reshape(x,TD_n),max_rank)
     TD_OP[ind]              = A
-    TD_Prop.AtA_diag[ind]   = AtA_diag
-    TD_Prop.dense[ind]      = dense
-    TD_Prop.TD_n[ind]       = TD_n
-    TD_Prop.banded[ind]     = banded
-  return P_sub, TD_OP, TD_Prop
+    set_Prop.AtA_diag[ind]   = AtA_diag
+    set_Prop.dense[ind]      = dense
+    set_Prop.TD_n[ind]       = TD_n
+    set_Prop.banded[ind]     = banded
+  return P_sub, TD_OP, set_Prop
 end
 
-function setup_transform_domain_l1_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,sigma,TF,special_operator_list)
+function setup_transform_domain_l1_constraints(ind,P_sub,TD_OP,set_Prop,comp_grid,operator_type,sigma,TF,special_operator_list)
   (A,AtA_diag,dense,TD_n,banded)= get_TD_operator(comp_grid,operator_type,TF)
   #P_sub[ind]         =  x -> projnorm1(x,convert(Float64,sigma))
 
@@ -389,88 +391,88 @@ function setup_transform_domain_l1_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid
     P_sub[ind]              =  x -> copy!(x,A'*project_l1_Duchi!(A*x,sigma))
     if TF==Float64; TI=Int64; else; TI=Int32; end
     TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
-    TD_Prop.AtA_diag[ind]   = true
-    TD_Prop.dense[ind]      = false
-    TD_Prop.TD_n[ind]       = comp_grid.n
-    TD_Prop.banded[ind]     = true
+    set_Prop.AtA_diag[ind]   = true
+    set_Prop.dense[ind]      = false
+    set_Prop.TD_n[ind]       = comp_grid.n
+    set_Prop.banded[ind]     = true
   else
     P_sub[ind]              = x -> project_l1_Duchi!(x,sigma)
     TD_OP[ind]              = A
-    TD_Prop.AtA_diag[ind]   = AtA_diag
-    TD_Prop.dense[ind]      = dense
-    TD_Prop.TD_n[ind]       = TD_n
-    TD_Prop.banded[ind]     = banded
+    set_Prop.AtA_diag[ind]   = AtA_diag
+    set_Prop.dense[ind]      = dense
+    set_Prop.TD_n[ind]       = TD_n
+    set_Prop.banded[ind]     = banded
   end
-  return P_sub, TD_OP, TD_Prop
+  return P_sub, TD_OP, set_Prop
 end
 
-function setup_transform_domain_l2_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,sigma,TF,special_operator_list)
+function setup_transform_domain_l2_constraints(ind,P_sub,TD_OP,set_Prop,comp_grid,operator_type,sigma,TF,special_operator_list)
   (A,AtA_diag,dense,TD_n,banded)= get_TD_operator(comp_grid,operator_type,TF)
 
   if operator_type in special_operator_list
     P_sub[ind]              =  x -> copy!(x,A'*project_l2!(A*x,sigma))
     if TF==Float64; TI=Int64; else; TI=Int32; end
     TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
-    TD_Prop.AtA_diag[ind]   = true
-    TD_Prop.dense[ind]      = false
-    TD_Prop.TD_n[ind]       = comp_grid.n
-    TD_Prop.banded[ind]     = true
+    set_Prop.AtA_diag[ind]   = true
+    set_Prop.dense[ind]      = false
+    set_Prop.TD_n[ind]       = comp_grid.n
+    set_Prop.banded[ind]     = true
   else
     P_sub[ind]              =  x -> project_l2!(x,sigma)
     TD_OP[ind]              = A
-    TD_Prop.AtA_diag[ind]   = AtA_diag
-    TD_Prop.dense[ind]      = dense
-    TD_Prop.TD_n[ind]       = TD_n
-    TD_Prop.banded[ind]     = banded
+    set_Prop.AtA_diag[ind]   = AtA_diag
+    set_Prop.dense[ind]      = dense
+    set_Prop.TD_n[ind]       = TD_n
+    set_Prop.banded[ind]     = banded
   end
-  return P_sub, TD_OP, TD_Prop
+  return P_sub, TD_OP, set_Prop
 end
 
-function setup_transform_domain_annulus_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,sigma_min,sigma_max,TF,special_operator_list)
+function setup_transform_domain_annulus_constraints(ind,P_sub,TD_OP,set_Prop,comp_grid,operator_type,sigma_min,sigma_max,TF,special_operator_list)
   (A,AtA_diag,dense,TD_n,banded)= get_TD_operator(comp_grid,operator_type,TF)
 
   if operator_type in special_operator_list
     P_sub[ind]              =  x -> copy!(x,A'*project_annulus!(A*x,sigma_min,sigma_max))
     if TF==Float64; TI=Int64; else; TI=Int32; end
     TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
-    TD_Prop.AtA_diag[ind]   = true
-    TD_Prop.dense[ind]      = false
-    TD_Prop.TD_n[ind]       = comp_grid.n
-    TD_Prop.banded[ind]     = true
+    set_Prop.AtA_diag[ind]   = true
+    set_Prop.dense[ind]      = false
+    set_Prop.TD_n[ind]       = comp_grid.n
+    set_Prop.banded[ind]     = true
   else
     P_sub[ind]              =  x -> project_annulus!(x,sigma_min,sigma_max)
     TD_OP[ind]              = A
-    TD_Prop.AtA_diag[ind]   = AtA_diag
-    TD_Prop.dense[ind]      = dense
-    TD_Prop.TD_n[ind]       = TD_n
-    TD_Prop.banded[ind]     = banded
+    set_Prop.AtA_diag[ind]   = AtA_diag
+    set_Prop.dense[ind]      = dense
+    set_Prop.TD_n[ind]       = TD_n
+    set_Prop.banded[ind]     = banded
   end
-  return P_sub, TD_OP, TD_Prop
+  return P_sub, TD_OP, set_Prop
 end
 
-function setup_transform_domain_card_constraints(ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,k,TF,special_operator_list)
+function setup_transform_domain_card_constraints(ind,P_sub,TD_OP,set_Prop,comp_grid,operator_type,k,TF,special_operator_list)
   (A,AtA_diag,dense,TD_n,banded)= get_TD_operator(comp_grid,operator_type,TF)
 
   if operator_type in special_operator_list
     P_sub[ind]              =  x -> copy!(x,A'*project_cardinality!(A*x,convert(Integer,k)))
     if TF==Float64; TI=Int64; else; TI=Int32; end
     TD_OP[ind]              = convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n)))
-    TD_Prop.AtA_diag[ind]   = true
-    TD_Prop.dense[ind]      = false
-    TD_Prop.TD_n[ind]       = comp_grid.n
-    TD_Prop.banded[ind]     = true
+    set_Prop.AtA_diag[ind]   = true
+    set_Prop.dense[ind]      = false
+    set_Prop.TD_n[ind]       = comp_grid.n
+    set_Prop.banded[ind]     = true
   else
     P_sub[ind]              =  x -> project_cardinality!(x,convert(Integer,k))
     TD_OP[ind]              = A
-    TD_Prop.AtA_diag[ind]   = AtA_diag
-    TD_Prop.dense[ind]      = dense
-    TD_Prop.TD_n[ind]       = TD_n
-    TD_Prop.banded[ind]     = banded
+    set_Prop.AtA_diag[ind]   = AtA_diag
+    set_Prop.dense[ind]      = dense
+    set_Prop.TD_n[ind]       = TD_n
+    set_Prop.banded[ind]     = banded
   end
-  return P_sub, TD_OP, TD_Prop
+  return P_sub, TD_OP, set_Prop
 end
 
-function setup_transform_domain_card_constraints_fiber_slice(mode,ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,k,TF,special_operator_list)
+function setup_transform_domain_card_constraints_fiber_slice(mode,ind,P_sub,TD_OP,set_Prop,comp_grid,operator_type,k,TF,special_operator_list)
 
   if operator_type in special_operator_list
     error("temporality no support for cardinality constraints in this transform-domain on tensor fibers or slices")
@@ -478,25 +480,25 @@ function setup_transform_domain_card_constraints_fiber_slice(mode,ind,P_sub,TD_O
     (A,AtA_diag,dense,TD_n,banded)  = get_TD_operator(comp_grid,operator_type,TF)
     P_sub[ind]              =  x -> project_cardinality!(reshape(x,TD_n),convert(Integer,k),mode)
     TD_OP[ind]              = A
-    TD_Prop.AtA_diag[ind]   = AtA_diag
-    TD_Prop.dense[ind]      = dense
-    TD_Prop.TD_n[ind]       = TD_n
-    TD_Prop.banded[ind]     = banded
+    set_Prop.AtA_diag[ind]   = AtA_diag
+    set_Prop.dense[ind]      = dense
+    set_Prop.TD_n[ind]       = TD_n
+    set_Prop.banded[ind]     = banded
   end
-  return P_sub, TD_OP, TD_Prop
+  return P_sub, TD_OP, set_Prop
 end
 
-function setup_transform_domain_l1_constraints_slice(mode,ind,P_sub,TD_OP,TD_Prop,comp_grid,operator_type,sigma,TF,special_operator_list)
+function setup_transform_domain_l1_constraints_slice(mode,ind,P_sub,TD_OP,set_Prop,comp_grid,operator_type,sigma,TF,special_operator_list)
   if operator_type in special_operator_list
     error("temporality no support for l1 constraints in this transform-domain on tensor fibers")
   else
     (A,AtA_diag,dense,TD_n,banded)  = get_TD_operator(comp_grid,operator_type,TF)
     P_sub[ind]              = x -> project_l1_Duchi!(x,sigma,mode)
     TD_OP[ind]              = A
-    TD_Prop.AtA_diag[ind]   = AtA_diag
-    TD_Prop.dense[ind]      = dense
-    TD_Prop.TD_n[ind]       = TD_n
-    TD_Prop.banded[ind]     = banded
+    set_Prop.AtA_diag[ind]   = AtA_diag
+    set_Prop.dense[ind]      = dense
+    set_Prop.TD_n[ind]       = TD_n
+    set_Prop.banded[ind]     = banded
   end
-  return P_sub, TD_OP, TD_Prop
+  return P_sub, TD_OP, set_Prop
 end
