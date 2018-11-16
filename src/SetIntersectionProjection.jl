@@ -92,7 +92,7 @@ mutable struct log_type_PARSDMM
 end
 
 @with_kw mutable struct PARSDMM_options
-  x_min_solver          :: String       = "CG_normal" #what algorithm to use for the x-minimization (CG appied to normal equations)
+  x_min_solver          :: String       = "CG_normal" #what algorithm to use for the x-minimization (CG applied to normal equations)
   maxit                 :: Integer      = 200         #max number of PARSDMM iterations
   evol_rel_tol          :: Real         = 1e-3        #stop PARSDMM if ||x^k - X^{k-1}||_2 / || x^k || < options.evol_rel_tol AND options.feas_tol is reached
   feas_tol              :: Real         = 5e-2        #stop PARSDMM if the transform-domain relative feasibility error is < options.feas_tol AND options.evol_rel_tol is reached
@@ -104,21 +104,23 @@ end
   adjust_gamma          :: Bool         = true        #adapt relaxation parameters in PARSDMM
   adjust_feasibility_rho:: Bool         = true        #adapt augmented-Lagrangian penalty parameters based on constraint set feasibility errors (can be used in combination with options.adjust_rho)
   Blas_active           :: Bool         = true        #use direct BLAS calls, otherwise the code will use Julia loop-fusion where possible
-  linear_inv_prob_flag  :: Bool         = false
+  feasibility_only      :: Bool         = false       #drop distance term and solve a feasibility problem
   FL                    :: DataType     = Float32     #type of Float: Float32 or Float64
-  parallel              :: Bool         = false       #comput proximal mappings, multiplier updates, rho and gamma updates in parallel
-  zero_ini_guess        :: Bool         = true        #zero initial guess for primal, auxilliary, and multipliers
+  parallel              :: Bool         = false       #compute proximal mappings, multiplier updates, rho and gamma updates in parallel
+  zero_ini_guess        :: Bool         = true        #zero initial guess for primal, auxiliary, and multipliers
   Minkowski             :: Bool         = false       #the intersection of sets includes a Minkowski set
 end
 
-type set_properties #save properties of the constraint set and its linear operator (not all are currently used in the code)
-           ncvx       ::Vector{Bool}
-           AtA_diag   ::Vector{Bool}
-           dense      ::Vector{Bool}
-           TD_n       ::Vector{Tuple}
-           tag        ::Vector{Tuple{String,String}}
-           banded     ::Vector{Bool}
-           AtA_offsets::Union{Vector{Vector{Int32}},Vector{Vector{Int64}}}
+#save properties of the constraint set and its linear operator (not all are currently used in the code)
+#each entry in the following vectors contain the information corresponding to one set
+type set_properties
+           ncvx       ::Vector{Bool}                                          #is the set non-convex? (true/false)
+           AtA_diag   ::Vector{Bool}                                          #is A^T A a diagonal matrix?
+           dense      ::Vector{Bool}                                          #is A a dense matrix?
+           TD_n       ::Vector{Tuple}                                         #the grid dimensions in the transform-domain.
+           tag        ::Vector{Tuple{String,String}}                          #(constraint type, linear operator description)
+           banded     ::Vector{Bool}                                          #is A a banded matrix?
+           AtA_offsets::Union{Vector{Vector{Int32}},Vector{Vector{Int64}}}    #only required if A is banded. A vector of indices of the non-zero diagonals, where the main diagonal is index 0
 end
 
 end # module

@@ -153,7 +153,7 @@ options.Blas_active            = true
 options.maxit                  = 300
 set_zero_subnormals(true)
 
-options.linear_inv_prob_flag = false #compute projection of initial guess
+options.feasibility_only     = false #compute projection of initial guess
 options.parallel             = true
 options.zero_ini_guess       = false
 BLAS.set_num_threads(2)

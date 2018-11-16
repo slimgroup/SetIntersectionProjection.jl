@@ -192,7 +192,7 @@ options.Blas_active            = true
 options.maxit                  = 300
 set_zero_subnormals(true)
 
-options.linear_inv_prob_flag = true #this is important to set
+options.feasibility_only     = true #this is important to set
 options.parallel             = true
 options.zero_ini_guess       = true
 BLAS.set_num_threads(2)

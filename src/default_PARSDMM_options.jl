@@ -23,7 +23,7 @@ Returns a set of default options for the PARSDMM solver
   options.adjust_gamma          = true        #adapt relaxation parameters in PARSDMM
   options.adjust_feasibility_rho= true        #adapt augmented-Lagrangian penalty parameters based on constraint set feasibility errors (can be used in combination with options.adjust_rho)
   options.Blas_active           = true        #use direct BLAS calls, otherwise the code will use Julia loop-fusion where possible
-  options.feasibility_only      = false       #
+  options.feasibility_only      = false       #drop distance term and solve a feasibility problem
   options.FL                    = TF          #type of Float: Float32 or Float64
   options.parallel              = false       #comput proximal mappings, multiplier updates, rho and gamma updates in parallel
   options.zero_ini_guess        = true        #zero initial guess for primal, auxilliary, and multipliers
