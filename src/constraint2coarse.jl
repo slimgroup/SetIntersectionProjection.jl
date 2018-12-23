@@ -6,20 +6,21 @@ Adapts constraint definitions for the original grid, to coarser grids.
 Some of these 'rules' are empirical or user defined. Some constraints are not adapted as
 they are often considered invariant under subsampling the grid for imaging applications.
 """
+  nr_constraints = length(constraint)
 
   #bound constraints: same as on fine grid
 
   #rank: same as on fine grid (limit by minimum dimension)
-  for i=1:3
-    if haskey(constraint,string("use_TD_rank_",i)) && constraint[string("use_TD_rank_",i)]==true
-      constraint[string("TD_max_rank_",i)] = min(constraint[string("TD_max_rank_",i)],minimum(comp_grid.n))
+  for i=1:nr_constraints
+    if constraint[i].set_type == "rank"
+      constraint[i].max = min(constraint[i].max,minimum(comp_grid.n))
     end
   end
 
   #cardinality in a transform-domain: same as on fine grid (limit by number of elements)
-  for i=1:3
-    if haskey(constraint,string("use_TD_card_",i)) && constraint[string("use_TD_card_",i)]==true
-      constraint[string("card_",i)] = min(constraint[string("card_",i)],prod(comp_grid.n))
+  for i=1:nr_constraints
+    if constraint[i].set_type == "cardinality"
+      constraint[i].max = min(constraint[i].max,prod(comp_grid.n))
     end
   end
 
@@ -42,16 +43,16 @@ if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3D
   # end
 
   #for l1 norm in a transform-domain: on a 3D grid: ||.||_1(coarse)=||.||_1(fine)/(coarsening factor^3)
-  for i=1:3
-    if haskey(constraint,string("use_TD_l1_",i)) && constraint[string("use_TD_l1_",i)]==true
-      constraint[string("TD_l1_sigma_",i)]=constraint[string("TD_l1_sigma_",i)]/(coarsening_factor^3)
+  for i=1:nr_constraints
+    if constraint[i].set_type == "l1"
+      constraint[i].max = constraint[i].max/(coarsening_factor^3)
     end
   end
 
   #for l2 norm in a transform-domain: on a 3D grid: ||.||_2(coarse)=||.||_2(fine)/sqrt(coarsening factor^3)
-  for i=1:3
-    if haskey(constraint,string("use_TD_l2_",i)) && constraint[string("use_TD_l2_",i)]==true
-      constraint[string("TD_l2_sigma_",i)]=constraint[string("TD_l2_sigma_",i)]/(sqrt(coarsening_factor^3))
+  for i=1:nr_constraints
+    if constraint[i].set_type == "l2"
+      constraint[i].max = constraint[i].max/(sqrt(coarsening_factor^3))
     end
   end
 
@@ -68,33 +69,33 @@ else #use 2D
   # end
 
     #for l1 norm in a transform-domain: on a 2D grid: ||.||_1(coarse)=||.||_1(fine)/(coarsening factor^2)
-    for i=1:3
-      if haskey(constraint,string("use_TD_l1_",i)) && constraint[string("use_TD_l1_",i)]==true
-        constraint[string("TD_l1_sigma_",i)]=constraint[string("TD_l1_sigma_",i)]/(coarsening_factor^2)
+    for i=1:nr_constraints
+      if constraint[i].set_type == "l1"
+        constraint[i].max = constraint[i].max/(coarsening_factor^2)
       end
     end
 
     #for l2 norm in a transform-domain: on a 2D grid: ||.||_2(coarse)=||.||_2(fine)/(coarsening factor)
-    for i=1:3
-      if haskey(constraint,string("use_TD_l2_",i)) && constraint[string("use_TD_l2_",i)]==true
-        constraint[string("TD_l2_sigma_",i)]=constraint[string("TD_l2_sigma_",i)]/(coarsening_factor)
+    for i=1:nr_constraints
+      if constraint[i].set_type == "l2"
+      constraint[i].max = constraint[i].max/(coarsening_factor)
       end
     end
 
     #nuclear norm:
-    for i=1:3
-      if haskey(constraint,string("use_TD_nuclear_",i)) && constraint[string("use_TD_nuclear_",i)]== true
-        constraint[string("TD_nuclear_norm_",i)]=constraint[string("TD_nuclear_norm_",i)]/2.7
+    for i=1:nr_constraints
+      if constraint[i].set_type == "nuclear"
+        constraint[i].max = constraint[i].max/2.7
       end
     end
 
 end #END if 2D or 3D
 
-  #subspace constraint
-  if haskey(constraint,"use_subspace") && constraint["use_subspace"]== true
-    error("still need to define how to map subspace to a coarser grid in: function constraint2coarse")
-    #maybe just use coarsening of matrix to start simple
-  end
+  # #subspace constraint
+  # if constraint[i].set_type == "subspace"
+  #   error("still need to define how to map subspace to a coarser grid in: function constraint2coarse")
+  #   #maybe just use coarsening of matrix to start simple
+  # end
 
 
 

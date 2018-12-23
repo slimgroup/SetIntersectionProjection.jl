@@ -7,7 +7,7 @@ using DistributedArrays
 using JOLI
 using SortingAlgorithms
 
-export log_type_PARSDMM, set_properties, PARSDMM_options
+export log_type_PARSDMM, set_properties, PARSDMM_options, set_definitions
 
 #main scripts
 include("PARSDMM.jl")
@@ -49,6 +49,7 @@ include("default_PARSDMM_options.jl")
 include("convert_options!.jl")
 include("get_discrete_Grad.jl");
 include("get_TD_operator.jl");
+include("get_projector.jl");
 include("get_bound_constraints.jl");
 include("setup_constraints.jl");
 
@@ -118,9 +119,18 @@ type set_properties
            AtA_diag   ::Vector{Bool}                                          #is A^T A a diagonal matrix?
            dense      ::Vector{Bool}                                          #is A a dense matrix?
            TD_n       ::Vector{Tuple}                                         #the grid dimensions in the transform-domain.
-           tag        ::Vector{Tuple{String,String}}                          #(constraint type, linear operator description)
+           tag        ::Vector{Tuple{String,String,String,String}}                          #(constraint type, linear operator description)
            banded     ::Vector{Bool}                                          #is A a banded matrix?
            AtA_offsets::Union{Vector{Vector{Int32}},Vector{Vector{Int64}}}    #only required if A is banded. A vector of indices of the non-zero diagonals, where the main diagonal is index 0
+end
+
+mutable struct set_definitions
+  set_type          ::String #"bounds","l1","l2","annulus","subspace","nuclear","rank","histogram","cardinality"
+  TD_OP             ::String
+  min               ::Union{Vector{Real},Real}
+  max               ::Union{Vector{Real},Real}
+  app_mode          ::Tuple{String,String} #("tensor/"matrix"/"slice"/"fiber" , "x","y","z") , x,y,z apply only to slice and fibers of a tensor or matrix
+  custom_TD_OP      ::Tuple{Array{Any},Bool} #custom matrix for subspace, and boolean to indicate orthogonality
 end
 
 end # module

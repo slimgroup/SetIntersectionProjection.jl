@@ -2,7 +2,8 @@ export project_nuclear!
 
 function project_nuclear!{TF<:Real}(
                         x     ::Array{TF,2},
-                        sigma ::TF
+                        sigma ::TF,
+                        mode  ::String #not an option for matrix inputs
                         )
 """
 Project the matrix onto the set of matrices with nuclear norm less then or equal to sigma
@@ -26,7 +27,7 @@ end
 function project_nuclear!{TF<:Real}(
                         x     ::Array{TF,3},
                         sigma ::TF,
-                        mode ::String
+                        mode  ::String
                         )
 """
 Project each slice of the tensor (x,y or z) onto the set of matrices with nuclear norm less then or equal to sigma

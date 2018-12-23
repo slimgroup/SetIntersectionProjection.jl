@@ -21,7 +21,7 @@ if options.feasibility_only==false
   push!(set_Prop.AtA_diag,true)
   push!(set_Prop.ncvx,false)
   push!(set_Prop.dense,false)
-  push!(set_Prop.tag,("distance squared","identity"))
+  push!(set_Prop.tag,("distance squared","identity","matrix",""))
 end
 
 

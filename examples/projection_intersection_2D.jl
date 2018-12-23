@@ -50,17 +50,39 @@ zmax = comp_grid.d[2]*comp_grid.n[2]
 vmi=1500
 vma=4500
 
-#constraints
-constraint=Dict()
+#constraints (Old setup)
+# constraint=Dict()
+#
+# constraint["use_bounds"] = true
+# constraint["m_min"]      = 1500.0
+# constraint["m_max"]      = 4500.0
+#
+# constraint["use_TD_bounds_1"] = true
+# constraint["TDB_operator_1"]  = "D_z"
+# constraint["TD_LB_1"]         = 0.0
+# constraint["TD_UB_1"]         = 1e6
 
-constraint["use_bounds"] = true
-constraint["m_min"]      = 1500.0
-constraint["m_max"]      = 4500.0
+#constraints (new setup)
+constraint = Vector{SetIntersectionProjection.set_definitions}()
 
-constraint["use_TD_bounds_1"] = true
-constraint["TDB_operator_1"]  = "D_z"
-constraint["TD_LB_1"]         = 0.0
-constraint["TD_UB_1"]         = 1e6
+#bounds:
+m_min     = 1500.0
+m_max     = 4500.0
+set_type  = "bounds"
+TD_OP     = "identity"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+
+
+#slope constraints (vertical)
+m_min     = 0.0
+m_max     = 1e6
+set_type  = "bounds"
+TD_OP     = "D_z"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 options.parallel       = false
 (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)

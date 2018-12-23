@@ -3,6 +3,7 @@ export project_rank!
 function project_rank!{TF<:Real,TI<:Integer}(
                       x :: Array{TF,2},
                       r :: TI,
+                      mode :: String #not an option for matrices
                       )
 """
 Project the matrix X onto the set of rank-r ( need r<min(n1,n2) ) matrices

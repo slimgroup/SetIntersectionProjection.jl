@@ -3,15 +3,15 @@ export interpolate_y_l
 function interpolate_y_l{TF<:Real}(
                         l                ::Vector{Vector{TF}},
                         y                ::Vector{Vector{TF}},
-                        set_Prop_levels   ::Vector{Any},
+                        set_Prop_levels  ::Vector{Any},
                         comp_grid_levels ::Vector{Any},
                         dim3             ::Bool,
                         i                ::Integer
                         )
-"""
-Interpolate l (vectors of Lagrangian multipliers in ADMM-based algorithms)
-and y (auxiliary variable vectors) to finer grids
-"""
+  """
+  Interpolate l (vectors of Lagrangian multipliers in ADMM-based algorithms)
+  and y (auxiliary variable vectors) to finer grids
+  """
   for j=1:length(l) #loop over the various constraint sets
 
 
