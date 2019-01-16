@@ -1,11 +1,15 @@
 export get_TD_operator
 
+"""
+   input:
+# Arguments
+  - TD_type   : string indicates which transform-domain operator to return
+  - comp_grid : structure with computational grid information; comp_grid.n = [n1 n2] number of gridpoints in each direction; comp_grid.d = [d1 d2] spacing between gridpoints in each direction.
+
+   output
+   - TD_OP   : transform domain operator as a sparse matrix or matrix-free object
+"""
 function get_TD_operator(comp_grid,TD_type,TF)
-  """
-     input: TD_type   : string indicates which transform-domain operator to return
-          : comp_grid : structure with computational grid information; comp_grid.n = [n1 n2] number of gridpoints in each direction; comp_grid.d = [d1 d2] spacing between gridpoints in each direction.
-     output : TD_OP   : transform domain operator as a sparse matrix or matrix-free object
-  """
 
 if TF==Float64
   TI=Int64

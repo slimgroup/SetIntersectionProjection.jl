@@ -1,11 +1,11 @@
 export CDS_MVp_MT
-function CDS_MVp_MT{TF<:Real,TI<:Integer}(
+function CDS_MVp_MT(
                         N::Integer,
                         ndiags::Integer,
                         R::Array{TF,2},
                         offset::Vector{TI},
                         x::Vector{TF},
-                        y::Vector{TF})
+                        y::Vector{TF}) where {TF<:Real,TI<:Integer}
 
 """
 compute multi-threaded matrix vector product with vector x, output is vector y: y=A*x

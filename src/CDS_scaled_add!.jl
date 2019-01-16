@@ -1,11 +1,11 @@
 export CDS_scaled_add!
-function CDS_scaled_add!{TF<:Real,TI<:Integer}(
+function CDS_scaled_add!(
                   A           ::Array{TF,2},
                   B           ::Array{TF,2},
                   A_offsets   ::Vector{TI},
                   B_offsets   ::Vector{TI},
                   alpha       ::TF
-                  )
+                  ) where {TF<:Real,TI<:Integer}
 
 """
  Computes A = A + alpha * B for A and B in the compressed diagonal storage format (CDS/DIA)

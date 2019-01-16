@@ -1,6 +1,6 @@
 export constraint_learning_by_obseration
 
-function constraint_learning_by_obseration{TF<:Real}(comp_grid,m_train::Array{TF})
+function constraint_learning_by_obseration(comp_grid,m_train::Array{TF}) where {TF<:Real}
 """
 Compute matrix/image properties and return the results in a dictionary.
 m is a tensor where the first index is the image index.

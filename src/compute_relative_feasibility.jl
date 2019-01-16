@@ -1,10 +1,10 @@
 export compute_relative_feasibility
 
-function compute_relative_feasibility{TF<:Real,TI<:Integer}(m::Vector{TF},
+function compute_relative_feasibility(m::Vector{TF},
                                                 feasibility_initial::Vector{TF},
                                                 TD_OP::Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}},
                                                 P_sub
-                                                )
+                                                ) where {TF<:Real,TI<:Integer}
 
 """
 Compute transform-domain relative feasibility w.r.t. a set

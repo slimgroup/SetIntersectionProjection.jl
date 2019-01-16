@@ -1,9 +1,9 @@
 export project_cardinality!
 
-function project_cardinality!{TF<:Real,TI<:Integer}(
+function project_cardinality!(
                              x::Union{Vector{TF},Vector{Complex{TF}}},
                              k::TI,
-                             )
+                             ) where {TF<:Real,TI<:Integer}
   """
   Project the vector x onto the set of vectors with cardinality (l0 'norm') less then or equal to k.
   project m onto {m | card(m) <= k} : x = argmin_x 1/2 ||x-m||2^2 s.t. card(x)<=k
@@ -20,12 +20,12 @@ x[sort_ind[k+1:end]]=0.0;
   return x
 end
 
-function project_cardinality!{TF<:Real,TI<:Integer}(
+function project_cardinality!(
                              x    ::Array{TF,2},  #matrix, project each row or colum
                              k    ::TI,               #maximum cardinality
                              mode ::Tuple{String,String},    #
                              return_vec=true ::Bool
-                             )
+                             ) where {TF<:Real,TI<:Integer}
   """
   Project each of the columns/rows of the model in matrix form onto the set of vectors with cardinality (l0 'norm') less then or equal to k.
   project m onto {m | card(m)<= k} : x = argmin_x 1/2 ||x-m||2^2 s.t. card(x)<=k
@@ -59,12 +59,12 @@ end
 
 end
 
-function project_cardinality!{TF<:Real,TI<:Integer}(
+function project_cardinality!(
                              x    ::Array{TF,3},
                              k    ::TI,
                              mode ::Tuple{String,String},
                              return_vec=true ::Bool
-                             )
+                             ) where {TF<:Real,TI<:Integer}
   """
   Project each of the x or y or z fibers of the model in tensor form onto the set of vectors with cardinality (l0 'norm') less then or equal to k.
   project m onto {m | card(m)<= k} : x = argmin_x 1/2 ||x-m||2^2 s.t. card(x)<=k

@@ -1,5 +1,11 @@
 export Q_update!
-function Q_update!{TF<:Real,TI<:Integer}(
+
+"""
+update the Q matrix in SparseMatrixCSC or CDS format. Q=sum_{i=1}^p AtA[i]rho[i]
+if any of the rho[i] change
+"""
+
+function Q_update!(
                   Q            ::Union{Array{TF,2},SparseMatrixCSC{TF,TI}},
                   AtA          ::Union{Vector{Array{TF,2}},Vector{SparseMatrixCSC{TF,TI}}},
                   set_Prop,
@@ -8,11 +14,8 @@ function Q_update!{TF<:Real,TI<:Integer}(
                   log_PARSDMM,
                   i            ::Integer,
                   Q_offsets=[] ::Vector{TI}
-                  )
-"""
-update the Q matrix in SparseMatrixCSC or CDS format. Q=sum_{i=1}^p AtA[i]rho[i]
-if any of the rho[i] change
-"""
+                  ) where {TF<:Real,TI<:Integer}
+
   if isempty(ind_updated) == false
     if typeof(Q)==SparseMatrixCSC{TF,TI}
       for ii=1:length(ind_updated)

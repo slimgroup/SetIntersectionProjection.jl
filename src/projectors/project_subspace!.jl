@@ -1,10 +1,11 @@
 export project_subspace!
 
-function project_subspace!{TF<:Real}(
+function project_subspace!(
                           x     ::Vector{TF},
                           A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
                           orth  ::Bool
-                          )
+                          ) where {TF<:Real}
+
 #project a vector x onto the subspace spanned by the columns of A.
 #This is a simple implementation that solves linear systems on the fly. We can
 #add options to factor A'*A once and reuse if memory permits. Iterative factorization
@@ -18,12 +19,12 @@ function project_subspace!{TF<:Real}(
 
 end
 
-function project_subspace!{TF<:Real}(
+function project_subspace!(
                           x     ::Array{TF,2},
                           A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
                           orth  ::Bool,
                           mode  ::String
-                          )
+                          ) where {TF<:Real}
 (n1,n2)=size(x)
 if mode == "x" #project each x[:,i] onto the subspace, so each column of x
   if orth == true

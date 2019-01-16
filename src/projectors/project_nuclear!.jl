@@ -1,10 +1,10 @@
 export project_nuclear!
 
-function project_nuclear!{TF<:Real}(
-                        x     ::Array{TF,2},
-                        sigma ::TF,
-                        mode  ::String #not an option for matrix inputs
-                        )
+function project_nuclear!(
+                          x     ::Array{TF,2},
+                          sigma ::TF,
+                          mode  ::String #not an option for matrix inputs
+                          ) where {TF<:Real}
 """
 Project the matrix onto the set of matrices with nuclear norm less then or equal to sigma
 outputs a vector. Uses singular value decomposition
@@ -24,11 +24,11 @@ outputs a vector. Uses singular value decomposition
     #return vec(x)
 end
 
-function project_nuclear!{TF<:Real}(
-                        x     ::Array{TF,3},
-                        sigma ::TF,
-                        mode  ::String
-                        )
+function project_nuclear!(
+                          x     ::Array{TF,3},
+                          sigma ::TF,
+                          mode  ::String
+                          ) where {TF<:Real}
 """
 Project each slice of the tensor (x,y or z) onto the set of matrices with nuclear norm less then or equal to sigma
 outputs a vector. Uses singular value decomposition

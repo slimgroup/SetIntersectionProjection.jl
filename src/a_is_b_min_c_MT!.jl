@@ -1,6 +1,6 @@
 export a_is_b_min_c_MT!
 
-function a_is_b_min_c_MT!{TF<:Real}(a::Vector{TF},b::Vector{TF},c::Vector{TF})
+function a_is_b_min_c_MT!(a::Vector{TF},b::Vector{TF},c::Vector{TF}) where {TF<:Real}
 """
 in-place multithreaded a = b - c
 """

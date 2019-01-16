@@ -1,5 +1,5 @@
 export project_l1_Duchi!
-function project_l1_Duchi!{TF<:Real}(v::Union{Vector{TF},Vector{Complex{TF}}}, b::TF)
+function project_l1_Duchi!(v::Union{Vector{TF},Vector{Complex{TF}}}, b::TF) where {TF<:Real}
 # % PROJECTONTOL1BALL Projects point onto L1 ball of specified radius.
 # %
 # % w = ProjectOntoL1Ball(v, b) returns the vector w which is the solution

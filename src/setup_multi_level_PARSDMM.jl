@@ -1,17 +1,19 @@
 export setup_multi_level_PARSDMM
 
-function setup_multi_level_PARSDMM{TF<:Real}(
+"""
+Generate projectors, linear operators, grid information, constraints, set information
+on all grids for multilevel PARSDMM
+"""
+
+function setup_multi_level_PARSDMM(
                                    m                  ::Vector{TF},
                                    n_levels           ::Integer,
                                    coarsening_factor  ::Union{TF,Integer},
                                    comp_grid,
                                    constraint,
                                    options
-                                   )
-"""
-Generate projectors, linear operators, grid information, constraints, set information
-on all grids for multilevel PARSDMM
-"""
+                                   ) where {TF<:Real}
+
 
 if TF==Float64
   TI = Int64

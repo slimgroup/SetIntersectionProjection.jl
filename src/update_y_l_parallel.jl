@@ -1,5 +1,10 @@
 export update_y_l_parallel
-function update_y_l_parallel{TF<:Real,TI<:Integer}(
+
+"""
+  update l and compute y . This is a subfunction for PARSDMM.jl
+"""
+
+function update_y_l_parallel(
   x                     ::Vector{TF},
   i                     ::Integer,
   Blas_active           ::Bool,
@@ -17,11 +22,7 @@ function update_y_l_parallel{TF<:Real,TI<:Integer}(
   s                     ::Vector{Vector{TF}},
   set_feas              ::Vector{TF},
   feasibility_only=false::Bool
-  )
-
-"""
-  update l and compute y . This is a subfunction for PARSDMM.jl
-"""
+  ) where {TF<:Real,TI<:Integer}
 
 rho1=TF
 const rho1=TF(1.0)./rho[1];

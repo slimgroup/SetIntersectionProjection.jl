@@ -1,10 +1,10 @@
 export project_annulus!
 
-function project_annulus!{TF<:Real}(
+function project_annulus!(
                      x     ::Union{Vector{TF},Vector{Complex{TF}}},
                      sigma_min ::TF,         #minimum 2-norm ||x||_2,
                      sigma_max ::TF          #maximum 2-norm ||x||_2
-                     )
+                     ) where {TF<:Real}
 
 nl2 = norm(x,2)
 if sigma_min <= nl2 <= sigma_max

@@ -1,6 +1,6 @@
 export project_bounds!
 
-function project_bounds!{TF<:Real}(x::Vector{TF},LB::TF,UB::TF)
+function project_bounds!(x::Vector{TF},LB::TF,UB::TF) where {TF<:Real}
   """
   Computes the projection of x onto the set of constraints LB <= x <= UB
   x is a vector but the bounds are scalars. Uses some manual tricks like @inbounds and multi threading, attempt to be faster than native julia: x. = max.(LB,min.(x,UB))
@@ -11,7 +11,7 @@ function project_bounds!{TF<:Real}(x::Vector{TF},LB::TF,UB::TF)
     return x
 end
 
-function project_bounds!{TF<:Real}(x::Vector{TF},LB::Vector{TF},UB::Vector{TF})
+function project_bounds!(x::Vector{TF},LB::Vector{TF},UB::Vector{TF}) where {TF<:Real}
   """
   Computes the projection of x onto the set of constraints LB <= x <= UB
   x is a vector and the bounds are vectors as well. Uses some manual tricks like @inbounds and multi threading, attempt to be faster than native julia: x. = max.(LB,min.(x,UB))
@@ -24,7 +24,7 @@ function project_bounds!{TF<:Real}(x::Vector{TF},LB::Vector{TF},UB::Vector{TF})
     return x
 end
 
-function project_bounds!{TF<:Real}(x::Array{TF,2},LB::Vector{TF},UB::Vector{TF},mode::Tuple{String,String})
+function project_bounds!(x::Array{TF,2},LB::Vector{TF},UB::Vector{TF},mode::Tuple{String,String}) where {TF<:Real}
   """
   Computes the projection of x onto the set of constraints LB <= x <= UB
   x is a matrix and the bounds are per row or column.
@@ -42,7 +42,7 @@ function project_bounds!{TF<:Real}(x::Array{TF,2},LB::Vector{TF},UB::Vector{TF},
 return x
 end
 
-function project_bounds!{TF<:Real}(x::Array{TF,3},LB::Vector{TF},UB::Vector{TF},mode::Tuple{String,String})
+function project_bounds!(x::Array{TF,3},LB::Vector{TF},UB::Vector{TF},mode::Tuple{String,String}) where {TF<:Real}
   """
   Computes the projection of x onto the set of constraints LB <= x <= UB
   x is a 3D array and the bounds are per fiber (x/y/z).

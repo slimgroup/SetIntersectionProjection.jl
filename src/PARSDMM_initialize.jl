@@ -1,6 +1,10 @@
 export PARSDMM_initialize
 
-function PARSDMM_initialize{TF<:Real,TI<:Integer}(
+"""
+subfunctions that initializes and checks, and distributes some quantities required for PARSDMM
+"""
+
+function PARSDMM_initialize(
                             x                       ::Vector{TF},
                             l                       ::Union{Vector{Vector{TF}},DistributedArrays.DArray{Array{TF,1},1,Array{Array{TF,1},1}},Array{Any,1}},
                             y                       ::Union{Vector{Vector{TF}},DistributedArrays.DArray{Array{TF,1},1,Array{Array{TF,1},1}},Array{Any,1}},
@@ -22,11 +26,8 @@ function PARSDMM_initialize{TF<:Real,TI<:Integer}(
                             options,
                             zero_ini_guess          ::Bool,
                             feasibility_only=false  ::Bool
-                            )
+                            ) where {TF<:Real,TI<:Integer}
 
-"""
-subfunctions that initializes and checks, and distributes some quantities required for PARSDMM
-"""
                             ind_ref = maxit
                             if options.Minkowski == false
                               const N = length(x)

@@ -1,14 +1,16 @@
 export PARSDMM_precompute_distribute
 
-function PARSDMM_precompute_distribute{TF<:Real,TI<:Integer}(
+"""
+Precomputes and distributes some quantities that serve as input for PARSDMM.jl
+"""
+
+function PARSDMM_precompute_distribute(
                                       TD_OP    ::Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}},
                                       set_Prop,
                                       comp_grid,
                                       options
-                                      )
-"""
-Precomputes and distributes some quantities that serve as input for PARSDMM.jl
-"""
+                                      ) where {TF<:Real,TI<:Integer}
+
 
 const N = prod(comp_grid.n)
 

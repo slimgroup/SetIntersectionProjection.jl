@@ -1,9 +1,10 @@
 export default_PARSDMM_options
 
-function default_PARSDMM_options(options,TF)
 """
 Returns a set of default options for the PARSDMM solver
 """
+
+function default_PARSDMM_options(options,TF)
 
   if     TF == Float64
     TI = Int64

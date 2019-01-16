@@ -1,6 +1,11 @@
 export stop_PARSDMM
 
-function stop_PARSDMM{TF<:Real}(
+"""
+implement stopping conditions for PARSDMM.jl
+if activated, we set the flag stop==true and pass it back to PARSDMM.jl
+"""
+
+function stop_PARSDMM(
                     log_PARSDMM,
                     i                        ::Integer,
                     evol_rel_tol             ::TF,
@@ -10,11 +15,8 @@ function stop_PARSDMM{TF<:Real}(
                     adjust_feasibility_rho   ::Bool,
                     ind_ref                  ::Integer,
                     counter                  ::Integer
-                    )
-"""
-implement stopping conditions for PARSDMM.jl
-if activated, we set the flag stop==true and pass it back to PARSDMM.jl
-"""
+                    ) where {TF<:Real}
+
     stop = false;
 
     #stop if objective value does not change and x is sufficiently feasible for all sets

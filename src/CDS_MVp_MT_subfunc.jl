@@ -1,12 +1,12 @@
 export CDS_MVp_MT_subfunc
-function CDS_MVp_MT_subfunc{TF<:Real}(
+function CDS_MVp_MT_subfunc(
         R::Array{TF,2},
         x::Vector{TF},
         y::Vector{TF},
         r0::Int,
         c0::Int,
         r1::Int,
-        i::Int)
+        i::Int) where {TF<:Real}
 
 """
 wrapper around Julia threads to compute a multi-threaded matrix vector product in CDS formulated

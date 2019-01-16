@@ -1,10 +1,10 @@
 export project_rank!
 
-function project_rank!{TF<:Real,TI<:Integer}(
+function project_rank!(
                       x :: Array{TF,2},
                       r :: TI,
                       mode :: String #not an option for matrices
-                      )
+                      ) where {TF<:Real,TI<:Integer}
 """
 Project the matrix X onto the set of rank-r ( need r<min(n1,n2) ) matrices
 outputs a vector. Uses singular value decomposition
@@ -14,11 +14,11 @@ outputs a vector. Uses singular value decomposition
   x  = vec(x)
 end
 
-function project_rank!{TF<:Real,TI<:Integer}(
+function project_rank!(
                       x :: Array{TF,3},
                       r :: TI,
                       mode ::String
-                      )
+                      ) where {TF<:Real,TI<:Integer}
 """
 Project each slice (x,y or z) of the tensor (3D model) onto the set of rank-r ( need r<min(n1,n2) ) matrices
 outputs a vector. Uses singular value decomposition

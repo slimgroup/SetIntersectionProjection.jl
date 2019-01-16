@@ -1,6 +1,12 @@
 export PARSDMM_multi_level
 
-function PARSDMM_multi_level{TF<:Real}(
+"""
+Computes the projection onto an intersection of sets using a coarse-to-fine grid
+multilevel strategy. This wraps around PARSDMM.jl and includes interpolation to finer grids
+as well as coarsening of the input model
+"""
+
+function PARSDMM_multi_level(
                             m                 :: Vector{TF},
                             TD_OP_levels,
                             AtA_levels,
@@ -11,13 +17,8 @@ function PARSDMM_multi_level{TF<:Real}(
                             x_ini=zeros(TF,prod(comp_grid_levels[end].n)) ::Vector{TF},
                             l_ini=[],
                             y_ini=[]
-                            )
+                            ) where {TF<:Real}
 
-  """
-  Computes the projection onto an intersection of sets using a coarse-to-fine grid
-  multilevel strategy. This wraps around PARSDMM.jl and includes interpolation to finer grids
-  as well as coarsening of the input model
-  """
 
 n_levels = length(TD_OP_levels)
 

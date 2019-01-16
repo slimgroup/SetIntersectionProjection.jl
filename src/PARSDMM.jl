@@ -1,38 +1,39 @@
 export PARSDMM
 
-function PARSDMM{TF<:Real,TI<:Integer}(m         ::Vector{TF},
-                                       AtA       ::Union{Vector{SparseMatrixCSC{TF,TI}},Vector{Array{TF,2}}},
-                                       TD_OP     ::Union{Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}},DistributedArrays.DArray{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1,Array{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1}} },
-                                       set_Prop,
-                                       P_sub     ::Union{Vector{Any},DistributedArrays.DArray{Any,1,Array{Any,1}}},
-                                       comp_grid,
-                                       options,
-                                       x=zeros(TF,length(m)) ::Vector{TF},
-                                       l=[],
-                                       y=[]
-                                       )
-
 """
 Computes the projection onto an intersection of sets
 min_x 1/2||x-m||2^2 s.t. x in C_1(A_1*x), x in C_2(A_2*x), ... , x in C_p(A_p*x)
 
 input:
-      m                   - vector to be projected
-      TD_OP               - vector of linear operators [A_1;A_2;...;A_p]
-      set_Prop            - set properties, structure where each property is vector which has a lenght of the number of sets
+
+#Arguments
+- m                   - vector to be projected
+- TD_OP               - vector of linear operators [A_1;A_2;...;A_p]
+- set_Prop            - set properties, structure where each property is vector which has a lenght of the number of sets
                             (see SetIntersectionProjection.jl and setup_constraints.jl)
-      comp_grid           - structure with grid info. comp_grid.d = (dx,dy,dz), comp_grid.n = (nx,ny,nz)
-      P_sub               - vector of projection functions onto C: P_sub = [P_C_1(.); P_C_2(.); ... ; P_C_p(.)]
-      options             - structure with options, see SetIntersectionProjection.jl
-      x                   - output vector
-      l                   - vector of vector of Lagrangian multipliers l = [l_1;l_2,...;l_p] (optional)
-      y                   - vector of vector of auxiliary vectors y = [y_1;y_2,...;y_p] (optional)
+- comp_grid           - structure with grid info. comp_grid.d = (dx,dy,dz), comp_grid.n = (nx,ny,nz)
+- P_sub               - vector of projection functions onto C: P_sub = [P_C_1(.); P_C_2(.); ... ; P_C_p(.)]
+- options             - structure with options, see SetIntersectionProjection.jl
+- x                   - output vector
+- l                   - vector of vector of Lagrangian multipliers l = [l_1;l_2,...;l_p] (optional)
+- y                   - vector of vector of auxiliary vectors y = [y_1;y_2,...;y_p] (optional)
 
 output:
-      x           -   result
-      log_PARSDMM -   constains log information about various quantities per iteration
-
+ - x           -   result
+ - log_PARSDMM -   constains log information about various quantities per iteration
 """
+
+function PARSDMM(m         ::Vector{TF},
+                 AtA       ::Union{Vector{SparseMatrixCSC{TF,TI}},Vector{Array{TF,2}}},
+                 TD_OP     ::Union{Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}},DistributedArrays.DArray{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1,Array{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1}} },
+                 set_Prop,
+                 P_sub     ::Union{Vector{Any},DistributedArrays.DArray{Any,1,Array{Any,1}}},
+                 comp_grid,
+                 options,
+                 x=zeros(TF,length(m)) ::Vector{TF},
+                 l=[],
+                 y=[]
+                 ) where {TF<:Real,TI<:Integer}
 
 tic()
 # Parse default options

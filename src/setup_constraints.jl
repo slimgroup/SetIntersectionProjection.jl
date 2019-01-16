@@ -1,15 +1,21 @@
 export setup_constraints
 
+"""
+input:
+
+# Arguments
+- constraint: dictionary with information about which constraints to use and their specifications
+- comp_grid:  structure with computational grid information; comp_grid.n = (nx,ny,nz) number of gridpoints in each direction; comp_grid.d = (dx,dy,dz) spacing between gridpoints in each direction.
+- TF:         Floating point precision (either Float32 or Float64)
+
+output:
+- P_sub    - vector of projection functions onto C: P_sub = [P_C_1(.); P_C_2(.); ... ; P_C_p(.)]
+- TD_OP    - vector of linear operators [A_1;A_2;...;A_p]
+- set_Prop - set properties, structure where each property is vector which has a lenght of the number of sets
+                             (see SetIntersectionProjection.jl and setup_constraints.jl)
+"""
+
 function setup_constraints(constraint,comp_grid,TF)
-  """
-   input: constraint: dictionary with information about which constraints to use and their specifications
-        : comp_grid: structure with computational grid information; comp_grid.n = (nx,ny,nz) number of gridpoints in each direction; comp_grid.d = (dx,dy,dz) spacing between gridpoints in each direction.
-        : TF : Floating point precision (either Float32 or Float64)
-   output: P_sub    - vector of projection functions onto C: P_sub = [P_C_1(.); P_C_2(.); ... ; P_C_p(.)]
-         : TD_OP    - vector of linear operators [A_1;A_2;...;A_p]
-         : set_Prop - set properties, structure where each property is vector which has a lenght of the number of sets
-                               (see SetIntersectionProjection.jl and setup_constraints.jl)
-  """
 
 if    TF == Float64
   TI = Int64

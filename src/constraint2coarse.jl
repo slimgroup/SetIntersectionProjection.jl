@@ -1,11 +1,12 @@
 export constraint2coarse
 
-function constraint2coarse(constraint,comp_grid,coarsening_factor)
 """
 Adapts constraint definitions for the original grid, to coarser grids.
 Some of these 'rules' are empirical or user defined. Some constraints are not adapted as
 they are often considered invariant under subsampling the grid for imaging applications.
 """
+function constraint2coarse(constraint,comp_grid,coarsening_factor)
+
   nr_constraints = length(constraint)
 
   #bound constraints: same as on fine grid

@@ -1,9 +1,10 @@
 export convert_options!
 
-function convert_options!(options,TF,TI)
 """
 converts options for the PARSDMM solver to the right float/integer types
 """
+
+function convert_options!(options,TF,TI)
 
 options.maxit                 = TI(options.maxit)
 options.evol_rel_tol          = TF(options.evol_rel_tol)

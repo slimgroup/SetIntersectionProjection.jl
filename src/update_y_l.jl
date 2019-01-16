@@ -1,6 +1,10 @@
 export update_y_l
 
-function update_y_l{TF<:Real,TI<:Integer}(
+"""
+  update l and compute y . This is a subfunction for PARSDMM.jl
+"""
+
+function update_y_l(
   x                     ::Vector{TF},
   p                     ::Integer,
   i                     ::Integer,
@@ -20,11 +24,8 @@ function update_y_l{TF<:Real,TI<:Integer}(
   r_pri                 ::Vector{Vector{TF}},
   s                     ::Vector{Vector{TF}},
   feasibility_only=false::Bool
-  )
+  ) where {TF<:Real,TI<:Integer}
 
-"""
-  update l and compute y . This is a subfunction for PARSDMM.jl
-"""
 
 #x_hat   = Vector{Vector{Float64}}(p);
 #r_pri   = Vector{Vector{Float64}}(p);

@@ -1,6 +1,6 @@
 export adapt_rho_gamma
 
-function adapt_rho_gamma{TF<:Real}(
+function adapt_rho_gamma(
                                   i               ::Integer,
                                   gamma           ::Vector{TF},
                                   rho             ::Vector{TF},
@@ -21,7 +21,7 @@ function adapt_rho_gamma{TF<:Real}(
                                   d_H_hat         ::Vector{Vector{TF}},
                                   d_l             ::Vector{Vector{TF}},
                                   d_G_hat         ::Vector{Vector{TF}}
-                                  )
+                                  ) where {TF<:Real}
 
 """
 Barzilai-Borwein scaling for Douglash-Rachford splitting on the dual problem related to standard ADMM.
