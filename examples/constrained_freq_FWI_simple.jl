@@ -15,8 +15,8 @@ include(string(Pkg.dir("JUDI"),"/src/Optimization/SPGSlim.jl"))
 include(string(Pkg.dir("JUDI"),"/src/Optimization/OptimizationFunctions.jl"))
 
 #data directory for loading and writing results
-#data_dir = "/data/slim/bpeters/SetIntersection_data_results"
-data_dir = "/Volumes/Users/bpeters/Downloads"
+#save_dir = "/data/slim/bpeters/SetIntersection_data_results"
+save_dir = pwd()#"/Volumes/Users/bpeters/Downloads"
 
 # Set up the model geometry
 # In 2D, we organize our coordinates as (z,x) for legacy + visualization purposes
@@ -127,8 +127,8 @@ function plot_velocity(vs,title_str,model,keyword,rec_x,rec_z,src_x,src_z)
     colorbar()
     figure;plot(rec_x,rec_z,linewidth=1.0, marker="o",linestyle="")
     figure;plot(src_x,src_z,linewidth=1.0, marker="x",linestyle="","k")
-    savefig(joinpath(data_dir,string("CFWI_simple_freq_m_est_",keyword,".eps")),bbox_inches="tight",dpi=300)
-    savefig(joinpath(data_dir,string("CFWI_simple_freq_m_est_",keyword,".png")),bbox_inches="tight")
+    savefig(joinpath(save_dir,string("CFWI_simple_freq_m_est_",keyword,".eps")),bbox_inches="tight",dpi=300)
+    savefig(joinpath(save_dir,string("CFWI_simple_freq_m_est_",keyword,".png")),bbox_inches="tight")
     return nothing
 end
 plot_velocity(v,"a) True velocity",model,"true",repmat(xrec,length(zrec),1),zrec,xsrc,repmat(zsrc,length(xsrc),1))
@@ -239,58 +239,111 @@ end
 
 CFWI(ini_model,projector) = run_CFWI(freq_partition,nsrc,nfreq,v,Q,D,model,opts1,options_SPG,projector,ini_model,max_func_evals)
 
-constraint_strategy_list=[4 5 6]# 7 8 9]#][1 2 3 4 5]#
+constraint_strategy_list=[1 2]#4 5 6]# 7 8 9]#][1 2 3 4 5]#
 for j in constraint_strategy_list
   if j==1
     keyword="bounds_only"
     title_str="c) bounds only"
 
-    constraint=Dict()
-    constraint["use_bounds"]=true
-    constraint["m_min"] = minimum(v)-50.0
-    constraint["m_max"] = maximum(v)+50.0
+    constraint = Vector{SetIntersectionProjection.set_definitions}()
+
+    #bounds:
+    m_min     = minimum(v)-50.0
+    m_max     = maximum(v)+50.0
+    set_type  = "bounds"
+    TD_OP     = "identity"
+    app_mode  = ("matrix","")
+    custom_TD_OP = ([],false)
+    push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+
 
   # various types of cardinality and rank
 elseif j==2
 		keyword="cardmat_cardcol_rank_bounds"
     title_str="g) fiber, matrix grad. card. & rank & bounds"
 
-		constraint=Dict()
-		constraint["use_bounds"]=true
-    constraint["m_min"] = minimum(v)-50.0
-    constraint["m_max"] = maximum(v)+50.0
+    constraint = Vector{SetIntersectionProjection.set_definitions}()
+
+    #bounds:
+    m_min     = minimum(v)-50.0
+    m_max     = maximum(v)+50.0
+    set_type  = "bounds"
+    TD_OP     = "identity"
+    app_mode  = ("matrix","")
+    custom_TD_OP = ([],false)
+    push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+
 
 		#cardinality on derivatives (column and row wise)
-		constraint["use_TD_card_fiber_x"]			= true
-		constraint["card_fiber_x"] 						= 2
-	  constraint["TD_card_fiber_x_operator"]= "D_x"
+    m_min     = 0
+    m_max     = 2
+    set_type  = "cardinality"
+    TD_OP     = "D_x"
+    app_mode  = ("fiber","x")
+    custom_TD_OP = ([],false)
+    push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+		# constraint["use_TD_card_fiber_x"]			= true
+		# constraint["card_fiber_x"] 						= 2
+	  # constraint["TD_card_fiber_x_operator"]= "D_x"
 
-		constraint["use_TD_card_fiber_z"]=true
-		constraint["card_fiber_z"]=2
-		constraint["TD_card_fiber_z_operator"]="D_z"
+    m_min     = 0
+    m_max     = 2
+    set_type  = "cardinality"
+    TD_OP     = "D_z"
+    app_mode  = ("fiber","z")
+    custom_TD_OP = ([],false)
+    push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 		#cardinality on derivatives (matrix based)
-		constraint["use_TD_card_1"]=true
-		constraint["card_1"]=round(Integer,3*0.33*n[2])
-		constraint["TD_card_operator_1"]="D_x"
+    m_min     = 0
+    m_max     = round(Integer,3*0.33*n[2])
+    set_type  = "cardinality"
+    TD_OP     = "D_x"
+    app_mode  = ("matrix","")
+    custom_TD_OP = ([],false)
+    push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+		# constraint["use_TD_card_1"]=true
+		# constraint["card_1"]=round(Integer,3*0.33*n[2])
+		# constraint["TD_card_operator_1"]="D_x"
 
-		constraint["use_TD_card_2"]=true
-		constraint["card_2"]=round(Integer,3*0.33*n[1])
-		constraint["TD_card_operator_2"]="D_z"
+    m_min     = 0
+    m_max     = round(Integer,3*0.33*n[1])
+    set_type  = "cardinality"
+    TD_OP     = "D_z"
+    app_mode  = ("matrix","")
+    custom_TD_OP = ([],false)
+    push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+		# constraint["use_TD_card_2"]=true
+		# constraint["card_2"]=round(Integer,3*0.33*n[1])
+		# constraint["TD_card_operator_2"]="D_z"
 
 		#rank constraint
-		constraint["use_TD_rank_1"]=true
-	  constraint["TD_max_rank_1"]=3
-    constraint["TD_rank_operator_1"]="identity"
-    #true tv and bounds
-  elseif j==3
+    m_min     = 0
+    m_max     = 3
+    set_type  = "rank"
+    TD_OP     = "identity"
+    app_mode  = ("matrix","")
+    custom_TD_OP = ([],false)
+    push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+		# constraint["use_TD_rank_1"]=true
+	  # constraint["TD_max_rank_1"]=3
+    # constraint["TD_rank_operator_1"]="identity"
+
+
+  elseif j==3 #true tv and bounds
       keyword="trueTV_bounds"
       title_str="d) true TV & bounds"
 
-      constraint=Dict()
-      constraint["use_bounds"]=true
-      constraint["m_min"] = minimum(v)-50.0
-      constraint["m_max"] = maximum(v)+50.0
+      constraint = Vector{SetIntersectionProjection.set_definitions}()
+
+      #bounds:
+      m_min     = minimum(v)-50.0
+      m_max     = maximum(v)+50.0
+      set_type  = "bounds"
+      TD_OP     = "identity"
+      app_mode  = ("matrix","")
+      custom_TD_OP = ([],false)
+      push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
       constraint["use_TD_l1_1"]=true
       constraint["TD_l1_operator_1"]="TV"
@@ -302,10 +355,16 @@ elseif j==2
     			keyword="cardmat_cardcol_bounds"
           title_str="f) fiber, matrix grad. card. & bounds"
 
-    			constraint=Dict()
-    			constraint["use_bounds"]=true
-          constraint["m_min"] = minimum(v)-50.0
-          constraint["m_max"] = maximum(v)+50.0
+    			constraint = Vector{SetIntersectionProjection.set_definitions}()
+
+          #bounds:
+          m_min     = minimum(v)-50.0
+          m_max     = maximum(v)+50.0
+          set_type  = "bounds"
+          TD_OP     = "identity"
+          app_mode  = ("matrix","")
+          custom_TD_OP = ([],false)
+          push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
     			#cardinality on derivatives (column and row wise)
     			constraint["use_TD_card_fiber_x"]			= true
@@ -329,10 +388,16 @@ elseif j==2
     				keyword="cardmat_bounds"
             title_str="e) matrix grad. card. & bounds"
 
-    				constraint=Dict()
-    				constraint["use_bounds"]=true
-            constraint["m_min"] = minimum(v)-50.0
-            constraint["m_max"] = maximum(v)+50.0
+    				constraint = Vector{SetIntersectionProjection.set_definitions}()
+
+            #bounds:
+            m_min     = minimum(v)-50.0
+            m_max     = maximum(v)+50.0
+            set_type  = "bounds"
+            TD_OP     = "identity"
+            app_mode  = ("matrix","")
+            custom_TD_OP = ([],false)
+            push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
     				#cardinality on derivatives (matrix based)
     				constraint["use_TD_card_1"]=true
@@ -352,10 +417,16 @@ elseif j==2
               keyword="cardmat_cardcol_cardDxz_rank_bounds"
               title_str="i) fiber, matrix grad. card. & Dxz card. & rank & bounds"
 
-          		constraint=Dict()
-          		constraint["use_bounds"]=true
-              constraint["m_min"] = minimum(v)-50.0
-              constraint["m_max"] = maximum(v)+50.0
+          		constraint = Vector{SetIntersectionProjection.set_definitions}()
+
+              #bounds:
+              m_min     = minimum(v)-50.0
+              m_max     = maximum(v)+50.0
+              set_type  = "bounds"
+              TD_OP     = "identity"
+              app_mode  = ("matrix","")
+              custom_TD_OP = ([],false)
+              push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
           		#cardinality on derivatives (column and row wise)
           		constraint["use_TD_card_fiber_x"]			= true
@@ -389,7 +460,7 @@ elseif j==2
             # 		keyword="cardmat_cardcol_rank_bounds_2_cycle1"
             # 		keyword2="cardmat_cardcol_rank_bounds_2_cycle2"
             #
-            # 		constraint=Dict()
+            # 		constraint = Vector{SetIntersectionProjection.set_definitions}()
             # 		constraint["use_bounds"]=true
             # 		constraint["m_min"] = (1f0./vec(v_max)).^2
             # 		constraint["m_max"] = (1f0./vec(v_min)).^2
