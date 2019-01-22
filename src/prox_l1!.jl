@@ -6,5 +6,5 @@ our rho is 1./rho compared to other definitions of the proximal map (just a conv
 """
 
 function prox_l1!(x::Vector{TF},rho::TF) where {TF<:Real}
-  x .= sign.(x).*max.(TF(0.0), abs.(x).-(1./rho))
+  x .= sign.(x) .* max.(TF(0.0), abs.(x) .- (1 ./ rho))
 end

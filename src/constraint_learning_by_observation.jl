@@ -1,12 +1,11 @@
 export constraint_learning_by_obseration
 
-function constraint_learning_by_obseration(comp_grid,m_train::Array{TF}) where {TF<:Real}
 """
 Compute matrix/image properties and return the results in a dictionary.
 m is a tensor where the first index is the image index.
 i.e., m[i,:,:] is one image
 """
-
+function constraint_learning_by_obseration(comp_grid,m_train::Array{TF}) where {TF<:Real}
 
 if TF==Float64
   TI=Int64
@@ -45,25 +44,25 @@ observations["D_x_max"]      = zeros(TF,n_train_ex)
 observations["D_z_min"]      = zeros(TF,n_train_ex)
 observations["D_z_max"]      = zeros(TF,n_train_ex)
 
-observations["DCT_x_LB"]      = zeros(TF,t2).+100
+observations["DCT_x_LB"]      = zeros(TF,t2) .+ 100
 observations["DCT_x_UB"]      = zeros(TF,t2)
 
-observations["DCT_y_LB"]      = zeros(TF,t3).+100 #add 100 because we take the min looping over every training image,
+observations["DCT_y_LB"]      = zeros(TF,t3) .+ 100 #add 100 because we take the min looping over every training image,
 observations["DCT_y_UB"]      = zeros(TF,t3)
 
-observations["hist_min"]     = zeros(TF,t2*t3).+10000
-observations["hist_max"]     = zeros(TF,t2*t3)
+observations["hist_min"]      = zeros(TF,t2*t3) .+ 10000
+observations["hist_max"]      = zeros(TF,t2*t3)
 
-observations["hist_TV_min"]     = zeros(TF,(t2-1)*t3+t2*(t3-1)).+10000
-observations["hist_TV_max"]     = zeros(TF,(t2-1)*t3+t2*(t3-1))
+observations["hist_TV_min"]   = zeros(TF,(t2-1)*t3+t2*(t3-1)) .+ 10000
+observations["hist_TV_max"]   = zeros(TF,(t2-1)*t3+t2*(t3-1))
 
 #get transform-domain operators
 #need to install CurveLab to use the Curvelet transform
-(Dx_OP, dummy1, dummy2, Dx_TD_n)=get_TD_operator(comp_grid,"D_x",TF)
-(Dz_OP, dummy1, dummy2, Dz_TD_n)=get_TD_operator(comp_grid,"D_z",TF)
-(TV_OP, dummy1, dummy2, TD_n_TV)=get_TD_operator(comp_grid,"TV",TF)
-(C_OP, dummy1, dummy2, dummy3)=get_TD_operator(comp_grid,"curvelet",TF)
-(DFT, dummy1, dummy2, dummy3)=get_TD_operator(comp_grid,"DFT",TF)
+(Dx_OP, dummy1, dummy2, Dx_TD_n) = get_TD_operator(comp_grid,"D_x",TF)
+(Dz_OP, dummy1, dummy2, Dz_TD_n) = get_TD_operator(comp_grid,"D_z",TF)
+(TV_OP, dummy1, dummy2, TD_n_TV) = get_TD_operator(comp_grid,"TV",TF)
+(C_OP, dummy1, dummy2, dummy3)   = get_TD_operator(comp_grid,"curvelet",TF)
+(DFT, dummy1, dummy2, dummy3)    = get_TD_operator(comp_grid,"DFT",TF)
 #DFT = x-> vec(fft(reshape(x,comp_grid.n)))
 DCT = x-> vec(dct(reshape(x,comp_grid.n)))
 

@@ -2,12 +2,12 @@
 # with PARSDMM in serial, parallel or multilevel (seria or parallel)
 # Bas Peters, 2017
 
-@everywhere include("../src/SetIntersectionProjection.jl")
+#@everywhere include("../src/SetIntersectionProjection.jl")
 @everywhere using SetIntersectionProjection
 using HDF5
 using PyPlot
 
-@everywhere type compgrid
+@everywhere mutable struct compgrid
   d :: Tuple
   n :: Tuple
 end
@@ -17,8 +17,8 @@ end
 n,d,o,m = h5open("overthrust_3D_true_model.h5","r") do file
 	read(file, "n", "d", "o", "m")
 end
-m.=1000./sqrt.(m);
-m=m[1:250,1:250,:];
+m .= 1000./sqrt.(m);
+m = m[1:250,1:250,:];
 
 comp_grid = compgrid( (d[1], d[2], d[3]),( size(m,1), size(m,2), size(m,3) ) )
 m=vec(m);
@@ -59,15 +59,25 @@ vmi=minimum(m)
 vma=maximum(m)
 
 #constraints
-constraint=Dict()
-constraint["use_bounds"]=true
-constraint["m_min"]=minimum(m)
-constraint["m_max"]=maximum(m)-200.0;
+constraint = Vector{SetIntersectionProjection.set_definitions}()
 
-constraint["use_TD_bounds_1"]=true;
-constraint["TDB_operator_1"]="D_z";
-constraint["TD_LB_1"]=0;
-constraint["TD_UB_1"]=1e6;
+#bounds:
+m_min     = minimum(m)
+m_max     = maximum(m)-200.0;
+set_type  = "bounds"
+TD_OP     = "identity"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+
+#slope constraints (vertical)
+m_min     = 0.0
+m_max     = 1e6
+set_type  = "bounds"
+TD_OP     = "D_z"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 options.parallel       = false
 (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
@@ -151,20 +161,42 @@ options.parallel=true
 #The projection of each depth slice onto the set of rank-k matrices is in parallel using Julia Threads. Each of these threads will spawn BLAS threads as well
 #Total numberof threads for this example is N_workers X N_julia_threads + N_juliathreads X N_blasthreads
 #This example should be run with 5 Julia workers( julia -p 5) and 4 julia threads (if there are 20 threads in total)
-constraint=Dict()
+constraint = Vector{SetIntersectionProjection.set_definitions}()
 
-constraint["use_bounds"]=true
-constraint["m_min"]=minimum(m)
-constraint["m_max"]=maximum(m)-200.0;
+#bounds:
+m_min     = minimum(m)
+m_max     = maximum(m)-200.0;
+set_type  = "bounds"
+TD_OP     = "identity"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_rank_slice_x"]=true
-constraint["max_rank_slice_x"]=10
+#rank constraint on tensor slices:
+m_min     = 0
+m_max     = 10
+set_type  = "rank"
+TD_OP     = "identity"
+app_mode  = ("slice","x")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_rank_slice_y"]=true
-constraint["max_rank_slice_y"]=10
+m_min     = 0
+m_max     = 10
+set_type  = "rank"
+TD_OP     = "identity"
+app_mode  = ("slice","y")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_rank_slice_z"]=true
-constraint["max_rank_slice_z"]=10
+m_min     = 0
+m_max     = 10
+set_type  = "rank"
+TD_OP     = "identity"
+app_mode  = ("slice","z")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+
 
 options.parallel = true
 #2 levels, the grid point spacing at level 2 is 3X that of the original (level 1) grid

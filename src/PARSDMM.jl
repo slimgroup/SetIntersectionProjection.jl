@@ -22,7 +22,6 @@ output:
  - x           -   result
  - log_PARSDMM -   constains log information about various quantities per iteration
 """
-
 function PARSDMM(m         ::Vector{TF},
                  AtA       ::Union{Vector{SparseMatrixCSC{TF,TI}},Vector{Array{TF,2}}},
                  TD_OP     ::Union{Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}},DistributedArrays.DArray{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1,Array{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1}} },
@@ -127,11 +126,11 @@ for i=1:maxit #main loop
   #some more logging
   log_PARSDMM.r_pri_total[i]  = sum(log_PARSDMM.r_pri[i,:]);
   if options.Minkowski == false
-    log_PARSDMM.obj[i]          = TF(0.5).*norm(x.-m)^2
+    log_PARSDMM.obj[i]          = TF(0.5) .* norm(x .- m)^2
   else
-    log_PARSDMM.obj[i]          = TF(0.5).*norm(TD_OP[end]*x.-m)^2
+    log_PARSDMM.obj[i]          = TF(0.5) .* norm(TD_OP[end]*x .- m)^2
   end
-  log_PARSDMM.evol_x[i]       = norm(x_old.-x)./norm(x);
+  log_PARSDMM.evol_x[i]       = norm(x_old .- x) ./ norm(x);
   log_PARSDMM.rho[i,:]        = rho;
   log_PARSDMM.gamma[i,:]      = gamma;
 
@@ -150,14 +149,14 @@ for i=1:maxit #main loop
   tic()
   if i==1
     if parallel==true
-      [@spawnat pid l_hat[:L][1] = l_old[:L][1] .+ rho[:L][1].* ( -s[:L][1] .+ y_old[:L][1] ) for pid in l_hat.pids]
+      [@spawnat pid l_hat[:L][1] = l_old[:L][1] .+ rho[:L][1] .* ( -s[:L][1] .+ y_old[:L][1] ) for pid in l_hat.pids]
       [@spawnat pid copy!(l_hat_0[:L][1],l_hat[:L][1] ) for pid in l_hat.pids]
       [@spawnat pid copy!(y_0[:L][1] , y[:L][1] ) for pid in y.pids]
       [@spawnat pid copy!(s_0[:L][1] , s[:L][1] ) for pid in s.pids]
       [@spawnat pid copy!(l_0[:L][1] , l[:L][1] ) for pid in l.pids]
     else
       for ii = 1:p
-        l_hat[ii]   = l_old[ii] .+ rho[ii].* ( -s[ii] .+ y_old[ii] );
+        l_hat[ii]   = l_old[ii] .+ rho[ii] .* ( -s[ii] .+ y_old[ii] );
         copy!(l_hat_0[ii],l_hat[ii])
         copy!(y_0[ii],y[ii])
         copy!(s_0[ii],s[ii])
@@ -204,7 +203,7 @@ for i=1:maxit #main loop
         (max_set_feas,max_set_feas_ind) = findmax(log_PARSDMM.set_feasibility[counter-1,:])
         sort_feas = sort(log_PARSDMM.set_feasibility[counter-1,:]);
         if i>10
-          rho[max_set_feas_ind] .= TF(2.0).*rho[max_set_feas_ind]
+          rho[max_set_feas_ind] .= TF(2.0) .* rho[max_set_feas_ind]
         end
      end #end adjust_feasibility_rho
 

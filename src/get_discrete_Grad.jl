@@ -13,7 +13,6 @@ export get_discrete_Grad
  output :
  - TD_OP : transform domain operator as a sparse matrix
 """
-
 function get_discrete_Grad(n1,n2,h1::TF,h2::TF,TD_type::String) where {TF<:Real}
 
 if TF==Float64
@@ -25,8 +24,8 @@ end
     #define difference matrix D acting on vectorized model using Kronecker products
     Ix = speye(TF,n1) #x
     Iz = speye(TF,n2) #z
-    Dx = spdiagm((ones(TF,n1-1)*-1,ones(TF,n1-1)*1),(0,1))./h1;
-    Dz = spdiagm((ones(TF,n2-1)*-1,ones(TF,n2-1)*1),(0,1))./h2;
+    Dx = spdiagm((ones(TF,n1-1)*-1,ones(TF,n1-1)*1),(0,1)) ./ h1;
+    Dz = spdiagm((ones(TF,n2-1)*-1,ones(TF,n2-1)*1),(0,1)) ./ h2;
 
     Ix = convert(SparseMatrixCSC{TF,TI},Ix)
     Iz = convert(SparseMatrixCSC{TF,TI},Iz)
@@ -69,9 +68,9 @@ end
     Ix = speye(TF,n1) #x
     Iy = speye(TF,n2) #x
     Iz = speye(TF,n3) #z
-    Dx = spdiagm((ones(TF,n1-1)*-1,ones(TF,n1-1)*1),(0,1))./h1;
-    Dy = spdiagm((ones(TF,n2-1)*-1,ones(TF,n2-1)*1),(0,1))./h2;
-    Dz = spdiagm((ones(TF,n3-1)*-1,ones(TF,n3-1)*1),(0,1))./h3;
+    Dx = spdiagm((ones(TF,n1-1)*-1,ones(TF,n1-1)*1),(0,1)) ./ h1;
+    Dy = spdiagm((ones(TF,n2-1)*-1,ones(TF,n2-1)*1),(0,1)) ./ h2;
+    Dz = spdiagm((ones(TF,n3-1)*-1,ones(TF,n3-1)*1),(0,1)) ./ h3;
 
     Ix = convert(SparseMatrixCSC{TF,TI},Ix)
     Iy = convert(SparseMatrixCSC{TF,TI},Iy)

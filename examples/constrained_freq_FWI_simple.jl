@@ -239,7 +239,7 @@ end
 
 CFWI(ini_model,projector) = run_CFWI(freq_partition,nsrc,nfreq,v,Q,D,model,opts1,options_SPG,projector,ini_model,max_func_evals)
 
-constraint_strategy_list=[1 2]#4 5 6]# 7 8 9]#][1 2 3 4 5]#
+constraint_strategy_list=[1 2 3 4 5 6]#
 for j in constraint_strategy_list
   if j==1
     keyword="bounds_only"
@@ -256,9 +256,7 @@ for j in constraint_strategy_list
     custom_TD_OP = ([],false)
     push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-
-  # various types of cardinality and rank
-elseif j==2
+elseif j==2 #various types of cardinality and rank
 		keyword="cardmat_cardcol_rank_bounds"
     title_str="g) fiber, matrix grad. card. & rank & bounds"
 
@@ -345,13 +343,17 @@ elseif j==2
       custom_TD_OP = ([],false)
       push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-      constraint["use_TD_l1_1"]=true
-      constraint["TD_l1_operator_1"]="TV"
+      #TV
       (TV,dummy1,dummy2,dummy3)=get_TD_operator(comp_grid,"TV",options.FL)
-      constraint["TD_l1_sigma_1"]=norm(TV*vec(v),1)
+      m_min     = 0.0
+      m_max     = norm(TV*vec(v),1)
+      set_type  = "l1"
+      TD_OP     = "TV"
+      app_mode  = ("matrix","")
+      custom_TD_OP = ([],false)
+      push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-      # various types of cardinality
-    elseif j==4
+    elseif j==4 # various types of cardinality
     			keyword="cardmat_cardcol_bounds"
           title_str="f) fiber, matrix grad. card. & bounds"
 
@@ -367,22 +369,38 @@ elseif j==2
           push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
     			#cardinality on derivatives (column and row wise)
-    			constraint["use_TD_card_fiber_x"]			= true
-    			constraint["card_fiber_x"] 						= 2
-    		  constraint["TD_card_fiber_x_operator"]= "D_x"
+          m_min     = 0
+          m_max     = 2
+          set_type  = "cardinality"
+          TD_OP     = "D_x"
+          app_mode  = ("fiber","x")
+          custom_TD_OP = ([],false)
+          push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-    			constraint["use_TD_card_fiber_z"]=true
-    			constraint["card_fiber_z"]=2
-    			constraint["TD_card_fiber_z_operator"]="D_z"
+          m_min     = 0
+          m_max     = 2
+          set_type  = "cardinality"
+          TD_OP     = "D_z"
+          app_mode  = ("fiber","z")
+          custom_TD_OP = ([],false)
+          push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
     			#cardinality on derivatives (matrix based)
-    			constraint["use_TD_card_1"]=true
-    			constraint["card_1"]=round(Integer,3*0.33*n[2])
-    			constraint["TD_card_operator_1"]="D_x"
+          m_min     = 0
+          m_max     = round(Integer,3*0.33*n[2])
+          set_type  = "cardinality"
+          TD_OP     = "D_x"
+          app_mode  = ("matrix","")
+          custom_TD_OP = ([],false)
+          push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-    			constraint["use_TD_card_2"]=true
-    			constraint["card_2"]=round(Integer,3*0.33*n[1])
-    			constraint["TD_card_operator_2"]="D_z"
+          m_min     = 0
+          m_max     = round(Integer,3*0.33*n[1])
+          set_type  = "cardinality"
+          TD_OP     = "D_z"
+          app_mode  = ("matrix","")
+          custom_TD_OP = ([],false)
+          push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
         elseif j==5
     				keyword="cardmat_bounds"
@@ -400,94 +418,74 @@ elseif j==2
             push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
     				#cardinality on derivatives (matrix based)
-    				constraint["use_TD_card_1"]=true
-    				constraint["card_1"]=round(Integer,3*0.33*n[2])
-    				constraint["TD_card_operator_1"]="D_x"
+            m_min     = 0
+            m_max     = round(Integer,3*0.33*n[2])
+            set_type  = "cardinality"
+            TD_OP     = "D_x"
+            app_mode  = ("matrix","")
+            custom_TD_OP = ([],false)
+            push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-    				constraint["use_TD_card_2"]=true
-    				constraint["card_2"]=round(Integer,3*0.33*n[1])
-    				constraint["TD_card_operator_2"]="D_z"
+            m_min     = 0
+            m_max     = round(Integer,3*0.33*n[1])
+            set_type  = "cardinality"
+            TD_OP     = "D_z"
+            app_mode  = ("matrix","")
+            custom_TD_OP = ([],false)
+            push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
             #rank constraint
-        		constraint["use_TD_rank_1"]=false
-        	  constraint["TD_max_rank_1"]=3
-            constraint["TD_rank_operator_1"]="identity"
+            m_min     = 0
+            m_max     = 3
+            set_type  = "rank"
+            TD_OP     = "identity"
+            app_mode  = ("matrix","")
+            custom_TD_OP = ([],false)
+            push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-          elseif j==6
-              keyword="cardmat_cardcol_cardDxz_rank_bounds"
-              title_str="i) fiber, matrix grad. card. & Dxz card. & rank & bounds"
+          # elseif j==6
+          #     keyword="cardmat_cardcol_cardDxz_rank_bounds"
+          #     title_str="i) fiber, matrix grad. card. & Dxz card. & rank & bounds"
+          #
+          # 		constraint = Vector{SetIntersectionProjection.set_definitions}()
+          #
+          #     #bounds:
+          #     m_min     = minimum(v)-50.0
+          #     m_max     = maximum(v)+50.0
+          #     set_type  = "bounds"
+          #     TD_OP     = "identity"
+          #     app_mode  = ("matrix","")
+          #     custom_TD_OP = ([],false)
+          #     push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+          #
+          # 		#cardinality on derivatives (column and row wise)
+          # 		constraint["use_TD_card_fiber_x"]			= true
+          # 		constraint["card_fiber_x"] 						= 2
+          # 	  constraint["TD_card_fiber_x_operator"]= "D_x"
+          #
+          # 		constraint["use_TD_card_fiber_z"]=true
+          # 		constraint["card_fiber_z"]=2
+          # 		constraint["TD_card_fiber_z_operator"]="D_z"
+          #
+          # 		#cardinality on derivatives (matrix based)
+          # 		constraint["use_TD_card_1"]=true
+          # 		constraint["card_1"]=round(Integer,3*0.33*n[2])
+          # 		constraint["TD_card_operator_1"]="D_x"
+          #
+          # 		constraint["use_TD_card_2"]=true
+          # 		constraint["card_2"]=round(Integer,3*0.33*n[1])
+          # 		constraint["TD_card_operator_2"]="D_z"
+          #
+          #     constraint["use_TD_card_3"]=true
+          #     constraint["card_3"]=4
+          #     constraint["TD_card_operator_3"]="D_xz"
+          #
+          # 		#rank constraint
+          # 		constraint["use_TD_rank_1"]=true
+          # 	  constraint["TD_max_rank_1"]=3
+          #     constraint["TD_rank_operator_1"]="identity"
 
-          		constraint = Vector{SetIntersectionProjection.set_definitions}()
-
-              #bounds:
-              m_min     = minimum(v)-50.0
-              m_max     = maximum(v)+50.0
-              set_type  = "bounds"
-              TD_OP     = "identity"
-              app_mode  = ("matrix","")
-              custom_TD_OP = ([],false)
-              push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
-
-          		#cardinality on derivatives (column and row wise)
-          		constraint["use_TD_card_fiber_x"]			= true
-          		constraint["card_fiber_x"] 						= 2
-          	  constraint["TD_card_fiber_x_operator"]= "D_x"
-
-          		constraint["use_TD_card_fiber_z"]=true
-          		constraint["card_fiber_z"]=2
-          		constraint["TD_card_fiber_z_operator"]="D_z"
-
-          		#cardinality on derivatives (matrix based)
-          		constraint["use_TD_card_1"]=true
-          		constraint["card_1"]=round(Integer,3*0.33*n[2])
-          		constraint["TD_card_operator_1"]="D_x"
-
-          		constraint["use_TD_card_2"]=true
-          		constraint["card_2"]=round(Integer,3*0.33*n[1])
-          		constraint["TD_card_operator_2"]="D_z"
-
-              constraint["use_TD_card_3"]=true
-              constraint["card_3"]=4
-              constraint["TD_card_operator_3"]="D_xz"
-
-          		#rank constraint
-          		constraint["use_TD_rank_1"]=true
-          	  constraint["TD_max_rank_1"]=3
-              constraint["TD_rank_operator_1"]="identity"
-
-              #2 cycles: 1: cardinality and bounds. 2: add rank
-            # elseif j==8
-            # 		keyword="cardmat_cardcol_rank_bounds_2_cycle1"
-            # 		keyword2="cardmat_cardcol_rank_bounds_2_cycle2"
-            #
-            # 		constraint = Vector{SetIntersectionProjection.set_definitions}()
-            # 		constraint["use_bounds"]=true
-            # 		constraint["m_min"] = (1f0./vec(v_max)).^2
-            # 		constraint["m_max"] = (1f0./vec(v_min)).^2
-            #
-            # 		#cardinality on derivatives (column and row wise)
-            # 		constraint["use_TD_card_fiber_x"]			= true
-            # 		constraint["card_fiber_x"] 						= 2
-            # 	  constraint["TD_card_fiber_x_operator"]= "D_x"
-            #
-            # 		constraint["use_TD_card_fiber_z"]=true
-            # 		constraint["card_fiber_z"]=2
-            # 		constraint["TD_card_fiber_z_operator"]="D_z"
-            #
-            # 		#cardinality on derivatives (matrix based)
-            # 		constraint["use_TD_card_1"]=true
-            # 		constraint["card_1"]=round(Integer,3*0.33*n[1])
-            # 		constraint["TD_card_operator_1"]="D_x"
-            #
-            # 		constraint["use_TD_card_2"]=true
-            # 		constraint["card_2"]=round(Integer,3*0.33*n[2])
-            # 		constraint["TD_card_operator_2"]="D_z"
-            #
-            # 		#rank constraint
-            # 		constraint["use_rank"]=false
-            # 	  constraint["max_rank"]=3
-
-end
+end #end if block for constraint setup choices
 
   #set up constraints, precompute some things and define projector
   (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
@@ -511,4 +509,4 @@ end
   x=CFWI(v_ini,prj!)
   plot_velocity(x,title_str,model,keyword,repmat(xrec,length(zrec),1),zrec,xsrc,repmat(zsrc,length(xsrc),1))
 
-end
+end #end loop over FWI with various constraint combinations

@@ -6,7 +6,7 @@
 using MAT
 using PyPlot
 
-type compgrid
+mutable struct compgrid
   d :: Tuple
   n :: Tuple
 end

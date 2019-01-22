@@ -1,5 +1,10 @@
 export adapt_rho_gamma_parallel
 
+"""
+Barzilai-Borwein scaling for Douglash-Rachford splitting on the dual problem related to standard ADMM.
+Updates relaxation and augmented-Lagrangian penalty parameter.
+To be used in parallel version of PARSDMM.
+"""
 function adapt_rho_gamma_parallel(
                                   gamma           ::Vector{TF},
                                   rho             ::Vector{TF},
@@ -20,12 +25,6 @@ function adapt_rho_gamma_parallel(
                                   d_l             ::Vector{Vector{TF}},
                                   d_G_hat         ::Vector{Vector{TF}}
                                   ) where {TF<:Real}
-
-"""
-Barzilai-Borwein scaling for Douglash-Rachford splitting on the dual problem related to standard ADMM.
-Updates relaxation and augmented-Lagrangian penalty parameter.
-To be used in parallel version of PARSDMM.
-"""
 
   const eps_correlation = TF(0.3) #hardcoded and suggested value by the paper based on numerical evidence
 

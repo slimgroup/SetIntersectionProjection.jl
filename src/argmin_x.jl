@@ -1,6 +1,9 @@
 export argmin_x
 
-function argmin_x{TF<:Real}(
+"""
+solve the x-minimization step in PARSDMM, i.e., x-minimization w.r.t. the augmented Lagrangian
+"""
+function argmin_x(
                   Q               ::Union{Array{TF,2},SparseMatrixCSC{TF,Int32},SparseMatrixCSC{TF,Int64}},
                   rhs             ::Vector{TF},
                   x               ::Vector{TF},
@@ -10,11 +13,7 @@ function argmin_x{TF<:Real}(
                   log_PARSDMM,
                   Q_offsets=[],
                   Ax_out=zeros(TF,length(x)) ::Vector{TF}
-                  )
-
-"""
-solve the x-minimization step in PARSDMM, i.e., x-minimization w.r.t. the augmented Lagrangian
-"""
+                  ) where {TF<:Real}
 
     #Initialize
     flag    = 0

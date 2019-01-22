@@ -8,11 +8,12 @@ include(joinpath(Pkg.dir("SetIntersectionProjection"),"examples/Dykstra_prox_par
 using MAT
 using PyPlot
 
-type compgrid
+mutable struct compgrid
   d :: Tuple
   n :: Tuple
 end
 
+#read velocity model
 data_dir = "/Volumes/Users/bpeters/Downloads"#/data/slim/bpeters/SetIntersection_data_results"
 file = matopen(joinpath(data_dir,"compass_velocity.mat"))
 m=read(file, "Data")
@@ -21,10 +22,9 @@ m=m[1:341,200:600];
 m=m';
 
 #PARSDMM options:
-options=PARSDMM_options()
-options.FL=Float32
-options.feas_tol=0.01f0
-#options=default_PARSDMM_options(options,options.FL)
+options          = PARSDMM_options()
+options.FL       = Float32
+options.feas_tol = 0.01f0
 set_zero_subnormals(true)
 
 #select working precision
@@ -37,26 +37,41 @@ elseif options.FL==Float32
 end
 
 comp_grid = compgrid((TF(25), TF(6)),(size(m,1), size(m,2)))
-m=convert(Vector{TF},vec(m))
-m2=deepcopy(m)
-m3=deepcopy(m)
+
+m  = convert(Vector{TF},vec(m))
+m2 = deepcopy(m)
+m3 = deepcopy(m)
 
 #constraints (bounds, vertical monotonicity, total-variation)
-constraint=Dict()
+constraint = Vector{SetIntersectionProjection.set_definitions}()
 
-constraint["use_bounds"]=true
-constraint["m_min"]=1500
-constraint["m_max"]=4000
+#bounds:
+m_min     = 1500.0
+m_max     = 4000.0
+set_type  = "bounds"
+TD_OP     = "identity"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_bounds_1"]=true;
-constraint["TDB_operator_1"]="D_z";
-constraint["TD_LB_1"]=0;
-constraint["TD_UB_1"]=1e6;
+(TV,dummy1,dummy2,dummy3)=get_TD_operator(comp_grid,"TV",options.FL)
+m_min     = 0.0
+m_max     = 1e6
+set_type  = "bounds"
+TD_OP     = "D_z"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_l1_1"]      = true
-constraint["TD_l1_operator_1"] = "TV"
-(TV_OP, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"TV",TF)
-constraint["TD_l1_sigma_1"]    = 0.1*norm(TV_OP*m,1)
+
+(TV,dummy1,dummy2,dummy3)=get_TD_operator(comp_grid,"TV",options.FL)
+m_min     = 0.0
+m_max     = 0.1*norm(TV_OP*m,1)
+set_type  = "l1"
+TD_OP     = "TV"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 
 BLAS.set_num_threads(2) #2 is fine for a small problem
@@ -100,21 +115,31 @@ P=Vector{Any}(3)
 P[1]=P_sub[1] #projector onto bounds is easy.
 
 # Set up ARADMM to project onto transform-domain bounds (PARSDMM with 1 constraint set is equivalent to ARADMM)
-constraint=Dict()
-constraint["use_TD_bounds_1"]=true;
-constraint["TDB_operator_1"]="D_z";
-constraint["TD_LB_1"]=0;
-constraint["TD_UB_1"]=1e6;
+constraint = Vector{SetIntersectionProjection.set_definitions}()
+
+m_min     = 0.0
+m_max     = 1e6
+set_type  = "bounds"
+TD_OP     = "D_z"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+
 (P_sub2,TD_OP2,set_Prop2) = setup_constraints(constraint,comp_grid,options.FL)
 (TD_OP2,AtA2,l,y) = PARSDMM_precompute_distribute(TD_OP2,set_Prop2,comp_grid,options)
 P[2] = inp -> PARSDMM(inp,AtA2,TD_OP2,set_Prop2,P_sub2,comp_grid,options) #projector onto transform-domain bounds
 
 # Set up ARADMM to project onto anisotropic-TV set (PARSDMM with 1 constraint set is equivalent to ARADMM)
-constraint=Dict()
-constraint["use_TD_l1_1"]      = true
-constraint["TD_l1_operator_1"] = "TV"
-(TV_OP, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"TV",TF)
-constraint["TD_l1_sigma_1"]    = 0.1*norm(TV_OP*m,1)
+constraint = Vector{SetIntersectionProjection.set_definitions}()
+
+m_min     = 0.0
+m_max     = 0.1*norm(TV_OP*m,1)
+set_type  = "l1"
+TD_OP     = "TV"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+
 (P_sub3,TD_OP3,set_Prop3) = setup_constraints(constraint,comp_grid,options.FL)
 (TD_OP3,AtA3,l,y) = PARSDMM_precompute_distribute(TD_OP3,set_Prop3,comp_grid,options)
 P[3] = inp -> PARSDMM(inp,AtA3,TD_OP3,set_Prop3,P_sub3,comp_grid,options) #projector onto transform-domain bounds
@@ -194,18 +219,25 @@ savefig("Dykstra_vs_PARSDMM_x_evol.png",bbox_inches="tight")
 
 #now with a different set of constraints:
 # transform-domain rank and bounds
-constraint=Dict()
+constraint = Vector{SetIntersectionProjection.set_definitions}()
 
-#bound constraints
-constraint["use_bounds"]=true
-constraint["m_min"]=1450
-constraint["m_max"]=4000
+#bounds:
+m_min        = 1450
+m_max        = 4000
+set_type     = "bounds"
+TD_OP        = "identity"
+app_mode     = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-#nuclear norm constraint on vertical derivative of the image
-constraint["use_TD_rank_1"]=true
-constraint["TD_rank_operator_1"]="D_z"
-constraint["TD_max_rank_1"]=15
-
+#rank constraint on vertical derivative of the image
+m_min        = 0
+m_max        = 15
+set_type     = "rank"
+TD_OP        = "D_z"
+app_mode     = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 BLAS.set_num_threads(2) #2 is fine for a small problem
 (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
@@ -233,24 +265,30 @@ maxit_dyk=12
 dyk_feas_tol = deepcopy(options.feas_tol)
 obj_dyk_tol  = deepcopy(options.obj_tol)
 
-feas_tol_target= deepcopy(options.feas_tol)
-obj_tol_target = deepcopy(options.obj_tol)
+feas_tol_target = deepcopy(options.feas_tol)
+obj_tol_target  = deepcopy(options.obj_tol)
 
 #use more accurate ARADMM sub-problem solutions
 # we can play with these a bit to see if we can decrease total computational cost
 # if set too loose, we will not see overall convergence
-options.obj_tol=0.5*options.obj_tol
-options.feas_tol=0.5*options.feas_tol
-options.evol_rel_tol=10*eps(TF)
+options.obj_tol      = 0.5*options.obj_tol
+options.feas_tol     = 0.5*options.feas_tol
+options.evol_rel_tol = 10*eps(TF)
 
 P=Vector{Any}(2)
 P[1]=P_sub[1] #projector onto bounds is easy.
 
 # Set up ARADMM to project onto set of transform-domain rank (PARSDMM with 1 constraint set is equivalent to ARADMM)
-constraint=Dict()
-constraint["use_TD_rank_1"]=true;
-constraint["TD_rank_operator_1"]="D_z";
-constraint["TD_max_rank_1"]=15;
+constraint = Vector{SetIntersectionProjection.set_definitions}()
+
+m_min        = 0
+m_max        = 15
+set_type     = "rank"
+TD_OP        = "D_z"
+app_mode     = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+
 (P_sub2,TD_OP2,set_Prop2) = setup_constraints(constraint,comp_grid,options.FL)
 (TD_OP2,AtA2,l,y) = PARSDMM_precompute_distribute(TD_OP2,set_Prop2,comp_grid,options)
 P[2] = inp -> PARSDMM(inp,AtA2,TD_OP2,set_Prop2,P_sub2,comp_grid,options) #projector onto set of transform-domain rank

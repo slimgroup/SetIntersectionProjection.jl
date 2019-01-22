@@ -1,5 +1,10 @@
 export adapt_rho_gamma
 
+"""
+Barzilai-Borwein scaling for Douglash-Rachford splitting on the dual problem related to standard ADMM.
+Updates relaxation and augmented-Lagrangian penalty parameter.
+To be used in serial version of PARSDMM.
+"""
 function adapt_rho_gamma(
                                   i               ::Integer,
                                   gamma           ::Vector{TF},
@@ -23,12 +28,6 @@ function adapt_rho_gamma(
                                   d_G_hat         ::Vector{Vector{TF}}
                                   ) where {TF<:Real}
 
-"""
-Barzilai-Borwein scaling for Douglash-Rachford splitting on the dual problem related to standard ADMM.
-Updates relaxation and augmented-Lagrangian penalty parameter.
-To be used in serial version of PARSDMM.
-"""
-
     if TF==Float64
         safeguard = 1e-10
     elseif TF==Float32
@@ -39,7 +38,7 @@ To be used in serial version of PARSDMM.
 
   #Threads.@threads for ii = 1:p
   for ii = 1:p
-      l_hat[ii]   .= l_old[ii] .+ rho[ii].* ( -s[ii] .+ y_old[ii] )
+      l_hat[ii]   .= l_old[ii] .+ rho[ii] .* ( -s[ii] .+ y_old[ii] )
       d_l_hat[ii] .= l_hat[ii] .- l_hat_0[ii]
       d_H_hat[ii] .= s[ii] .- s_0[ii]
 
@@ -49,7 +48,7 @@ To be used in serial version of PARSDMM.
       n_d_l_hat   = norm(d_l_hat[ii])
       d_l[ii]    .= l[ii] .- l_0[ii]
       n_d_l       = norm(d_l[ii])
-      d_G_hat[ii].= -(y[ii].-y_0[ii])
+      d_G_hat[ii].= -(y[ii] .- y_0[ii])
       n_d_G_hat   = norm(d_G_hat[ii])
       d_dGh_dl    = dot(d_G_hat[ii],d_l[ii])
 
@@ -62,14 +61,14 @@ To be used in serial version of PARSDMM.
       beta_reliable = false;
       if (n_d_G_hat*n_d_l) > safeguard && (n_d_G_hat^2) > safeguard && d_dGh_dl > safeguard
         beta_reliable = true
-        beta_correlation  = d_dGh_dl./( n_d_G_hat*n_d_l );
+        beta_correlation  = d_dGh_dl ./ ( n_d_G_hat*n_d_l );
       end
 
       alpha_comp = false
       if (alpha_reliable==true) && (alpha_correlation > eps_correlation)
         alpha_comp = true
-        alpha_hat_MG  = d_dHh_dlh./(n_d_H_hat.^2);
-        alpha_hat_SD  = (n_d_l_hat^2)./d_dHh_dlh;
+        alpha_hat_MG  = d_dHh_dlh ./ (n_d_H_hat.^2);
+        alpha_hat_SD  = (n_d_l_hat^2) ./ d_dHh_dlh;
         if (TF(2.0)*alpha_hat_MG) > alpha_hat_SD
           alpha_hat = alpha_hat_MG;
         else
@@ -80,8 +79,8 @@ To be used in serial version of PARSDMM.
       beta_comp = false
       if (beta_reliable==1) && (beta_correlation > eps_correlation)
         beta_comp = true
-        beta_hat_MG = d_dGh_dl./(n_d_G_hat^2);
-        beta_hat_SD = (n_d_l^2)./d_dGh_dl;
+        beta_hat_MG = d_dGh_dl ./ (n_d_G_hat^2);
+        beta_hat_SD = (n_d_l^2) ./ d_dGh_dl;
         if (TF(2.0)*beta_hat_MG) > beta_hat_SD
           beta_hat = beta_hat_MG;
         else
@@ -103,7 +102,7 @@ To be used in serial version of PARSDMM.
       elseif adjust_rho == true  && adjust_gamma == true
         if alpha_comp == true && beta_comp == true
           rho[ii] = sqrt(alpha_hat*beta_hat);
-          gamma[ii]=TF(1.0)+(( TF(2.0)*sqrt(alpha_hat*beta_hat) )./( alpha_hat+beta_hat ));
+          gamma[ii]=TF(1.0)+(( TF(2.0)*sqrt(alpha_hat*beta_hat) ) ./ ( alpha_hat+beta_hat ));
         elseif alpha_comp == true && beta_comp == false
           rho[ii] = alpha_hat;
           gamma[ii]=TF(1.9);
@@ -116,7 +115,7 @@ To be used in serial version of PARSDMM.
         end
       elseif adjust_rho == false  && adjust_gamma == true
         if alpha_comp == true && beta_comp == true
-          gamma[ii]=TF(1.0)+(( TF(2.0)*sqrt(alpha_hat*beta_hat) )./( alpha_hat+beta_hat ));
+          gamma[ii]=TF(1.0)+(( TF(2.0)*sqrt(alpha_hat*beta_hat) ) ./ ( alpha_hat+beta_hat ));
         elseif alpha_comp == true && beta_comp == false
           gamma[ii]=TF(1.9);
         elseif  alpha_comp == false && beta_comp == true

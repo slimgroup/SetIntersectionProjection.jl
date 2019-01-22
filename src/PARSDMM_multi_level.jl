@@ -5,7 +5,6 @@ Computes the projection onto an intersection of sets using a coarse-to-fine grid
 multilevel strategy. This wraps around PARSDMM.jl and includes interpolation to finer grids
 as well as coarsening of the input model
 """
-
 function PARSDMM_multi_level(
                             m                 :: Vector{TF},
                             TD_OP_levels,

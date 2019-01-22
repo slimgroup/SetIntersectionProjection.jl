@@ -14,7 +14,6 @@ output:
 - set_Prop - set properties, structure where each property is vector which has a lenght of the number of sets
                              (see SetIntersectionProjection.jl and setup_constraints.jl)
 """
-
 function setup_constraints(constraint,comp_grid,TF)
 
 if    TF == Float64

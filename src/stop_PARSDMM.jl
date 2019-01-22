@@ -4,7 +4,6 @@ export stop_PARSDMM
 implement stopping conditions for PARSDMM.jl
 if activated, we set the flag stop==true and pass it back to PARSDMM.jl
 """
-
 function stop_PARSDMM(
                     log_PARSDMM,
                     i                        ::Integer,

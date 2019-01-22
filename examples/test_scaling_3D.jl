@@ -2,7 +2,7 @@
 using HDF5
 data_dir = "/data/slim/bpeters/SetIntersection_data_results"
 
-@everywhere type compgrid
+@everywhere mutable struct compgrid
   d :: Tuple
   n :: Tuple
 end
@@ -28,27 +28,43 @@ elseif options.FL==Float32
   TI = Int32
 end
 
-constraint=Dict()
+constraint = Vector{SetIntersectionProjection.set_definitions}()
 
 #bound constraints
-constraint["use_bounds"]=true
-constraint["m_min"]=1500.0
-constraint["m_max"]=6000.0
+m_min     = 1500.0
+m_max     = 6000.0
+set_type  = "bounds"
+TD_OP     = "identity"
+app_mode  = ("tensor","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_bounds_1"]=true;
-constraint["TDB_operator_1"]="D_z";
-constraint["TD_LB_1"]=0;
-constraint["TD_UB_1"]=1e6;
+#monotonicity
+m_min     = 0.0
+m_max     = 1e6
+set_type  = "bounds"
+TD_OP     = "D_z"
+app_mode  = ("tensor","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_bounds_2"]=true;
-constraint["TDB_operator_2"]="D_x";
-constraint["TD_LB_2"]=-1.0;
-constraint["TD_UB_2"]=1.0;
+#lateral smoothness via a bound on the gradient
+m_min     = -1.0
+m_max     = 1.0
+set_type  = "bounds"
+TD_OP     = "D_x"
+app_mode  = ("tensor","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_bounds_3"]=true;
-constraint["TDB_operator_3"]="D_y";
-constraint["TD_LB_3"]=-1.0;
-constraint["TD_UB_3"]=1.0;
+m_min     = -1.0
+m_max     = 1.0
+set_type  = "bounds"
+TD_OP     = "D_y"
+app_mode  = ("tensor","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+
 
 # Load velocity model
 #get model at:  ftp://slim.eos.ubc.ca/data/SoftwareRelease/WaveformInversion.jl/3DFWI/overthrust_3D_true_model.h5

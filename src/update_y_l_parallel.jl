@@ -3,7 +3,6 @@ export update_y_l_parallel
 """
   update l and compute y . This is a subfunction for PARSDMM.jl
 """
-
 function update_y_l_parallel(
   x                     ::Vector{TF},
   i                     ::Integer,
@@ -25,7 +24,7 @@ function update_y_l_parallel(
   ) where {TF<:Real,TI<:Integer}
 
 rho1=TF
-const rho1=TF(1.0)./rho[1];
+const rho1=TF(1.0) ./ rho[1];
 
   copy!(y_old[1],y[1]);
   copy!(l_old[1],l[1]);
@@ -78,12 +77,12 @@ const rho1=TF(1.0)./rho[1];
 if feasibility_only==false
   if mod(i,10)==0 && myid()<nprocs() #ii<length(P_sub)#log every 10 it, or whatever number is suitable
      copy!(x_hat[1],s[1])
-     set_feas[1]=norm(P_sub[1](x_hat[1])-s[1])./(norm(s[1])+(100*eps(TF)))
+     set_feas[1]=norm(P_sub[1](x_hat[1])-s[1]) ./ (norm(s[1])+(100*eps(TF)))
   end
 else
   if mod(i,10)==0 #ii<length(P_sub)#log every 10 it, or whatever number is suitable
      copy!(x_hat[1],s[1])
-     set_feas[1]=norm(P_sub[1](x_hat[1])-s[1])./(norm(s[1])+(100*eps(TF)))
+     set_feas[1]=norm(P_sub[1](x_hat[1])-s[1]) ./ (norm(s[1])+(100*eps(TF)))
   end
 end
 

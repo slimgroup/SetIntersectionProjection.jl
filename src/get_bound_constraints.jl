@@ -6,7 +6,6 @@ possibly specific bounds for the water layer in marine seismic imaging
 Only returns a vector of the vectorized model size if necessary,
 because projections onto bounds using a scalar is faster
 """
-
 function get_bound_constraints(comp_grid,constraint)
 
 if typeof(constraint["m_min"])<:Real && typeof(constraint["m_max"])<:Real && haskey(constraint,"water_depth")==false
@@ -23,8 +22,8 @@ else
       if water_bottom_index==0
         water_bottom_index=1
       end
-      LB_water = ones(TF,comp_grid.n[1],comp_grid.n[2],comp_grid.n[3]).*constraint["water_min"];
-      UB_water = ones(TF,comp_grid.n[1],comp_grid.n[2],comp_grid.n[3]).*constraint["water_max"];
+      LB_water = ones(TF,comp_grid.n[1],comp_grid.n[2],comp_grid.n[3]) .* constraint["water_min"];
+      UB_water = ones(TF,comp_grid.n[1],comp_grid.n[2],comp_grid.n[3]) .* constraint["water_max"];
       LB_water[:,:,water_bottom_index+1:end]=LB[:,:,water_bottom_index+1:end];
       UB_water[:,:,water_bottom_index+1:end]=UB[:,:,water_bottom_index+1:end];
 
@@ -41,8 +40,8 @@ else
       if water_bottom_index==0
         water_bottom_index=1
       end
-      LB_water = ones(TF,comp_grid.n[1],comp_grid.n[2]).*constraint["water_min"];
-      UB_water = ones(TF,comp_grid.n[1],comp_grid.n[2]).*constraint["water_max"];
+      LB_water = ones(TF,comp_grid.n[1],comp_grid.n[2]) .* constraint["water_min"];
+      UB_water = ones(TF,comp_grid.n[1],comp_grid.n[2]) .* constraint["water_max"];
       LB_water[:,water_bottom_index+1:end]=LB[:,water_bottom_index+1:end];
       UB_water[:,water_bottom_index+1:end]=UB[:,water_bottom_index+1:end];
 

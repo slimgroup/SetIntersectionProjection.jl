@@ -4,7 +4,6 @@ export mat2CDS
 Convert sparse and square matrix A to compressed diagonal format (CDS)
 Currently not multithreaded
 """
-
 function mat2CDS(A::SparseMatrixCSC{TF,TI}) where {TF<:Real,TI<:Integer}
 
   # Find all nonzero diagonals

@@ -4,7 +4,6 @@ export setup_multi_level_PARSDMM
 Generate projectors, linear operators, grid information, constraints, set information
 on all grids for multilevel PARSDMM
 """
-
 function setup_multi_level_PARSDMM(
                                    m                  ::Vector{TF},
                                    n_levels           ::Integer,
@@ -67,7 +66,7 @@ constraint_level=deepcopy(constraint)
 for i=2:n_levels
 
   #new number of grid points on this level
-  n = round.( comp_grid.n./coarsening_factor^(i-1) )
+  n = round.( comp_grid.n ./ coarsening_factor^(i-1) )
 
   #coarsen original model to new grids
   itp_m     = interpolate(reshape(m,comp_grid.n), BSpline(Constant()), OnGrid())
@@ -82,7 +81,7 @@ for i=2:n_levels
   #create computational grid information for this level
   comp_grid_levels[i]   = deepcopy(comp_grid)
   comp_grid_levels[i].n = size(m_level)
-  comp_grid_levels[i].d = (comp_grid.n./n).*comp_grid.d
+  comp_grid_levels[i].d = (comp_grid.n ./ n) .* comp_grid.d
 
   # 'translate' constraints to coarser grids
   # the constraints are originally defined on the grid of the model on the finest grid.

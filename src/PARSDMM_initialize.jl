@@ -3,7 +3,6 @@ export PARSDMM_initialize
 """
 subfunctions that initializes and checks, and distributes some quantities required for PARSDMM
 """
-
 function PARSDMM_initialize(
                             x                       ::Vector{TF},
                             l                       ::Union{Vector{Vector{TF}},DistributedArrays.DArray{Array{TF,1},1,Array{Array{TF,1},1}},Array{Any,1}},
@@ -93,7 +92,7 @@ function PARSDMM_initialize(
                               feasibility_initial=convert(Vector{TF},feasibility_initial)
                             else
                               for ii=1:length(P_sub)
-                                feasibility_initial[ii]=norm(P_sub[ii](TD_OP[ii]*m).-TD_OP[ii]*m)./(norm(TD_OP[ii]*m)+(100*eps(TF)));
+                                feasibility_initial[ii]=norm(P_sub[ii](TD_OP[ii]*m) .- TD_OP[ii]*m) ./ (norm(TD_OP[ii]*m)+(100*eps(TF)));
                               end
                             end
                             if maximum(feasibility_initial)<options.feas_tol #accept input as feasible and return
