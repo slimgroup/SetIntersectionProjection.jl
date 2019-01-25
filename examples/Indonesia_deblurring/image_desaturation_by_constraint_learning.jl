@@ -7,7 +7,7 @@
 using MAT
 using Interpolations
 
-@everywhere type compgrid
+@everywhere mutable struct compgrid
   d :: Tuple
   n :: Tuple
 end
@@ -51,93 +51,135 @@ d_obs[d_obs.<60.0f0]=60.0f0
 observations = constraint_learning_by_obseration(comp_grid,m_train)
 
 #define a few constraints and what to do with the observations
-constraint=Dict()
+constraint = Vector{SetIntersectionProjection.set_definitions}()
 
-constraint["use_bounds"]=false
-constraint["m_min"]=0.0
-constraint["m_max"]=255.0
+#bounds:
+m_min     = 0.0
+m_max     = 255.0
+set_type  = "bounds"
+TD_OP     = "identity"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_hist_eq_relax_1"]=false
-constraint["hist_eq_LB_1"] = observations["hist_min"]
-constraint["hist_eq_UB_1"] = observations["hist_max"]
-constraint["TD_hist_eq_operator_1"]= "identity"
+#relaxed histogram constraint:
+# m_min     = observations["hist_min"]
+# m_max     = observations["hist_max"]
+# set_type  = "histogram"
+# TD_OP     = "identity"
+# app_mode  = ("matrix","")
+# custom_TD_OP = ([],false)
+# push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_hist_eq_relax_2"]=false
-constraint["hist_eq_LB_2"] = observations["hist_TV_min"]
-constraint["hist_eq_UB_2"] = observations["hist_TV_max"]
-constraint["TD_hist_eq_operator_2"]= "TV"
+#relaxed histogram constraint on discrete derivative of the image:
+# m_min     = observations["hist_TV_min"]
+# m_max     = observations["hist_TV_max"]
+# set_type  = "histogram"
+# TD_OP     = "TV"
+# app_mode  = ("matrix","")
+# custom_TD_OP = ([],false)
+# push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_rank_1"]=false;
-observations["rank_095"]=sort(vec(observations["rank_095"]))
-constraint["TD_max_rank_1"] = convert(TI,round(quantile(observations["rank_095"],0.50)))
-constraint["TD_rank_operator_1"]="identity"
+# #rank that preserves 95% of the training images:
+# m_min     = 0
+# observations["rank_095"]=sort(vec(observations["rank_095"]))
+# m_max     = convert(TI,round(quantile(observations["rank_095"],0.25)))
+# set_type  = "rank"
+# TD_OP     = "identity"
+# app_mode  = ("matrix","")
+# custom_TD_OP = ([],false)
+# push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_nuclear_1"]=true;
-constraint["TD_nuclear_operator_1"]="identity"
-constraint["TD_nuclear_norm_1"] = convert(TF,quantile(vec(observations["nuclear_norm"]),0.50))
-
-constraint["use_TD_nuclear_2"]=true;
-constraint["TD_nuclear_operator_2"]="D_x"
-constraint["TD_nuclear_norm_2"] = convert(TF,quantile(vec(observations["nuclear_Dx"]),0.50))
-
-constraint["use_TD_nuclear_3"]=true;
-constraint["TD_nuclear_operator_3"]="D_z"
-constraint["TD_nuclear_norm_3"] = convert(TF,quantile(vec(observations["nuclear_Dz"]),0.50))
-
-constraint["use_TD_l1_1"]=true
-constraint["TD_l1_operator_1"]="TV"
-constraint["TD_l1_sigma_1"] = convert(TF,quantile(vec(observations["TV"]),0.50))
-
-constraint["use_TD_l2_1"]=true
-constraint["TD_l2_operator_1"]="TV"
-constraint["TD_l2_sigma_1"] = convert(TF,quantile(vec(observations["D_l2"]),0.50))
-
-constraint["use_TD_l1_2"]=false
-constraint["TD_l1_operator_2"]="curvelet"
-constraint["TD_l1_sigma_2"] = 0.5f0*convert(TF,quantile(vec(observations["curvelet_l1"]),0.50))
-
-constraint["use_TD_l1_3"]=true
-constraint["TD_l1_operator_3"]="DFT"
-constraint["TD_l1_sigma_3"] = convert(TF,quantile(vec(observations["DFT_l1"]),0.50))
-
-constraint["use_TD_bounds_1"]=true
-constraint["TDB_operator_1"]="D_x"
-constraint["TD_LB_1"]=convert(TF,quantile(vec(observations["D_x_min"]),0.15))
-constraint["TD_UB_1"]=convert(TF,quantile(vec(observations["D_x_max"]),0.85))
-
-constraint["use_TD_bounds_2"]=true
-constraint["TDB_operator_2"]="D_z"
-constraint["TD_LB_2"]=convert(TF,quantile(vec(observations["D_z_min"]),0.15))
-constraint["TD_UB_2"]=convert(TF,quantile(vec(observations["D_z_max"]),0.85))
+#nuclear norm constraint
+m_min     = 0
+m_max     = convert(TF,quantile(vec(observations["nuclear_norm"]),0.25))
+set_type  = "nuclear"
+TD_OP     = "identity"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 
-constraint["use_TD_card_1"]=false
-constraint["TD_card_operator_1"]="curvelet"
-constraint["card_1"]=convert(TI,round(quantile(vec(observations["curvelet_card_095"]),0.85)))
+#nuclear norm constraint on the x-derivative of the image
+m_min     = 0
+m_max     = convert(TF,quantile(vec(observations["nuclear_Dx"]),0.25))
+set_type  = "nuclear"
+TD_OP     = "D_x"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_bounds_fiber_x"]=false
-constraint["TD_bounds_fiber_x_operator"]="DCT"
-constraint["TD_LB_fiber_x"]=observations["DCT_x_LB"]
-constraint["TD_UB_fiber_x"]=observations["DCT_x_UB"]
+#nuclear norm constraint on the z-derivative of the image
+m_min     = 0
+m_max     = convert(TF,quantile(vec(observations["nuclear_Dz"]),0.25))
+set_type  = "nuclear"
+TD_OP     = "D_z"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_bounds_fiber_y"]=false
-constraint["TD_bounds_fiber_y_operator"]="DCT"
-constraint["TD_LB_fiber_y"]=observations["DCT_y_LB"]
-constraint["TD_UB_fiber_y"]=observations["DCT_y_UB"]
+#anisotropic total-variation constraint:
+m_min     = 0
+m_max     = convert(TF,quantile(vec(observations["TV"]),0.25))
+set_type  = "l1"
+TD_OP     = "TV"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_card_2"]=false
-constraint["TD_card_operator_2"]="TV"
-constraint["card_2"]=convert(TI,round(quantile(vec(observations["TV_card_095"]),0.85)))
+#l2 constraint on discrete derivatives of the image:
+m_min     = 0
+m_max     = convert(TF,quantile(vec(observations["D_l2"]),0.25))
+set_type  = "l2"
+TD_OP     = "TV"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_annulus_1"]=true
-constraint["TD_annulus_operator_1"]="identity"
-constraint["TD_annulus_sigma_max_1"]=maximum(observations["annulus"])
-constraint["TD_annulus_sigma_min_1"]=minimum(observations["annulus"])
+#l1 constraint on DFT coefficients
+m_min     = 0
+m_max     = convert(TF,quantile(vec(observations["DFT_l1"]),0.50))
+set_type  = "l1"
+TD_OP     = "DFT"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-constraint["use_TD_annulus_2"]=true
-constraint["TD_annulus_operator_2"]="TV"
-constraint["TD_annulus_sigma_max_2"]=maximum(observations["TV_annulus"])
-constraint["TD_annulus_sigma_min_2"]=minimum(observations["TV_annulus"])
+#bound constraints on x-derivative
+m_min     = convert(TF,quantile(vec(observations["D_x_min"]),0.15))
+m_max     = convert(TF,quantile(vec(observations["D_x_max"]),0.85))
+set_type  = "bounds"
+TD_OP     = "D_x"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+
+#bound constraints on z-derivative
+m_min     = convert(TF,quantile(vec(observations["D_z_min"]),0.15))
+m_max     = convert(TF,quantile(vec(observations["D_z_max"]),0.85))
+set_type  = "bounds"
+TD_OP     = "D_z"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+
+#annulus constraint
+m_min     = quantile(observations["annulus"],0.15)
+m_max     = quantile(observations["annulus"],0.85)
+set_type  = "annulus"
+TD_OP     = "identity"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+
+#annulus constraint on discrete gradients
+m_min     = quantile(observations["TV_annulus"],0.15)
+m_max     = quantile(observations["TV_annulus"],0.85)
+set_type  = "annulus"
+TD_OP     = "TV"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 
 #PARSDMM options:
