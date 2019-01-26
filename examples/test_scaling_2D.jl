@@ -90,8 +90,8 @@ for i=1:length(width)
   println("serial")
   options.parallel=false
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
-  (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+  (TD_OP,AtA,l,y)       = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+  (x,log_PARSDMM)       = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
   println(t)
   log_T_serial[i]=log_PARSDMM;
@@ -103,8 +103,8 @@ for i=1:length(width)
   println("parallel")
   options.parallel=true
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
-  (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
+  (TD_OP,AtA,l,y)       = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
+  (x,log_PARSDMM)       = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
   println(t)
   log_T_parallel[i]=log_PARSDMM;
@@ -117,9 +117,9 @@ for i=1:length(width)
   options.parallel=false
   n_levels=2
   coarsening_factor=3
-  (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
-  (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
-  val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
+  (TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+  (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+  val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   println(t)
   log_T_serial_multilevel[i]=log_PARSDMM;
   T_tot_serial_multilevel[i]=t;
@@ -131,9 +131,9 @@ for i=1:length(width)
   options.parallel=true
   n_levels=2
   coarsening_factor=3
-  (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
-  (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
-  val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
+  (TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+  (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+  val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   println(t)
   log_T_parallel_multilevel[i]=log_PARSDMM;
   T_tot_parallel_multilevel[i]=t;
@@ -241,9 +241,9 @@ savefig("projection_intersection_timings2D_1.png",bbox_inches="tight")
 #   options.parallel=false
 #   n_levels=2
 #   coarsening_factor=3
-#   (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
-#   (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
-#   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
+#   (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+#   (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+#   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
 #   println(t)
 #   log_T_serial_multilevel[i]=log_PARSDMM;
 #   T_tot_serial_multilevel[i]=t;
@@ -254,9 +254,9 @@ savefig("projection_intersection_timings2D_1.png",bbox_inches="tight")
 #   options.parallel=true
 #   n_levels=2
 #   coarsening_factor=3
-#   (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
-#   (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
-#   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,TD_Prop_levels,comp_grid_levels,options);
+#   (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+#   (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+#   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
 #   println(t)
 #   log_T_parallel_multilevel[i]=log_PARSDMM;
 #   T_tot_parallel_multilevel[i]=t;

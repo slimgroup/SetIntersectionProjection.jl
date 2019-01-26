@@ -2,7 +2,7 @@
 #look at the total number of PARDMM iterations if
 #we use ARADMM to solve Dykstra subproblems.
 
-@everywhere using SetIntersectionProjection
+using SetIntersectionProjection
 include(joinpath(Pkg.dir("SetIntersectionProjection"),"examples/Dykstra_prox_parallel.jl"))
 include(joinpath(Pkg.dir("SetIntersectionProjection"),"examples/Dykstra_prox_parallel2.jl"))
 using MAT
@@ -14,7 +14,8 @@ mutable struct compgrid
 end
 
 #read velocity model
-data_dir = "/Volumes/Users/bpeters/Downloads"#/data/slim/bpeters/SetIntersection_data_results"
+#data_dir = "/Volumes/Users/bpeters/Downloads"
+data_dir = "/data/slim/bpeters/SetIntersection_data_results"
 file = matopen(joinpath(data_dir,"compass_velocity.mat"))
 m=read(file, "Data")
 close(file)
@@ -54,7 +55,7 @@ app_mode  = ("matrix","")
 custom_TD_OP = ([],false)
 push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-(TV,dummy1,dummy2,dummy3)=get_TD_operator(comp_grid,"TV",options.FL)
+
 m_min     = 0.0
 m_max     = 1e6
 set_type  = "bounds"
@@ -66,7 +67,7 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 
 (TV,dummy1,dummy2,dummy3)=get_TD_operator(comp_grid,"TV",options.FL)
 m_min     = 0.0
-m_max     = 0.1*norm(TV_OP*m,1)
+m_max     = 0.1*norm(TV*m,1)
 set_type  = "l1"
 TD_OP     = "TV"
 app_mode  = ("matrix","")
@@ -75,11 +76,11 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 
 
 BLAS.set_num_threads(2) #2 is fine for a small problem
-(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
+(P_sub,TD_OPS,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+(TD_OPS,AtA,l,y) = PARSDMM_precompute_distribute(TD_OPS,set_Prop,comp_grid,options)
 
 println("PARSDMM serial (bounds, bounds on D_z and TV):")
-@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OPS,set_Prop,P_sub,comp_grid,options);
 
 cg_axis=[0 ; cumsum(log_PARSDMM.cg_it)];
 cg_axis=cg_axis[1:10:end]
@@ -125,24 +126,24 @@ app_mode  = ("matrix","")
 custom_TD_OP = ([],false)
 push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-(P_sub2,TD_OP2,set_Prop2) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP2,AtA2,l,y) = PARSDMM_precompute_distribute(TD_OP2,set_Prop2,comp_grid,options)
-P[2] = inp -> PARSDMM(inp,AtA2,TD_OP2,set_Prop2,P_sub2,comp_grid,options) #projector onto transform-domain bounds
+(P_sub2,TD_OPS2,set_Prop2) = setup_constraints(constraint,comp_grid,options.FL)
+(TD_OPS2,AtA2,l,y) = PARSDMM_precompute_distribute(TD_OPS2,set_Prop2,comp_grid,options)
+P[2] = inp -> PARSDMM(inp,AtA2,TD_OPS2,set_Prop2,P_sub2,comp_grid,options) #projector onto transform-domain bounds
 
 # Set up ARADMM to project onto anisotropic-TV set (PARSDMM with 1 constraint set is equivalent to ARADMM)
 constraint = Vector{SetIntersectionProjection.set_definitions}()
 
 m_min     = 0.0
-m_max     = 0.1*norm(TV_OP*m,1)
+m_max     = 0.1*norm(TV*m,1)
 set_type  = "l1"
 TD_OP     = "TV"
 app_mode  = ("matrix","")
 custom_TD_OP = ([],false)
 push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-(P_sub3,TD_OP3,set_Prop3) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP3,AtA3,l,y) = PARSDMM_precompute_distribute(TD_OP3,set_Prop3,comp_grid,options)
-P[3] = inp -> PARSDMM(inp,AtA3,TD_OP3,set_Prop3,P_sub3,comp_grid,options) #projector onto transform-domain bounds
+(P_sub3,TD_OPS3,set_Prop3) = setup_constraints(constraint,comp_grid,options.FL)
+(TD_OPS3,AtA3,l,y) = PARSDMM_precompute_distribute(TD_OPS3,set_Prop3,comp_grid,options)
+P[3] = inp -> PARSDMM(inp,AtA3,TD_OPS3,set_Prop3,P_sub3,comp_grid,options) #projector onto transform-domain bounds
 
 closed_form=Vector{Bool}(3)
 closed_form[1]=true
@@ -151,7 +152,7 @@ closed_form[3]=false
 
 figure();imshow(reshape(m2,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
 
-@time (x,obj,feasibility_err_dyk,cg_it,ARADMM_it,l1_P,bounds_P,evol_x_PDyk)=Dykstra_prox_parallel(m2,P,P_sub,TD_OP,closed_form,maxit_dyk,dyk_feas_tol,obj_dyk_tol)
+@time (x,obj,feasibility_err_dyk,cg_it,ARADMM_it,l1_P,bounds_P,evol_x_PDyk)=Dykstra_prox_parallel(m2,P,P_sub,TD_OPS,closed_form,maxit_dyk,dyk_feas_tol,obj_dyk_tol)
 
 figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection Dykstra (bounds, bounds on D_z, TV)")
 
@@ -222,8 +223,8 @@ savefig("Dykstra_vs_PARSDMM_x_evol.png",bbox_inches="tight")
 constraint = Vector{SetIntersectionProjection.set_definitions}()
 
 #bounds:
-m_min        = 1450
-m_max        = 4000
+m_min        = 1450.0
+m_max        = 4000.0
 set_type     = "bounds"
 TD_OP        = "identity"
 app_mode     = ("matrix","")
@@ -240,11 +241,11 @@ custom_TD_OP = ([],false)
 push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 BLAS.set_num_threads(2) #2 is fine for a small problem
-(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
+(P_sub,TD_OPS,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+(TD_OPS,AtA,l,y) = PARSDMM_precompute_distribute(TD_OPS,set_Prop,comp_grid,options)
 
 println("PARSDMM serial (bounds, bounds on D_z and TV):")
-@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OPS,set_Prop,P_sub,comp_grid,options);
 
 cg_axis=[0 ; cumsum(log_PARSDMM.cg_it)];
 cg_axis=cg_axis[1:10:end]
@@ -289,9 +290,9 @@ app_mode     = ("matrix","")
 custom_TD_OP = ([],false)
 push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-(P_sub2,TD_OP2,set_Prop2) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP2,AtA2,l,y) = PARSDMM_precompute_distribute(TD_OP2,set_Prop2,comp_grid,options)
-P[2] = inp -> PARSDMM(inp,AtA2,TD_OP2,set_Prop2,P_sub2,comp_grid,options) #projector onto set of transform-domain rank
+(P_sub2,TD_OPS2,set_Prop2) = setup_constraints(constraint,comp_grid,options.FL)
+(TD_OPS2,AtA2,l,y) = PARSDMM_precompute_distribute(TD_OPS2,set_Prop2,comp_grid,options)
+P[2] = inp -> PARSDMM(inp,AtA2,TD_OPS2,set_Prop2,P_sub2,comp_grid,options) #projector onto set of transform-domain rank
 
 closed_form=Vector{Bool}(2)
 closed_form[1]=true
@@ -299,7 +300,7 @@ closed_form[2]=false
 
 figure();imshow(reshape(m,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
 
-@time (x,obj,feasibility_err_dyk,cg_it,ARADMM_it,svd_P,~,evol_x_PDyk)=Dykstra_prox_parallel(m,P,P_sub,TD_OP,closed_form,maxit_dyk,dyk_feas_tol,obj_dyk_tol)
+@time (x,obj,feasibility_err_dyk,cg_it,ARADMM_it,svd_P,~,evol_x_PDyk)=Dykstra_prox_parallel(m,P,P_sub,TD_OPS,closed_form,maxit_dyk,dyk_feas_tol,obj_dyk_tol)
 
 figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection Dykstra (bounds, bounds on D_z, TV)")
 

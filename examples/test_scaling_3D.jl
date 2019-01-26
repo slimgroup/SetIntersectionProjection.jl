@@ -131,8 +131,8 @@ for i=length(width):-1:1
   options.parallel=false
   n_levels=3
   coarsening_factor=2
-  (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,constraint_level)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
-  (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+  (TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,constraint_level)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+  (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   println(t)
   log_T_serial_multilevel[i]=log_PARSDMM;
@@ -146,8 +146,8 @@ for i=length(width):-1:1
   options.parallel=true
   n_levels=3
   coarsening_factor=2
-  (m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,constraint_level)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
-  (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+  (TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,constraint_level)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+  (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   println(t)
   log_T_parallel_multilevel[i]=log_PARSDMM;

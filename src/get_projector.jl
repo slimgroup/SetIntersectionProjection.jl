@@ -4,9 +4,9 @@ function get_projector(constraint,comp_grid,special_operator_list::Array{String,
 
   if constraint.set_type == "bounds"
     if constraint.app_mode[1]  in ["matrix","tensor"]
-      P = x -> project_bounds!(x,constraint.min,constraint.max)
+      P = x -> project_bounds!(x,TF(constraint.min),TF(constraint.max))
     else
-      P = x -> project_bounds!(reshape(x,TD_n),constraint.min,constraint.max,constraint.app_mode)
+      P = x -> project_bounds!(reshape(x,TD_n),TF(constraint.min),TF(constraint.max),constraint.app_mode)
     end
   end
 

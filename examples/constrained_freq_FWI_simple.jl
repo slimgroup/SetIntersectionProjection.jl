@@ -2,11 +2,15 @@
 #include("/home/slim/bpeters/.julia/v0.6/WAVEFORM/src/Waveform.jl")
 using Waveform
 
+#This example used the Waveform package, which is in julia 0.6 and uses the v06 branch of JOLI (https://github.com/slimgroup/JOLI.jl)
+#untill everyting is updated to current julia version, you need to got to (on linux) /.julia/v0.6/JOLI and use: git checkout v06
+
 using JOLI
+ENV["MPLBACKEND"]="qt5agg"
 using PyPlot
 #using OptimPackNextGen
 #using opesciSLIM.SLIM_optim
-using Waveform
+#using Waveform
 
 @everywhere using SetIntersectionProjection
 
@@ -115,8 +119,9 @@ v0 = vec(v0);
 
 function plot_velocity(vs,title_str,model,keyword,rec_x,rec_z,src_x,src_z)
     fig = figure()
-    ax1 = axes()
-    vplot = imshow(reshape(vs,model.n...),vmin=minimum(v)-50,vmax=maximum(v)+50,axes=ax1,cmap="jet",extent=[0.0 , model.d[2]*model.n[2] , model.d[1]*model.n[1] , 0.0])
+    #ax1 = axes()
+    #vplot = imshow(reshape(vs,model.n...),vmin=minimum(v)-50,vmax=maximum(v)+50,axes=ax1,cmap="jet",extent=[0.0 , model.d[2]*model.n[2] , model.d[1]*model.n[1] , 0.0])
+    vplot = imshow(reshape(vs,model.n...),vmin=minimum(v)-50,vmax=maximum(v)+50,cmap="jet",extent=[0.0 , model.d[2]*model.n[2] , model.d[1]*model.n[1] , 0.0])
     title(title_str)
     xlabel("x [m]")
     ylabel("z [m]")
@@ -202,7 +207,7 @@ set_zero_subnormals(true)
 BLAS.set_num_threads(2)
 FFTW.set_num_threads(2)
 options.parallel=false
-options.linear_inv_prob_flag = false
+options.feasibility_only = false
 options.zero_ini_guess=true
 
 type compgrid
@@ -239,7 +244,7 @@ end
 
 CFWI(ini_model,projector) = run_CFWI(freq_partition,nsrc,nfreq,v,Q,D,model,opts1,options_SPG,projector,ini_model,max_func_evals)
 
-constraint_strategy_list=[1 2 3 4 5 6]#
+constraint_strategy_list=[1 2 3 4 5]#
 for j in constraint_strategy_list
   if j==1
     keyword="bounds_only"
@@ -443,54 +448,13 @@ elseif j==2 #various types of cardinality and rank
             custom_TD_OP = ([],false)
             push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-          # elseif j==6
-          #     keyword="cardmat_cardcol_cardDxz_rank_bounds"
-          #     title_str="i) fiber, matrix grad. card. & Dxz card. & rank & bounds"
-          #
-          # 		constraint = Vector{SetIntersectionProjection.set_definitions}()
-          #
-          #     #bounds:
-          #     m_min     = minimum(v)-50.0
-          #     m_max     = maximum(v)+50.0
-          #     set_type  = "bounds"
-          #     TD_OP     = "identity"
-          #     app_mode  = ("matrix","")
-          #     custom_TD_OP = ([],false)
-          #     push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
-          #
-          # 		#cardinality on derivatives (column and row wise)
-          # 		constraint["use_TD_card_fiber_x"]			= true
-          # 		constraint["card_fiber_x"] 						= 2
-          # 	  constraint["TD_card_fiber_x_operator"]= "D_x"
-          #
-          # 		constraint["use_TD_card_fiber_z"]=true
-          # 		constraint["card_fiber_z"]=2
-          # 		constraint["TD_card_fiber_z_operator"]="D_z"
-          #
-          # 		#cardinality on derivatives (matrix based)
-          # 		constraint["use_TD_card_1"]=true
-          # 		constraint["card_1"]=round(Integer,3*0.33*n[2])
-          # 		constraint["TD_card_operator_1"]="D_x"
-          #
-          # 		constraint["use_TD_card_2"]=true
-          # 		constraint["card_2"]=round(Integer,3*0.33*n[1])
-          # 		constraint["TD_card_operator_2"]="D_z"
-          #
-          #     constraint["use_TD_card_3"]=true
-          #     constraint["card_3"]=4
-          #     constraint["TD_card_operator_3"]="D_xz"
-          #
-          # 		#rank constraint
-          # 		constraint["use_TD_rank_1"]=true
-          # 	  constraint["TD_max_rank_1"]=3
-          #     constraint["TD_rank_operator_1"]="identity"
 
 end #end if block for constraint setup choices
 
   #set up constraints, precompute some things and define projector
   (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
-  options.rho_ini      = ones(length(TD_OP))*10.0
+  (TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
+  options.rho_ini        = ones(length(TD_OP))*10.0
   # for i=1:length(options.rho_ini)
   #   if set_Prop.ncvx[i]==true
   #     options.rho_ini[i]=1.0
