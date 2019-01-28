@@ -115,12 +115,12 @@ end
 
 #save properties of the constraint set and its linear operator (not all are currently used in the code)
 #each entry in the following vectors contain the information corresponding to one set
-type set_properties
+mutable struct set_properties
            ncvx       ::Vector{Bool}                                          #is the set non-convex? (true/false)
            AtA_diag   ::Vector{Bool}                                          #is A^T A a diagonal matrix?
            dense      ::Vector{Bool}                                          #is A a dense matrix?
            TD_n       ::Vector{Tuple}                                         #the grid dimensions in the transform-domain.
-           tag        ::Vector{Tuple{String,String,String,String}}                          #(constraint type, linear operator description)
+           tag        ::Vector{Tuple{String,String,String,String}}            #(constraint type, linear operator description, application mode,application direction if applicable)
            banded     ::Vector{Bool}                                          #is A a banded matrix?
            AtA_offsets::Union{Vector{Vector{Int32}},Vector{Vector{Int64}}}    #only required if A is banded. A vector of indices of the non-zero diagonals, where the main diagonal is index 0
 end

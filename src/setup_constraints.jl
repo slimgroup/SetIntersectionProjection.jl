@@ -70,7 +70,12 @@ for i = 1:nr_constraints
 
       P_sub[i] = get_projector(constraint[i],comp_grid,special_operator_list,A,TD_n,TF)
 
-      TD_OP[i]             = A
+      if constraint[i].TD_OP in special_operator_list
+        TD_OP[i] =  convert(SparseMatrixCSC{TF,TI},speye(TF,N))
+      else
+        TD_OP[i] = A
+      end
+
       set_Prop.AtA_diag[i] = AtA_diag
       set_Prop.dense[i]    = dense
       set_Prop.TD_n[i]     = TD_n
