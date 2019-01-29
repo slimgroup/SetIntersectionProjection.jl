@@ -128,8 +128,8 @@ end
 mutable struct set_definitions
   set_type          ::String #"bounds","l1","l2","annulus","subspace","nuclear","rank","histogram","cardinality"
   TD_OP             ::String
-  min               ::Union{Vector{Real},Real}
-  max               ::Union{Vector{Real},Real}
+  min               ::Union{Vector,Real}
+  max               ::Union{Vector,Real}
   app_mode          ::Tuple{String,String} #("tensor/"matrix"/"slice"/"fiber" , "x","y","z") , x,y,z apply only to slice and fibers of a tensor or matrix
   custom_TD_OP      ::Tuple{Array{Any},Bool} #custom matrix for subspace, and boolean to indicate orthogonality
 end

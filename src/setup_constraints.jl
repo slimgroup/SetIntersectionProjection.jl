@@ -85,7 +85,7 @@ for i = 1:nr_constraints
       #determine set convexity
       if constraint[i].set_type in ["rank","cardinality"]
         set_Prop.ncvx[i]     = true
-      elseif constraint[i].set_type == "bounds" && constraint[i].TD_OP != "identity" && constraint[i].min>0.0
+      elseif constraint[i].set_type == "bounds" && constraint[i].TD_OP != "identity" && TF(maximum(constraint[i].min))>TF(0.0)
         set_Prop.ncvx[i]     = true
       else
         set_Prop.ncvx[i]     = false

@@ -283,7 +283,7 @@ FFTW.set_num_threads(2)
 
 #add the mask*blurring filer sparse matrix as a transform domain matrix
 push!(TD_OP,FWD_OP)
-push!(set_Prop.AtA_offsets,convert(Vector{TI},0:bkl)) #these are dummy values, actual ofsetts are automatically detected
+push!(set_Prop.AtA_offsets,[0])#convert(Vector{TI},0:bkl)) #these are dummy values, actual ofsetts are automatically detected
 push!(set_Prop.ncvx,false)
 push!(set_Prop.banded,true)
 push!(set_Prop.AtA_diag,true)

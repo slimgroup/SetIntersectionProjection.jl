@@ -3,10 +3,18 @@ export get_projector
 function get_projector(constraint,comp_grid,special_operator_list::Array{String,1},A,TD_n::Tuple,TF::DataType)
 
   if constraint.set_type == "bounds"
-    if constraint.app_mode[1]  in ["matrix","tensor"]
-      P = x -> project_bounds!(x,TF(constraint.min),TF(constraint.max))
+    if constraint.app_mode[1] in ["matrix","tensor"]
+      if constraint.TD_OP in special_operator_list
+        P = x -> copy!(x,A'*project_bounds!(A*x,constraint.min,constraint.max))
+      else
+        P = x -> project_bounds!(x,constraint.min,constraint.max)
+      end
     else
-      P = x -> project_bounds!(reshape(x,TD_n),TF(constraint.min),TF(constraint.max),constraint.app_mode)
+      if constraint.TD_OP in special_operator_list
+        P = x -> copy!(x,A'*project_bounds!(reshape(A*x,TD_n),constraint.min,constraint.max,constraint.app_mode))
+      else
+        P = x -> project_bounds!(reshape(x,TD_n),constraint.min,constraint.max,constraint.app_mode)
+      end
     end
   end
 
