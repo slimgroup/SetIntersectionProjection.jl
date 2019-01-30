@@ -24,7 +24,7 @@ function update_y_l_parallel(
   ) where {TF<:Real,TI<:Integer}
 
 rho1=TF
-const rho1=TF(1.0) ./ rho[1];
+rho1=TF(1.0) ./ rho[1];
 
   copy!(y_old[1],y[1]);
   copy!(l_old[1],l[1]);

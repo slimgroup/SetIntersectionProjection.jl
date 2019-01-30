@@ -16,11 +16,12 @@ output:
 """
 function setup_constraints(constraint,comp_grid,TF)
 
-if    TF == Float64
-  TI = Int64
-elseif TF == Float32
-  TI = Int32
-end
+# if    TF == Float64
+#   TI = Int64
+# elseif TF == Float32
+#   TI = Int32
+# end
+TI=Int64
 
 [@spawnat pid comp_grid for pid in workers()] #send computational grid to all workers in parallel mode
 
@@ -42,12 +43,12 @@ for i=1:nr_constraints
 end
 
 #allocate
-P_sub = Vector{Any}(nr_constraints)
-TD_OP = Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}}(nr_constraints);
-AtA   = Vector{SparseMatrixCSC{TF,TI}}(nr_constraints);
+P_sub = Vector{Any}(undef,nr_constraints)
+TD_OP = Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}}(undef,nr_constraints)
+AtA   = Vector{SparseMatrixCSC{TF,TI}}(undef,nr_constraints)
 
 #initialize storage for set properties
-set_Prop=set_properties(zeros(nr_constraints),zeros(nr_constraints),zeros(nr_constraints),Vector{Tuple{TI,TI}}(nr_constraints),Vector{Tuple{String,String,String,String}}(nr_constraints),zeros(nr_constraints),Vector{Vector{TI}}(nr_constraints))
+set_Prop=set_properties(zeros(nr_constraints),zeros(nr_constraints),zeros(nr_constraints),Vector{Tuple{TI,TI}}(undef,nr_constraints),Vector{Tuple{String,String,String,String}}(undef,nr_constraints),zeros(nr_constraints),Vector{Vector{TI}}(undef,nr_constraints))
 
 #other initialization
 special_operator_list = ["DFT", "DCT"] #complex valued operators that are orthogonal
@@ -71,7 +72,7 @@ for i = 1:nr_constraints
       P_sub[i] = get_projector(constraint[i],comp_grid,special_operator_list,A,TD_n,TF)
 
       if constraint[i].TD_OP in special_operator_list
-        TD_OP[i] =  convert(SparseMatrixCSC{TF,TI},speye(TF,N))
+        TD_OP[i] =  SparseMatrixCSC{TF}(LinearAlgebra.I,N,N)
       else
         TD_OP[i] = A
       end

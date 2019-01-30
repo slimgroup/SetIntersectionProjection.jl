@@ -34,9 +34,9 @@ function PARSDMM(m         ::Vector{TF},
                  y=[]
                  ) where {TF<:Real,TI<:Integer}
 
-tic()
+#tic()
 # Parse default options
-convert_options!(options,TF,TI)
+convert_options!(options,TF)
 @unpack  x_min_solver,maxit,evol_rel_tol,feas_tol,obj_tol,rho_ini,rho_update_frequency,gamma_ini,
 adjust_rho,adjust_gamma,adjust_feasibility_rho,Blas_active,
 feasibility_only,FL,parallel,zero_ini_guess = options
@@ -48,7 +48,7 @@ if isreal(m)==false || isreal(x)==false || isreal(l)==false || isreal(y)==false
 end
 
 # initialize
-const pp=length(TD_OP);
+pp=length(TD_OP);
 if feasibility_only==false; pp=pp-1; end;
 
 (ind_ref,N,TD_OP,AtA,p,rho_update_frequency,adjust_gamma,adjust_rho,adjust_feasibility_rho,gamma_ini,rho,gamma,y,y_0,y_old,l,l_0,l_old,
@@ -81,25 +81,25 @@ counter=2
 
 x_solve_tol_ref=TF(1.0) #scalar required to determine tolerance for x-minimization, initial value doesn't matter
 
-log_PARSDMM.T_ini=toq();
+log_PARSDMM.T_ini=0.0#toq();;
 
 for i=1:maxit #main loop
 
   #form right hand side for x-minimization
-  tic();
+  #tic();
   rhs               = rhs_compose(rhs,l,y,rho,TD_OP,p,Blas_active,parallel)
-  log_PARSDMM.T_rhs = log_PARSDMM.T_rhs+toq();
+  log_PARSDMM.T_rhs = log_PARSDMM.T_rhs+0.0#toq();;
 
   # x-minimization
-  tic()
+  #tic()
   copy!(x_old,x);
   (x,iter,relres,x_solve_tol_ref) = argmin_x(Q,rhs,x,x_min_solver,x_solve_tol_ref,i,log_PARSDMM,Q_offsets,Ax_out)
   log_PARSDMM.cg_it[i]     = iter;#cg_log.iters;
   log_PARSDMM.cg_relres[i] = relres;#cg_log[:resnorm][end];
-  log_PARSDMM.T_cg         = log_PARSDMM.T_cg+toq();
+  log_PARSDMM.T_cg         = log_PARSDMM.T_cg+0.0#toq();;
 
   # y-minimization & l-update
-  tic()
+  #tic()
   if parallel==true
     [ @spawnat pid update_y_l_parallel(x,i,Blas_active,
       y[:L],y_old[:L],l[:L],l_old[:L],rho[:L],gamma[:L],prox[:L],TD_OP[:L],P_sub[:L],
@@ -134,19 +134,19 @@ for i=1:maxit #main loop
   log_PARSDMM.rho[i,:]        = rho;
   log_PARSDMM.gamma[i,:]      = gamma;
 
-  log_PARSDMM.T_y_l_upd = log_PARSDMM.T_y_l_upd+toq();
+  log_PARSDMM.T_y_l_upd = log_PARSDMM.T_y_l_upd+0.0#toq();;
 
   # Stopping conditions
-  tic()
+  #tic()
   (stop,adjust_rho,adjust_feasibility_rho,ind_ref)=stop_PARSDMM(log_PARSDMM,i,evol_rel_tol,feas_tol,obj_tol,adjust_rho,adjust_feasibility_rho,ind_ref,counter);
   if stop==true
     (TD_OP,AtA,log_PARSDMM) = output_check_PARSDMM(x,TD_OP,AtA,log_PARSDMM,i,counter)
     return x, log_PARSDMM, l, y
   end
-  log_PARSDMM.T_stop=log_PARSDMM.T_stop+toq();
+  log_PARSDMM.T_stop=log_PARSDMM.T_stop+0.0#toq();;
 
   # adjust penalty parameters rho and relaxation parameters gamma
-  tic()
+  #tic()
   if i==1
     if parallel==true
       [@spawnat pid l_hat[:L][1] = l_old[:L][1] .+ rho[:L][1] .* ( -s[:L][1] .+ y_old[:L][1] ) for pid in l_hat.pids]
@@ -209,9 +209,9 @@ for i=1:maxit #main loop
 
      #enforce max and min values for rho, to prevent the condition number of Q -> inf
      rho = max.(min.(rho,TF(1e5)),TF(1e-2)) #hardcoded bounds
-     log_PARSDMM.T_adjust_rho_gamma=log_PARSDMM.T_adjust_rho_gamma+toq();
+     log_PARSDMM.T_adjust_rho_gamma=log_PARSDMM.T_adjust_rho_gamma+0.0#toq();;
 
-     tic()
+     #tic()
      ind_updated = find(rho .!= log_PARSDMM.rho[i,:]) # locate changed rho index
      ind_updated = convert(Array{TI,1},ind_updated)
 
@@ -229,7 +229,7 @@ for i=1:maxit #main loop
      if parallel==true
        rho=distribute(rho) #distribute again (gather -> process -> distribute is a ugly hack, fix this later)
      end
-     log_PARSDMM.T_Q_upd=log_PARSDMM.T_Q_upd+toq();
+     log_PARSDMM.T_Q_upd=log_PARSDMM.T_Q_upd+0.0#toq();;
      if i==maxit
        println("PARSDMM reached maxit")
        (TD_OP,AtA,log_PARSDMM) = output_check_PARSDMM(x,TD_OP,AtA,log_PARSDMM,i,counter)

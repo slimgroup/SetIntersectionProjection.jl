@@ -15,7 +15,7 @@ function rhs_compose(
                               ) where {TF<:Real,TI<:Integer}
 
 if parallel==true
-  rhs = @parallel (+) for ii = 1:p
+  rhs = @distributed (+) for ii = 1:p
   TD_OP[ii]'*(rho[ii] .* y[ii] .+ l[ii])
   end
 else #serial

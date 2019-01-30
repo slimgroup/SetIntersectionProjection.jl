@@ -39,7 +39,7 @@ if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3d version
       TD_OP = get_discrete_Grad(n1,n2,n3,h1,h2,h3,TD_type)
       AtA_diag = false ; dense = false ; TD_n = (n1 , n2-1 , n3) ; banded=true
   elseif TD_type == "identity"
-      TD_OP = speye(TF,n1*n2*n3)
+      TD_OP = SparseMatrixCSC{TF}(LinearAlgebra.I,n1*n2*n3,n1*n2*n3)
       AtA_diag = true ; dense = false ; TD_n = (n1,n2,n3) ; banded=true
   elseif TD_type == "DFT"
       error("currently no 3D DFT implemented, needs to be done soon")
@@ -67,7 +67,7 @@ else #use 2d version
       TD_OP = D_z*D_x
       AtA_diag = false ; dense = false ; TD_n = (n1-1 , n2-1) ; banded=true
   elseif TD_type == "identity"
-    TD_OP = speye(TF,n1*n2)
+    TD_OP = SparseMatrixCSC{TF}(LinearAlgebra.I,n1*n2,n1*n2)
     AtA_diag = true ; dense = false ; TD_n = (n1,n2) ; banded=true
   elseif TD_type == "DCT"
     TD_OP=joDCT(convert(Int64,n1),convert(Int64,n2);planned=false,DDT=TF,RDT=TF)
@@ -84,9 +84,9 @@ else #use 2d version
 end
 
 #see if i can remove this conversion below, it should be redundant
-if typeof(TD_OP)<:SparseMatrixCSC
-  TD_OP=convert(SparseMatrixCSC{TF,TI},TD_OP)
-end
+# if typeof(TD_OP)<:SparseMatrixCSC
+#   TD_OP=convert(SparseMatrixCSC{TF,TI},TD_OP)
+# end
 
 return TD_OP, AtA_diag, dense, TD_n, banded
 end

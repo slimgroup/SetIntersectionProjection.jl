@@ -9,7 +9,8 @@ function mat2CDS(A::SparseMatrixCSC{TF,TI}) where {TF<:Real,TI<:Integer}
   # Find all nonzero diagonals
   (i,j,dummy) = findnz(A) #[i,j] = find(A);
   d           = sort(j-i)
-  offset      = d[find(diff([-Inf;d]))] #d = d(find(diff([-inf; d])));
+  #julia 0.6: offset      = d[find(diff([-Inf;d]))] #matlab:d = d(find(diff([-inf; d])));
+  offset      = d[findall(!iszero, diff([-Inf;d]))]
   offset      = convert(Array{TI,1},offset)
 
   # initialize

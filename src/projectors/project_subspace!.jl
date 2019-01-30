@@ -43,12 +43,12 @@ end
 x = vec(x)
 end
 
-function project_subspace!{TF<:Real}(
+function project_subspace!(
                           x     ::Array{TF,3},
                           A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
                           orth  ::Bool,
                           mode  ::String
-                          )
+                          ) where {TF<:Real}
 #we want to project each slice of a tensor onto the subspace spanned by the columns of A
 #x is a 3D array and we need to permute and reshape it such that we project the
 #correct slices. Every slice needs to become a column of the matrix (x) we projection onto the subspace in column-wise sense

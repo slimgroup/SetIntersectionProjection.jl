@@ -1,7 +1,7 @@
 export cg
 
 
-function cg{T1,T2}(A::SparseMatrixCSC{T1,Int},b::Array{T2,1}; kwargs...)
+function cg(A::SparseMatrixCSC{T1,Int},b::Array{T2,1}; kwargs...) where {T1,T2}
 	x = zeros(promote_type(T1,T2),size(A,2)) # pre-allocate
 	return cg(v -> At_mul_B!(1.0,A,v,0.0,x),b;kwargs...) # multiply with transpose of A for efficiency
 end
@@ -76,7 +76,9 @@ function cg(A::Function,b::Vector; tol::Real=1e-2,maxIter::Integer=100,M::Functi
 
 	TF=typeof(x[1])
  	alpha = TF
+	lastIter = 0
 	for iter=1:maxIter
+		lastIter = iter
 		Ap = A(p)
 		gamma = dot(r,z)
 		alpha = gamma/dot(p,Ap)
@@ -90,7 +92,7 @@ function cg(A::Function,b::Vector; tol::Real=1e-2,maxIter::Integer=100,M::Functi
 
 		resvec[iter]  = norm(r)/nr0
 		if out==2
-			println(@sprintf("%3d\t%1.2e",iter,resvec[iter]))
+			println(iter,resvec[iter])
 		end
 		if resvec[iter] <= tol
 			flag = 0; break
@@ -105,17 +107,17 @@ function cg(A::Function,b::Vector; tol::Real=1e-2,maxIter::Integer=100,M::Functi
 
 	if out>=0
 		if flag==-1
-			println(@sprintf("cg iterated maxIter (=%d) times but reached only residual norm %1.2e instead of tol=%1.2e.",
-																								maxIter,resvec[iter],tol))
+			println("cg iterated maxIter (=%d) times but reached only residual norm %1.2e instead of tol=%1.2e.",
+																								maxIter,resvec[lastIter],tol)
 		elseif flag==-2
 			println("Matrix A in cg has to be positive definite.")
 		elseif flag==0 && out>=1
-			println(@sprintf("cg achieved desired tolerance at iteration %d. Residual norm is %1.2e.",iter,resvec[iter]))
+			println("cg achieved desired tolerance at iteration %d. Residual norm is %1.2e.",lastIter,resvec[lastIter])
 		end
 	end
     if storeInterm
-        return X[:,1:iter],flag,resvec[iter],iter,resvec[1:iter]
+        return X[:,1:lastIter],flag,resvec[lastIter],lastIter,resvec[1:lastIter]
     else
-        return x,flag,resvec[iter],iter,resvec[1:iter]
+        return x,flag,resvec[lastIter],lastIter,resvec[1:lastIter]
     end
 end

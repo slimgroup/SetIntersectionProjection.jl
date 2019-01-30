@@ -1,9 +1,14 @@
 module SetIntersectionProjection
 
+#packages that used to be in base in Julia 0.6
+using Distributed
+using LinearAlgebra
+using SparseArrays
+using Printf
 
+#other packages
 using Parameters
 using Interpolations
-#using Distributed
 using DistributedArrays
 using JOLI
 using SortingAlgorithms

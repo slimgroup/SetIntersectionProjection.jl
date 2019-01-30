@@ -26,7 +26,7 @@ function adapt_rho_gamma_parallel(
                                   d_G_hat         ::Vector{Vector{TF}}
                                   ) where {TF<:Real}
 
-  const eps_correlation = TF(0.3) #hardcoded and suggested value by the paper based on numerical evidence
+eps_correlation = TF(0.3) #hardcoded and suggested value by the paper based on numerical evidence
 
 
       if TF==Float64

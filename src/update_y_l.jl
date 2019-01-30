@@ -29,9 +29,9 @@ function update_y_l(
 #x_hat   = Vector{Vector{Float64}}(p);
 #r_pri   = Vector{Vector{Float64}}(p);
 #s       = Vector{Vector{Float64}}(p)
-const lx   = length(x);
+lx   = length(x);
 rho1       = Vector{TF}(p)
-const rho1 = TF(1.0) ./ rho;
+rho1 = TF(1.0) ./ rho;
 
 for ii=1:p
   #y_old[ii]=deepcopy(y[ii])

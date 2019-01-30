@@ -29,12 +29,12 @@ function PARSDMM_initialize(
 
                             ind_ref = maxit
                             if options.Minkowski == false
-                              const N = length(x)
+                              N = length(x)
                             elseif options.Minkowski == true && zero_ini_guess==true
-                              const N = length(x)*2
+                              N = length(x)*2
                             elseif options.Minkowski == true && zero_ini_guess==false
                               @assert length(x)==(2*length(m))
-                              const N = length(x)
+                              N = length(x)
                             end
                             # const N = size(TD_OP[1],2) #this line will give really weird errors later on for some reason..
 
@@ -51,11 +51,11 @@ function PARSDMM_initialize(
                             # push!(set_Prop.AtA_diag,true)
                             # push!(set_Prop.dense,false)
 
-                            const p     = length(TD_OP); #number of terms in in the sum of functions of the projeciton problem
+                            p     = length(TD_OP); #number of terms in in the sum of functions of the projeciton problem
                             pp=p-1;
                             if feasibility_only==true; pp=p; end;
 
-                            rho     = Vector{TF}(p)
+                            rho     = Vector{TF}(undef,p)
                             if length(rho_ini)==1
                               fill!(rho,rho_ini[1])
                             else
@@ -115,42 +115,42 @@ function PARSDMM_initialize(
 
                             #if y and l are empty, allocate them and fill with zeros
                             if isempty(l)==true
-                              l=Vector{Vector{TF}}(p)
+                              l=Vector{Vector{TF}}(undef,p)
                               for i=1:length(TD_OP); l[i]=zeros(TF,size(TD_OP[i],1)); end
                             end
                             if isempty(y)==true
-                              y=Vector{Vector{TF}}(p)
+                              y=Vector{Vector{TF}}(undef,p)
                               for i=1:length(TD_OP); y[i]=zeros(TF,size(TD_OP[i],1)); end
                             end
 
-                            gamma   = Vector{TF}(p);
+                            gamma   = Vector{TF}(undef,p);
 
                             #y       = Vector{Vector{TF}}(p);
-                            y_0     = Vector{Vector{TF}}(p);
-                            y_old   = Vector{Vector{TF}}(p);
+                            y_0     = Vector{Vector{TF}}(undef,p);
+                            y_old   = Vector{Vector{TF}}(undef,p);
 
                             #l       = Vector{Vector{TF}}(p);
-                            l_0     = Vector{Vector{TF}}(p);
-                            l_old   = Vector{Vector{TF}}(p);
-                            l_hat_0 = Vector{Vector{TF}}(p);
-                            l_hat   = Vector{Vector{TF}}(p)
+                            l_0     = Vector{Vector{TF}}(undef,p);
+                            l_old   = Vector{Vector{TF}}(undef,p);
+                            l_hat_0 = Vector{Vector{TF}}(undef,p);
+                            l_hat   = Vector{Vector{TF}}(undef,p)
 
-                            x_0     = Vector{TF}(N);
-                            x_old   = Vector{TF}(N);
-                            x_hat   = Vector{Vector{TF}}(p);
+                            x_0     = Vector{TF}(undef,N);
+                            x_old   = Vector{TF}(undef,N);
+                            x_hat   = Vector{Vector{TF}}(undef,p);
 
-                            r_dual  = Vector{Vector{TF}}(p);
-                            r_pri   = Vector{Vector{TF}}(p);
+                            r_dual  = Vector{Vector{TF}}(undef,p);
+                            r_pri   = Vector{Vector{TF}}(undef,p);
 
-                            rhs     = Vector{TF}(N);
+                            rhs     = Vector{TF}(undef,N);
 
-                            s       = Vector{Vector{TF}}(p);
-                            s_0     = Vector{Vector{TF}}(p);
+                            s       = Vector{Vector{TF}}(undef,p);
+                            s_0     = Vector{Vector{TF}}(undef,p);
 
-                            d_l_hat = Vector{Vector{TF}}(p)
-                            d_H_hat = Vector{Vector{TF}}(p)
-                            d_l     = Vector{Vector{TF}}(p)
-                            d_G_hat = Vector{Vector{TF}}(p)
+                            d_l_hat = Vector{Vector{TF}}(undef,p)
+                            d_H_hat = Vector{Vector{TF}}(undef,p)
+                            d_l     = Vector{Vector{TF}}(undef,p)
+                            d_G_hat = Vector{Vector{TF}}(undef,p)
 
                             for ii=1:p #initialize all rho's, gamma's, y's and l's
                                 gamma[ii]   = gamma_ini;
@@ -197,7 +197,8 @@ function PARSDMM_initialize(
                               Q=zeros(TF,size(AtA[1],1),length(Q_offsets))
                               for i=1:length(AtA)
                                 for j=1:length(set_Prop.AtA_offsets[i])
-                                  Q_current_col = findin(Q_offsets,set_Prop.AtA_offsets[i][j])
+                                  #Q_current_col = findin(Q_offsets,set_Prop.AtA_offsets[i][j])
+                                  Q_current_col = findall((in)(set_Prop.AtA_offsets[i][j]),Q_offsets)
                                   Q[:,Q_current_col] .= Q[:,Q_current_col] .+ rho[i] .* AtA[i][:,j]
                                 end
                               end

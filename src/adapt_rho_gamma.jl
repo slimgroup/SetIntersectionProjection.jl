@@ -34,7 +34,7 @@ function adapt_rho_gamma(
         safeguard = 1f-6
     end
 
-  const eps_correlation = TF(0.3) #hardcoded and suggested value by the paper based on numerical evidence
+  eps_correlation = TF(0.3) #hardcoded and suggested value by the paper based on numerical evidence
 
   #Threads.@threads for ii = 1:p
   for ii = 1:p
