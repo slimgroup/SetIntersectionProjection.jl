@@ -21,13 +21,14 @@ function PARSDMM_multi_level(
 
 n_levels = length(TD_OP_levels)
 
-m_levels         = Vector{Vector{TF}}(n_levels) #allocate space for the model we will project at each level
+m_levels         = Vector{Vector{TF}}(undef,n_levels) #allocate space for the model we will project at each level
 m_levels[1]      = m
 
-#interpolations/subsampling/coarsening is done with nearest neighbour
+#interpolations to finer grids use nearest neighbour interpolation
 #from the "Interpolations" julia package. Change (BSpline(Constant())) for other
 #types of interpolation
 rho_orig = deepcopy(options.rho_ini)
+
 #detect 2D or 3D
 if length(comp_grid_levels[1].n)==3 && comp_grid_levels[1].n[3]>1
   dim3 = true #indicate we are working in 3D
@@ -35,15 +36,13 @@ else
   dim3 = false
 end
 
-
-
 #coarsen original model to new grids
 for i = 2:n_levels
-  itp_m       = interpolate(reshape(m,comp_grid_levels[1].n), BSpline(Constant()), OnGrid())
+  itp_m       = interpolate(reshape(m,comp_grid_levels[1].n),BSpline(Constant()))
   if dim3
-    m_level     = itp_m[linspace(1,comp_grid_levels[1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[1].n[2],comp_grid_levels[i].n[2]), linspace(1,comp_grid_levels[1].n[3],comp_grid_levels[i].n[3])]
+    m_level   = itp_m(range(1,stop=comp_grid_levels[1].n[1],length=comp_grid_levels[i].n[1]), range(1,stop=comp_grid_levels[1].n[2],length=comp_grid_levels[i].n[2]), range(1,stop=comp_grid_levels[1].n[3],length=comp_grid_levels[i].n[3]))
   else
-    m_level     = itp_m[linspace(1,comp_grid_levels[1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[1].n[2],comp_grid_levels[i].n[2])]
+    m_level   = itp_m(range(1,stop=comp_grid_levels[1].n[1],length=comp_grid_levels[i].n[1]), range(1,stop=comp_grid_levels[1].n[2],length=comp_grid_levels[i].n[2]))
   end
   m_levels[i] = vec(m_level)
 end
@@ -59,29 +58,29 @@ options.rho_ini = log_PARSDMM.rho[end,:]
 for i=(n_levels-1):-1:1
 
   # resample x, l & y to a finer grid
-  itp_x_level = interpolate(reshape(x,comp_grid_levels[i+1].n), BSpline(Constant()), OnGrid())
+  itp_x_level = interpolate(reshape(x,comp_grid_levels[i+1].n), BSpline(Constant()))
   if dim3
-    x = itp_x_level[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2]), linspace(1,comp_grid_levels[i+1].n[3],comp_grid_levels[i].n[3])]
+    x = itp_x_level(range(1,stop=comp_grid_levels[i+1].n[1],length=comp_grid_levels[i].n[1]), range(1,stop=comp_grid_levels[i+1].n[2],length=comp_grid_levels[i].n[2]), range(1,stop=comp_grid_levels[i+1].n[3],length=comp_grid_levels[i].n[3]))
   else
-    x = itp_x_level[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2])]
+    x = itp_x_level(range(1,stop=comp_grid_levels[i+1].n[1],length=comp_grid_levels[i].n[1]), range(1,stop=comp_grid_levels[i+1].n[2],length=comp_grid_levels[i].n[2]))
   end
   x = vec(x)
 
   #interpolate y and l
   if options.parallel==true #for now, gather -> interpolate -> distribute, this is inefficient and need to be updated
-    l=convert(Vector{Vector{TF}},l)
-    y=convert(Vector{Vector{TF}},y)
+    l = convert(Vector{Vector{TF}},l)
+    y = convert(Vector{Vector{TF}},y)
   end
   (l,y)=interpolate_y_l(l,y,set_Prop_levels,comp_grid_levels,dim3,i)
   if options.parallel==true #for now, gather -> interpolate -> distribute, this is inefficient and need to be updated
-    l=distribute(l)
-    y=distribute(y)
+    l = distribute(l)
+    y = distribute(y)
   end
 
   # solve on a finer grid
   options.zero_ini_guess = false
-  (x,log_PARSDMM,l,y) = PARSDMM(m_levels[i],AtA_levels[i],TD_OP_levels[i],set_Prop_levels[i],P_sub_levels[i],comp_grid_levels[i],options,x,l,y)
-  options.rho_ini = log_PARSDMM.rho[end,:]
+  (x,log_PARSDMM,l,y)    = PARSDMM(m_levels[i],AtA_levels[i],TD_OP_levels[i],set_Prop_levels[i],P_sub_levels[i],comp_grid_levels[i],options,x,l,y)
+  options.rho_ini        = log_PARSDMM.rho[end,:]
 
 end #end for loop over levels
 

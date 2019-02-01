@@ -2,6 +2,7 @@
 # with PARSDMM in serial, parallel or multilevel (seria or parallel)
 # Bas Peters, 2017
 
+using Distributed
 @everywhere using SetIntersectionProjection
 using MAT
 using PyPlot
@@ -35,32 +36,19 @@ end
 
 #load image to project
 file = matopen("compass_velocity.mat")
-m=read(file, "Data")
-close(file)
-m=m[1:341,200:600];
-m=m';
+m    = read(file, "Data");close(file)
+m = m[1:341,200:600]
+m = m'
 
 #set up computational grid (25 and 6 m are the original distances between grid points)
 comp_grid = compgrid((TF(25.0), TF(6.0)),(size(m,1), size(m,2)))
-m=convert(Vector{TF},vec(m))
+m         = convert(Vector{TF},vec(m))
 
 #define axis limits and colorbar limits
 xmax = comp_grid.d[1]*comp_grid.n[1]
 zmax = comp_grid.d[2]*comp_grid.n[2]
-vmi=1500
-vma=4500
-
-#constraints (Old setup)
-# constraint=Dict()
-#
-# constraint["use_bounds"] = true
-# constraint["m_min"]      = 1500.0
-# constraint["m_max"]      = 4500.0
-#
-# constraint["use_TD_bounds_1"] = true
-# constraint["TDB_operator_1"]  = "D_z"
-# constraint["TD_LB_1"]         = 0.0
-# constraint["TD_UB_1"]         = 1e6
+vmi  = 1500
+vma  = 4500
 
 #constraints (new setup)
 constraint = Vector{SetIntersectionProjection.set_definitions}()
@@ -73,7 +61,6 @@ TD_OP     = "identity"
 app_mode  = ("matrix","")
 custom_TD_OP = ([],false)
 push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
-
 
 #slope constraints (vertical)
 m_min     = 0.0
@@ -117,9 +104,9 @@ savefig("PARSDMM_logs.png",bbox_inches="tight")
 
 println("")
 println("PARSDMM parallel (bounds and bounds on D_z):")
-options.parallel             = true
+options.parallel       = true
 (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
+(TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
 
 @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
@@ -132,8 +119,8 @@ figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,
 options.parallel = false
 
 #2 levels, the gird point spacing at level 2 is 3X that of the original (level 1) grid
-n_levels=2
-coarsening_factor=3
+n_levels          = 2
+coarsening_factor = 3
 
 #set up all required quantities for each level
 #(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
