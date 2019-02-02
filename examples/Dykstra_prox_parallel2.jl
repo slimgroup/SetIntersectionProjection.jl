@@ -1,5 +1,5 @@
 export Dykstra_prox_parallel2
-function Dykstra_prox_parallel2{TF<:Real}(
+function Dykstra_prox_parallel2(
                                         x::Vector{TF},
                                         P::Vector{Any},
                                         P_sub,
@@ -8,7 +8,7 @@ function Dykstra_prox_parallel2{TF<:Real}(
                                         maxit_dyk,
                                         dyk_feas_tol,
                                         obj_dyk_tol
-                                        )
+                                        ) where {TF<:Real}
 
 #this script computes the projection of x0 onto the intersection of and
 #arbitrary number of closed and convex sets. May still work in case
@@ -39,8 +39,8 @@ function Dykstra_prox_parallel2{TF<:Real}(
 
 
 # Initialize
-const N       = length(x)
-const m = length(P) #number of constraints
+N       = length(x)
+m = length(P) #number of constraints
 ptp   = Vector{TF}(N)
 x_old = Vector{TF}(N)
 copy!(ptp,x)
@@ -61,7 +61,7 @@ for i=1:m
     copy!(z[i],x)
     p[i]=zeros(TF,N)
 end
-const omega   = 1./m; #weights are hardcored here
+omega   = 1.0 ./ m; #weights are hardcored here
 
 #initial feasibility (transform-domain, relative)
 #check distance to feasibility

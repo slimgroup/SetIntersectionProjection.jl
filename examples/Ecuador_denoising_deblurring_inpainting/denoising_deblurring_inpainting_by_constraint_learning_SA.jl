@@ -3,7 +3,7 @@
 # We will use a VERY simple learning appraoch to obtain 'good' constraints. This
 # learing works with just a few even <10 training examples.
 # South America dataset
-
+using Distributed
 @everywhere using SetIntersectionProjection
 using MAT
 
@@ -43,40 +43,43 @@ comp_grid = compgrid((1, 1),(size(m_evaluation,2), size(m_evaluation,3)))
 comp_grid=compgrid( ( convert(TF,comp_grid.d[1]),convert(TF,comp_grid.d[2]) ), comp_grid.n )
 
 
-#create true observed data by blurring and setting pixels to zero
-bkl = 25; #blurring kernel length
+#create true observed data by blurring, setting pixels to zero, and adding random zero mean noise
+
+#first, motion blur as a sparse matrix
+bkl   = 25; #blurring kernel length
 d_obs = zeros(TF,size(m_evaluation,1),comp_grid.n[1]-bkl,comp_grid.n[2])
-temp  = zeros(TF,comp_grid.n[1]-bkl,comp_grid.n[2])
+#temp  = zeros(TF,comp_grid.n[1]-bkl,comp_grid.n[2])
 
-n1=comp_grid.n[1]
-Bx=speye(n1)./bkl
+n1 = comp_grid.n[1]
+Bx = SparseMatrixCSC{TF}(LinearAlgebra.I,n1,n1)./bkl
 for i=2:bkl
-  temp=  spdiagm(ones(n1)./bkl,i)
-  temp=temp[1:n1,1:n1];
-  Bx+= temp;
+  temp =  spdiagm(i => ones(TF,n1)) ./ bkl #spdiagm(ones(n1)./bkl,i)
+  temp =  temp[1:n1,1:n1];
+  global Bx   += temp;
 end
-Bx=Bx[1:end-bkl,:]
-Iz=speye(TF,comp_grid.n[2]);
-BF=kron(Iz,Bx);
-BF=convert(SparseMatrixCSC{TF,TI},BF);
+Bx = Bx[1:end-bkl,:]
+Iz = SparseMatrixCSC{TF}(LinearAlgebra.I,comp_grid.n[2],comp_grid.n[2])# speye(TF,comp_grid.n[2]);
+BF = kron(Iz,Bx);
+#BF = convert(SparseMatrixCSC{TF,TI},BF);
 
-#second: subsample
-(e1,e2,e3)=size(d_obs)
-mask = ones(TF,e2*e3)
-s    = randperm(e3*e2)
-zero_ind = s[1:Int(8.*round((e2*e3)/10))]
-mask[zero_ind].=0.0f0
-mask = spdiagm(mask,0)
-FWD_OP = convert(SparseMatrixCSC{TF,TI},mask*BF)
+#second, subsample
+(e1,e2,e3) = size(d_obs)
+mask       = ones(TF,e2*e3)
+s          = randperm(e3*e2)
+zero_ind   = s[1:Int(8.*round((e2*e3)/10))]
+mask[zero_ind] .= TF(0.0)
+mask       = spdiagm(0 => mask)#spdiagm(mask,0)
+FWD_OP     = mask*BF#convert(SparseMatrixCSC{TF,TI},mask*BF)
 
 #blur and subsample to create observed data
 for i=1:size(d_obs,1)
   temp = FWD_OP*vec(m_evaluation[i,:,:])
-  #add noise (integers between -2 and 2 for each  nonzero observation point)
-  noise = rand((-10:10),countnz(temp));
-  nz_ind = find(temp)
-  temp[nz_ind].= temp[nz_ind].+noise
-  d_obs[i,:,:] = reshape(temp,comp_grid.n[1]-bkl,comp_grid.n[2])
+
+  #add noise (integers between -10 and 10 for each nonzero observation point)
+  noise         = rand((-10:10),count(!iszero, temp))#countnz(temp))
+  nz_ind        = findall(temp)
+  temp[nz_ind] .= temp[nz_ind].+noise
+  d_obs[i,:,:]  = reshape(temp,comp_grid.n[1]-bkl,comp_grid.n[2])
 end
 println("finished creating observed data")
 

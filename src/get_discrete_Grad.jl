@@ -42,11 +42,10 @@ TI=Int64
       D2x  = kron(Iz,Dx)
       D_OP = vcat(D2z,D2x) #D2D
     end
-    #D = [Dx;Dz]
+    
 return D_OP
 end
 
-function get_discrete_Grad(n1,n2,n3,h1::TF,h2::TF,h3::TF,TD_type::String) where {TF<:Real}
 """
   3D version
   input: n1 : number of grid points in the first dimension
@@ -58,12 +57,14 @@ function get_discrete_Grad(n1,n2,n3,h1::TF,h2::TF,h3::TF,TD_type::String) where 
          TD_type : type of derivative operator as a string
    output : TD_OP : transform domain operator as a sparse matrix
 """
+function get_discrete_Grad(n1,n2,n3,h1::TF,h2::TF,h3::TF,TD_type::String) where {TF<:Real}
 
-if TF==Float64
-  TI=Int64
-else
-  TI=Int32
-end
+# if TF==Float64
+#   TI=Int64
+# else
+#   TI=Int32
+# end
+TI = Int64
 
     #define difference matrix D acting on vectorized model using Kronecker products
     Ix = SparseMatrixCSC{TF}(LinearAlgebra.I,n1,n1) #x
@@ -93,5 +94,5 @@ end
       D_OP = vcat(D3z,D3y,D3x)
     end
 
-return D_OP#D3D, D3x, D3y, D3z
+return D_OP
 end

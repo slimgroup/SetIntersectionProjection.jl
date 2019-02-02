@@ -11,19 +11,20 @@ export get_TD_operator
 """
 function get_TD_operator(comp_grid,TD_type,TF)
 
-if TF==Float64
-  TI=Int64
-else
-  TI=Int32
-end
+# if TF==Float64
+#   TI=Int64
+# else
+#   TI=Int32
+# end
+TI=Int64
 
-h1 = comp_grid.d[1];
-h2 = comp_grid.d[2];
-n1 = comp_grid.n[1];
-n2 = comp_grid.n[2];
+h1 = TF(comp_grid.d[1])
+h2 = TF(comp_grid.d[2])
+n1 = comp_grid.n[1]
+n2 = comp_grid.n[2]
 
 if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3d version
-  h3 = comp_grid.d[3]
+  h3 = TF(comp_grid.d[3])
   n3 = comp_grid.n[3]
   #(D3D, D3x, D3y, D3z) = get_discrete_Grad(n1,n2,n3,h1,h2,h3);
   if TD_type=="TV" || TD_type=="D3D"# anisotropic TV operator

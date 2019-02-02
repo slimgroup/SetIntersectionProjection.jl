@@ -2,7 +2,7 @@
 # with PARSDMM in serial, parallel or multilevel (seria or parallel)
 # Bas Peters, 2017
 
-#@everywhere include("../src/SetIntersectionProjection.jl")
+using Distributed
 @everywhere using SetIntersectionProjection
 using HDF5
 using PyPlot

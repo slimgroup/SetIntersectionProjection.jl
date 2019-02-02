@@ -108,11 +108,11 @@ obj_tol_target = deepcopy(options.obj_tol)
 #use more accurate ARADMM sub-problem solutions
 # we can play with these a bit to see if we can decrease total computational cost
 # if set too loose, we will not see overall convergence
-options.obj_tol=0.8*options.obj_tol
-options.feas_tol=0.8*options.feas_tol
-options.evol_rel_tol=10*eps(TF)
+options.obj_tol      = 0.8*options.obj_tol
+options.feas_tol     = 0.8*options.feas_tol
+options.evol_rel_tol = 10*eps(TF)
 
-P=Vector{Any}(3)
+P=Vector{Any}(undef,3)
 P[1]=P_sub[1] #projector onto bounds is easy.
 
 # Set up ARADMM to project onto transform-domain bounds (PARSDMM with 1 constraint set is equivalent to ARADMM)
@@ -145,7 +145,7 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 (TD_OPS3,AtA3,l,y) = PARSDMM_precompute_distribute(TD_OPS3,set_Prop3,comp_grid,options)
 P[3] = inp -> PARSDMM(inp,AtA3,TD_OPS3,set_Prop3,P_sub3,comp_grid,options) #projector onto transform-domain bounds
 
-closed_form=Vector{Bool}(3)
+closed_form=Vector{Bool}(undef,3)
 closed_form[1]=true
 closed_form[2]=false
 closed_form[3]=false
@@ -294,7 +294,7 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 (TD_OPS2,AtA2,l,y) = PARSDMM_precompute_distribute(TD_OPS2,set_Prop2,comp_grid,options)
 P[2] = inp -> PARSDMM(inp,AtA2,TD_OPS2,set_Prop2,P_sub2,comp_grid,options) #projector onto set of transform-domain rank
 
-closed_form=Vector{Bool}(2)
+closed_form=Vector{Bool}(undef,2)
 closed_form[1]=true
 closed_form[2]=false
 
