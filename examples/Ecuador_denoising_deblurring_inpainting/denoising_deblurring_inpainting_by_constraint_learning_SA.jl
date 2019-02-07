@@ -4,6 +4,12 @@
 # learing works with just a few even <10 training examples.
 # South America dataset
 using Distributed
+using LinearAlgebra
+using SparseArrays
+using Random
+using Statistics
+using StatsBase
+
 @everywhere using SetIntersectionProjection
 using MAT
 
@@ -66,7 +72,7 @@ BF = kron(Iz,Bx);
 (e1,e2,e3) = size(d_obs)
 mask       = ones(TF,e2*e3)
 s          = randperm(e3*e2)
-zero_ind   = s[1:Int(8.*round((e2*e3)/10))]
+zero_ind   = s[1:Int(8.0 .* round((e2*e3)/10))]
 mask[zero_ind] .= TF(0.0)
 mask       = spdiagm(0 => mask)#spdiagm(mask,0)
 FWD_OP     = mask*BF#convert(SparseMatrixCSC{TF,TI},mask*BF)
@@ -77,7 +83,7 @@ for i=1:size(d_obs,1)
 
   #add noise (integers between -10 and 10 for each nonzero observation point)
   noise         = rand((-10:10),count(!iszero, temp))#countnz(temp))
-  nz_ind        = findall(temp)
+  nz_ind        = findall(x->x!=0, temp)
   temp[nz_ind] .= temp[nz_ind].+noise
   d_obs[i,:,:]  = reshape(temp,comp_grid.n[1]-bkl,comp_grid.n[2])
 end
@@ -279,7 +285,7 @@ options.feasibility_only     = true #this is important to set
 options.parallel             = true
 options.zero_ini_guess       = true
 BLAS.set_num_threads(2)
-FFTW.set_num_threads(2)
+#FFTW.set_num_threads(2) (this is not supported in Julia 0.7)
 
 
 (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
@@ -305,14 +311,14 @@ dummy=zeros(TF,size(BF,2))
 (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
 println("finished precomputing and distributing")
 
-options.rho_ini      = ones(TF,length(TD_OP))*1000f0
+options.rho_ini      = ones(TF,length(TD_OP))*TF(1000.0)
 for i=1:length(options.rho_ini)
   if set_Prop.ncvx[i]==true
-    options.rho_ini[i]=10f0
+    options.rho_ini[i] = TF(10.0)
   end
 end
 
-using StatsBase
+
 for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
   @time (x,log_PARSDMM) = PARSDMM(dummy,AtA,TD_OP,set_Prop,P_sub,comp_grid,options)
