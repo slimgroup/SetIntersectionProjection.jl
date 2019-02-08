@@ -203,7 +203,7 @@ for i=1:maxit #main loop
         (max_set_feas,max_set_feas_ind) = findmax(log_PARSDMM.set_feasibility[counter-1,:])
         sort_feas = sort(log_PARSDMM.set_feasibility[counter-1,:]);
         if i>10
-          rho[max_set_feas_ind] .= TF(2.0) .* rho[max_set_feas_ind]
+          rho[max_set_feas_ind] = TF(2.0) .* rho[max_set_feas_ind]
         end
      end #end adjust_feasibility_rho
 
