@@ -4,8 +4,4 @@ Interpolations
 DistributedArrays
 JOLI
 SortingAlgorithms
-Distributed
-LinearAlgebra
-SparseArrays
-Printf
 FFTW
