@@ -1,16 +1,17 @@
 export project_subspace!
 
+"""
+project a vector x onto the subspace spanned by the columns of A.
+This is a simple implementation that solves linear systems on the fly. We can
+add options to factor A' * A once and reuse if memory permits. Iterative factorization
+free methods are also an option. Orthogonalize subspace beforehand to obtain an A
+such that A' * A = I to avoid linear system solves all together in this stage.
+"""
 function project_subspace!(
                           x     ::Vector{TF},
                           A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
                           orth  ::Bool
                           ) where {TF<:Real}
-
-#project a vector x onto the subspace spanned by the columns of A.
-#This is a simple implementation that solves linear systems on the fly. We can
-#add options to factor A'*A once and reuse if memory permits. Iterative factorization
-#free methods are also an option. Orthogonalize subspace beforehand to obtain an A
-# such that A'*A=I to avoid linear system solves all together in this stage.
   if orth == true
      x .= A*(A'*x) ::Vector{TF}
   else
@@ -43,16 +44,17 @@ end
 x = vec(x)
 end
 
+"""
+we want to project each slice of a tensor onto the subspace spanned by the columns of A
+x is a 3D array and we need to permute and reshape it such that we project the
+correct slices. Every slice needs to become a column of the matrix (x) we projection onto the subspace in column-wise sense
+"""
 function project_subspace!(
                           x     ::Array{TF,3},
                           A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
                           orth  ::Bool,
                           mode  ::String
                           ) where {TF<:Real}
-#we want to project each slice of a tensor onto the subspace spanned by the columns of A
-#x is a 3D array and we need to permute and reshape it such that we project the
-#correct slices. Every slice needs to become a column of the matrix (x) we projection onto the subspace in column-wise sense
-
   (n1,n2,n3)=size(x)
   #permute and reshape
   if mode == "x"

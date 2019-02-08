@@ -14,8 +14,8 @@ outputs a vector. Uses singular value decomposition
   #(U,S,V) = svd(x)
   #x = U[:,1:r]*diagm(S)*(V[:,1:r])'
 
-  #F=svdfact!(x)
-  F = svdfact(x) #obtain svd
+  #F=svd!(x)
+  F = svd(x) #obtain svd
   project_l1_Duchi!(F.S, sigma) # project singular values onto the l1-ball of size sigma
 
     #copy!(x,F.U * diagm(F.S) * F.Vt) #reconstruct
@@ -35,19 +35,19 @@ outputs a vector. Uses singular value decomposition
 """
 if mode == "x" #project y-z slices, so one slice per gridpoint in the x direction
   Threads.@threads for i=1:size(x,1)
-    F=svdfact(view(x,i,:,:))
+    F=svd(view(x,i,:,:))
     project_l1_Duchi!(F.S, sigma) # project singular values onto the l1-ball of size sigma
     @inbounds x[i,:,:].= F.U * diagm(F.S) * F.Vt #reconstruct
   end
 elseif mode == "y"
   Threads.@threads for i=1:size(x,2)
-    F=svdfact(view(x,:,i,:))
+    F=svd(view(x,:,i,:))
     project_l1_Duchi!(F.S, sigma) # project singular values onto the l1-ball of size sigma
     @inbounds x[:,i,:].= F.U * diagm(F.S) * F.Vt
   end
 elseif mode == "z"
   Threads.@threads for i=1:size(x,3)
-    F=svdfact(view(x,:,:,i))
+    F=svd(view(x,:,:,i))
     project_l1_Duchi!(F.S, sigma) # project singular values onto the l1-ball of size sigma
     @inbounds x[:,:,i].= F.U * diagm(F.S) * F.Vt
   end

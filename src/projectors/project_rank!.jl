@@ -9,7 +9,7 @@ function project_rank!(
 Project the matrix X onto the set of rank-r ( need r<min(n1,n2) ) matrices
 outputs a vector. Uses singular value decomposition
 """
-  F  = svdfact(x)
+  F  = svd(x)
   x .= F.U[:,1:r] * diagm(F.S[1:r])* F.Vt[1:r,:]
   x  = vec(x)
 end
@@ -26,17 +26,17 @@ outputs a vector. Uses singular value decomposition
 
 if mode == "x" #project y-z slices, so one slice per gridpoint in the x direction
   Threads.@threads for i=1:size(x,1)
-    F = svdfact(view(x,i,:,:))
+    F = svd(view(x,i,:,:))
     @inbounds x[i,:,:] .= F.U[:,1:r] * diagm(F.S[1:r])* F.Vt[1:r,:]
   end
 elseif mode == "y"
   Threads.@threads for i=1:size(x,2)
-    F = svdfact(view(x,:,i,:))
+    F = svd(view(x,:,i,:))
     @inbounds x[:,i,:] .= F.U[:,1:r] * diagm(F.S[1:r])* F.Vt[1:r,:]
   end
 elseif mode == "z"
   Threads.@threads for i=1:size(x,3)
-    F=svdfact(view(x,:,:,i))
+    F=svd(view(x,:,:,i))
     @inbounds x[:,:,i] .= F.U[:,1:r] * diagm(F.S[1:r])* F.Vt[1:r,:]
   end
 end #end if
