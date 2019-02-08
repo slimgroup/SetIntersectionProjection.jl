@@ -212,11 +212,11 @@ for i=1:maxit #main loop
      log_PARSDMM.T_adjust_rho_gamma=log_PARSDMM.T_adjust_rho_gamma+0.0#toq();;
 
      #tic()
-     ind_updated = find(rho .!= log_PARSDMM.rho[i,:]) # locate changed rho index
+     ind_updated = findall(rho .!= log_PARSDMM.rho[i,:]) # locate changed rho index
      ind_updated = convert(Array{TI,1},ind_updated)
 
      #re-assemble total transform domain operator as a matrix
-     if isempty(findin(p,ind_updated))==false
+     if isempty(findall((in)(ind_updated),p))==false
        if parallel==true && feasibility_only==false
          prox=convert(Vector{Any},prox); #gather rho
          prox[p] = input -> prox_l2s!(input,rho[p],m)

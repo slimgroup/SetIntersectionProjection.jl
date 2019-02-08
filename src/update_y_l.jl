@@ -30,7 +30,7 @@ function update_y_l(
 #r_pri   = Vector{Vector{Float64}}(p);
 #s       = Vector{Vector{Float64}}(p)
 lx   = length(x);
-rho1       = Vector{TF}(p)
+rho1 = Vector{TF}(undef,p)
 rho1 = TF(1.0) ./ rho;
 
 for ii=1:p
@@ -43,21 +43,21 @@ for ii=1:p
   if Blas_active  #&& i>5
     if gamma[ii]==1 #without relaxation
       copy!(y[ii],s[ii])
-      #y[ii]       = prox[ii]( Base.LinAlg.axpy!(-rho1[ii],l[ii],y[ii]) )
-      Base.LinAlg.axpy!(-rho1[ii],l[ii],y[ii])
+      #y[ii]       = prox[ii]( BLAS.axpy!(-rho1[ii],l[ii],y[ii]) )
+      BLAS.axpy!(-rho1[ii],l[ii],y[ii])
       prox[ii](y[ii])
       r_pri[ii]   .= -s[ii] .+ y[ii];
-      Base.LinAlg.axpy!(rho[ii],r_pri[ii],l[ii]);
+      BLAS.axpy!(rho[ii],r_pri[ii],l[ii]);
     else #relaxed iterations
       x_hat[ii]   .= gamma[ii].*s[ii]
-      Base.LinAlg.axpy!(TF(1.0) .- gamma[ii],y[ii],x_hat[ii]);
+      BLAS.axpy!(TF(1.0) .- gamma[ii],y[ii],x_hat[ii]);
       #y[ii]       = copy(x_hat[ii]);
       copy!(y[ii],x_hat[ii])
-      #y[ii]       = prox[ii]( Base.LinAlg.axpy!(-rho1[ii],l[ii],y[ii]))
-      Base.LinAlg.axpy!(-rho1[ii],l[ii],y[ii])
+      #y[ii]       = prox[ii]( BLAS.axpy!(-rho1[ii],l[ii],y[ii]))
+      BLAS.axpy!(-rho1[ii],l[ii],y[ii])
       prox[ii](y[ii])
       r_pri[ii]   .= -s[ii] .+ y[ii];
-      Base.LinAlg.axpy!(rho[ii],y[ii] .- x_hat[ii],l[ii]);
+      BLAS.axpy!(rho[ii],y[ii] .- x_hat[ii],l[ii]);
     end
   else
     if gamma[ii]==1 #without relaxation

@@ -14,7 +14,7 @@ function CDS_scaled_add!(
                   ) where {TF<:Real,TI<:Integer}
 
 for k=1:length(B_offsets)
-  A_update_col = findin(A_offsets,B_offsets[k])
+  A_update_col = findall((in)(B_offsets[k]),A_offsets)
   if isempty(A_update_col) == true
     error("attempted to update a diagonal in A in CDS storage that does not excist. A and B need to have the same nonzero diagonals")
   end
