@@ -1,10 +1,11 @@
 #This script illustate how to set up constraints and project a 3D model onto an intersection
-# with PARSDMM in serial, parallel or multilevel (seria or parallel)
+# with PARSDMM in serial, parallel or multilevel (serial or parallel)
 # Bas Peters, 2017
 
 using Distributed
 @everywhere using SetIntersectionProjection
 using HDF5
+ENV["MPLBACKEND"]="qt5agg"
 using PyPlot
 
 @everywhere mutable struct compgrid
@@ -17,13 +18,11 @@ end
 n,d,o,m = h5open("overthrust_3D_true_model.h5","r") do file
 	read(file, "n", "d", "o", "m")
 end
-m .= 1000./sqrt.(m);
+m .= 1000.0 ./ sqrt.(m);
 m = m[1:250,1:250,:];
 
 comp_grid = compgrid( (d[1], d[2], d[3]),( size(m,1), size(m,2), size(m,3) ) )
 m=vec(m);
-
-
 
 #PARSDMM options:
 options=PARSDMM_options()
@@ -48,8 +47,8 @@ elseif options.FL==Float32
 end
 
 #convert model and computational grid parameters
-comp_grid=compgrid( ( convert(TF,comp_grid.d[1]),convert(TF,comp_grid.d[2]),convert(TF,comp_grid.d[3]) ),( convert(TI,comp_grid.n[1]),convert(TI,comp_grid.n[2]),convert(TI,comp_grid.n[3]) ) )
-m=convert(Vector{TF},m)
+comp_grid = compgrid( ( convert(TF,comp_grid.d[1]),convert(TF,comp_grid.d[2]),convert(TF,comp_grid.d[3]) ),( convert(TI,comp_grid.n[1]),convert(TI,comp_grid.n[2]),convert(TI,comp_grid.n[3]) ) )
+m         = convert(Vector{TF},m)
 
 #define axis limits and colorbar limits
 xmax = comp_grid.d[1]*comp_grid.n[1]
@@ -59,7 +58,7 @@ vmi=minimum(m)
 vma=maximum(m)
 
 #constraints
-constraint = Vector{SetIntersectionProjection.set_definitions}()
+constraint = Vector{SetIntersectionProjection.set_definitions}() #initialize
 
 #bounds:
 m_min     = minimum(m)
@@ -116,12 +115,12 @@ subplot(3,1,3);imshow(x_plot[Int64(round(comp_grid.n[1]/2)),:,:]',cmap="jet",vmi
 
 #use multilevel-serial (2-levels)
 #2 levels, the gird point spacing at level 2 is 3X that of the original (level 1) grid
-options.parallel = false
-n_levels         = 2
-coarsening_factor= 3
+options.parallel  = false
+n_levels          = 2
+coarsening_factor = 3
 
 #set up all required quantities for each level
-(TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+(TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels) = setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
 
 println("")
 println("PARSDMM multilevel-serial (bounds and bounds on D_z):")
@@ -141,19 +140,18 @@ options.parallel       = true
 @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options)
 
 #use multilevel-parallel (2-levels)
-options.parallel=true
+options.parallel  = true
+#2 levels, the grid point spacing at level 2 is 3X that of the original (level 1) grid
+n_levels          = 2
+coarsening_factor = 3
 
-  #2 levels, the grid point spacing at level 2 is 3X that of the original (level 1) grid
-  n_levels=2
-  coarsening_factor=3
+#set up all required quantities for each level
+(TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels) = setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
 
-  #set up all required quantities for each level
-  (TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
-
-  println("PARSDMM multilevel-parallel (bounds and bounds on D_z):")
-  @time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
-  @time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
-  @time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+println("PARSDMM multilevel-parallel (bounds and bounds on D_z):")
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
 
 
 

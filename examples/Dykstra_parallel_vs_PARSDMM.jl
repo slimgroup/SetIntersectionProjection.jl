@@ -6,6 +6,8 @@ using SetIntersectionProjection
 include(joinpath(Pkg.dir("SetIntersectionProjection"),"examples/Dykstra_prox_parallel.jl"))
 include(joinpath(Pkg.dir("SetIntersectionProjection"),"examples/Dykstra_prox_parallel2.jl"))
 using MAT
+
+ENV["MPLBACKEND"]="qt5agg"
 using PyPlot
 
 mutable struct compgrid
@@ -16,11 +18,13 @@ end
 #read velocity model
 #data_dir = "/Volumes/Users/bpeters/Downloads"
 data_dir = "/data/slim/bpeters/SetIntersection_data_results"
+
 file = matopen(joinpath(data_dir,"compass_velocity.mat"))
 m=read(file, "Data")
 close(file)
-m=m[1:341,200:600];
-m=m';
+
+m = m[1:341,200:600];
+m = permutedims(a,[2,1])
 
 #PARSDMM options:
 options          = PARSDMM_options()

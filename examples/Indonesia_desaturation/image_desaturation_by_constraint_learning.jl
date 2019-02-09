@@ -2,10 +2,18 @@
 # as set theoretical estimation (a feasibility problem)
 # We will use a VERY simple learning appraoch to obtain 'good' constraints. This
 # learing works with just a few even <10 training examples.
-
+using Distributed
 @everywhere using SetIntersectionProjection
 using MAT
 using Interpolations
+using Statistics
+using LinearAlgebra
+using SparseArrays
+using Random
+using StatsBase
+
+ENV["MPLBACKEND"]="qt5agg"
+using PyPlot
 
 @everywhere mutable struct compgrid
   d :: Tuple
@@ -44,8 +52,8 @@ comp_grid=compgrid( ( convert(TF,comp_grid.d[1]),convert(TF,comp_grid.d[2]) ), c
 
 #create 'observed data' by creating artificial saturation of images
 d_obs = deepcopy(m_evaluation)
-d_obs[d_obs.>125.0f0].=125.0f0
-d_obs[d_obs.<60.0f0]=60.0f0
+d_obs[d_obs.>125.0f0] .= 125.0f0
+d_obs[d_obs.<60.0f0]  .= 60.0f0
 
 # train by observing constraints on the data images in training data set
 observations = constraint_learning_by_obseration(comp_grid,m_train)
@@ -199,12 +207,12 @@ options.feasibility_only     = false #compute projection of initial guess
 options.parallel             = true
 options.zero_ini_guess       = false
 BLAS.set_num_threads(2)
-FFTW.set_num_threads(2)
+#FFTW.set_num_threads(2) #can't use this in Julia >0.6
 
 (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL) #obtain projector and transform-domain operator pairs
 
 #add the blurring filer sparse matrix as a transform domain matrix, along with the properties
-push!(TD_OP,convert(SparseMatrixCSC{TF,TI},speye(TF,prod(comp_grid.n))))
+push!(TD_OP,SparseMatrixCSC{TF}(LinearAlgebra.I,comp_grid.n[2],comp_grid.n[2]))
 push!(set_Prop.AtA_offsets,[0]) #these are dummy values, actual ofsetts are automatically detected
 push!(set_Prop.ncvx,false)
 push!(set_Prop.banded,true)
@@ -213,32 +221,31 @@ push!(set_Prop.dense,false)
 push!(set_Prop.tag,("bounds","identity","matrix",""))
 
 #also add a projector onto the data constraint:
-#i.e. , or l<=(A*x-m)<=u or, a norm ||A*x-m||=< sigma
+#i.e. , or l<=(A*x-m)<=u (or, a norm ||A*x-m||=< sigma)
 data = vec(d_obs[1,:,:])
-LBD=data.-2.0;  LBD=convert(Vector{TF},LBD);
-UBD=data.+2.0;  UBD=convert(Vector{TF},UBD);
-ind_min_clip=find(data.==60.0f0)
-ind_max_clip=find(data.==125.0f0)
-LBD[ind_min_clip].=0.0f0
-UBD[ind_max_clip].=255.0f0
+LBD  = data .- 2.0;  LBD=convert(Vector{TF},LBD);
+UBD  = data .+ 2.0;  UBD=convert(Vector{TF},UBD);
+ind_min_clip = findall(data.==60.0f0)
+ind_max_clip = findall(data.==125.0f0)
+LBD[ind_min_clip] .= 0.0f0
+UBD[ind_max_clip] .= 255.0f0
 
 push!(P_sub,input -> project_bounds!(input,LBD,UBD))
 
 dummy=zeros(TF,prod(comp_grid.n))
 (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
-x_ini= vec(d_obs[1,:,:])
-x_ini[ind_max_clip]=225.0f0
-x_ini[ind_min_clip]=0.0f0
+
+x_ini               = vec(d_obs[1,:,:])
+x_ini[ind_max_clip] .= 225.0f0
+x_ini[ind_min_clip] .= 0.0f0
 
 options.rho_ini      = ones(TF,length(TD_OP))*1000f0
 for i=1:length(options.rho_ini)
   if set_Prop.ncvx[i]==true
-    options.rho_ini[i]=10f0
+    options.rho_ini[i] = 10f0
   end
 end
 
-
-using StatsBase
 for i=1:size(d_obs,1)
   SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
  [@spawnat pid y[:L][1]=TD_OP[:L][1]*x_ini for pid in y.pids]
@@ -253,17 +260,17 @@ for i=1:size(d_obs,1)
 
   if i+1<=size(d_obs,1)
     data = vec(d_obs[i+1,:,:])
-    LBD=data.-2.0;  LBD=convert(Vector{TF},LBD);
-    UBD=data.+2.0;  UBD=convert(Vector{TF},UBD);
-    ind_min_clip=find(data.==60.0f0)
-    ind_max_clip=find(data.==125.0f0)
-    LBD[ind_min_clip].=0.0f0
-    UBD[ind_max_clip].=255.0f0
+    LBD = data.-2.0;  LBD=convert(Vector{TF},LBD);
+    UBD = data.+2.0;  UBD=convert(Vector{TF},UBD);
+    ind_min_clip = findall(data.==60.0f0)
+    ind_max_clip = findall(data.==125.0f0)
+    LBD[ind_min_clip] .= 0.0f0
+    UBD[ind_max_clip] .= 255.0f0
     P_sub[end] = x -> project_bounds!(x,LBD,UBD)
 
     x_ini= vec(d_obs[i+1,:,:])
-    x_ini[ind_max_clip]=225.0f0
-    x_ini[ind_min_clip]=0.0f0
+    x_ini[ind_max_clip] .= 225.0f0
+    x_ini[ind_min_clip] .= 0.0f0
   end
 end
 #
@@ -274,8 +281,6 @@ end
 # (m_est,mask_save)=ICLIP_inpainting(FWD_OP,d_obs,m_evaluation,constraint,comp_grid,options,multi_level,n_levels,coarsening_factor)
 
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
-
-using PyPlot
 
 #plot training images
 figure();title("training image", fontsize=10)

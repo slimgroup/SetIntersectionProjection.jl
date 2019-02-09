@@ -5,6 +5,7 @@
 using Distributed
 @everywhere using SetIntersectionProjection
 using MAT
+ENV["MPLBACKEND"]="qt5agg"
 using PyPlot
 
 mutable struct compgrid
@@ -38,7 +39,7 @@ end
 file = matopen("compass_velocity.mat")
 m    = read(file, "Data");close(file)
 m = m[1:341,200:600]
-m = m'
+m = permutedims(a,[2,1])
 
 #set up computational grid (25 and 6 m are the original distances between grid points)
 comp_grid = compgrid((TF(25.0), TF(6.0)),(size(m,1), size(m,2)))

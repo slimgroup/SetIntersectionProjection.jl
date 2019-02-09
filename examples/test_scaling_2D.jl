@@ -1,6 +1,9 @@
+using Distributed
 @everywhere using SetIntersectionProjection
 using MAT
+ENV["MPLBACKEND"]="qt5agg"
 using PyPlot
+using LinearAlgebra
 data_dir = "/data/slim/bpeters/SetIntersection_data_results"
 
 @everywhere mutable struct compgrid
@@ -11,13 +14,14 @@ end
 #test 2D
 width=[50 100 200 400 800 1600]
 
-test =Vector{Any}(length(width))
-N = Vector{Any}(length(width))
+test = Vector{Any}(undef,length(width))
+N    = Vector{Any}(undef,length(width))
 
 #PARSDMM options:
-options=PARSDMM_options()
-options.FL=Float32
-options.evol_rel_tol =10*eps(options.FL)
+options              = PARSDMM_options()
+options.FL           = Float32
+options.evol_rel_tol = 10*eps(options.FL)
+
 set_zero_subnormals(true)
 BLAS.set_num_threads(2)
 
@@ -30,7 +34,8 @@ elseif options.FL==Float32
   TI = Int32
 end
 
-constraint = Vector{SetIntersectionProjection.set_definitions}()
+#define constraints
+constraint = Vector{SetIntersectionProjection.set_definitions}() #initialize
 
 #bounds:
 m_min     = 1450.0
@@ -61,15 +66,16 @@ custom_TD_OP = ([],false)
 push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 
+#initialize arrays to save timings
+log_T_serial   = Vector{Any}(undef,length(width))
+T_tot_serial   = Vector{Any}(undef,length(width))
+log_T_parallel = Vector{Any}(undef,length(width))
+T_tot_parallel = Vector{Any}(undef,length(width))
 
-log_T_serial=Vector{Any}(length(width))
-T_tot_serial=Vector{Any}(length(width))
-log_T_parallel=Vector{Any}(length(width))
-T_tot_parallel=Vector{Any}(length(width))
-log_T_serial_multilevel=Vector{Any}(length(width))
-T_tot_serial_multilevel=Vector{Any}(length(width))
-log_T_parallel_multilevel=Vector{Any}(length(width))
-T_tot_parallel_multilevel=Vector{Any}(length(width))
+log_T_serial_multilevel   = Vector{Any}(undef,length(width))
+T_tot_serial_multilevel   = Vector{Any}(undef,length(width))
+log_T_parallel_multilevel = Vector{Any}(undef,length(width))
+T_tot_parallel_multilevel = Vector{Any}(undef,length(width))
 
 for i=1:length(width)
   print(i)
@@ -77,18 +83,18 @@ for i=1:length(width)
   file = matopen(joinpath(data_dir,"compass_velocity.mat"))
   m=read(file, "Data")
   close(file)
-  m=m[1:341,1:width[i]];
-  m=m';
+  m = m[1:341,1:width[i]]
+  m = permutedims(a,[2,1])
 
   comp_grid = compgrid((TF(25), TF(25)),(size(m,1), size(m,2)))
-  m=convert(Vector{TF},vec(m));
-  N[i]=prod(size(m));
+  m    = convert(Vector{TF},vec(m))
+  N[i] = prod(size(m))
 
   #serial
-  @everywhere gc()
+  @everywhere GC.gc()
   println("")
   println("serial")
-  options.parallel=false
+  options.parallel = false
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
   (TD_OP,AtA,l,y)       = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
   (x,log_PARSDMM)       = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
@@ -98,45 +104,45 @@ for i=1:length(width)
   T_tot_serial[i]=t;
 
   #parallel
-  @everywhere gc()
+  @everywhere GC.gc()
   println("")
   println("parallel")
-  options.parallel=true
+  options.parallel = true
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
   (TD_OP,AtA,l,y)       = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
   (x,log_PARSDMM)       = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,TD_Prop,P_sub,comp_grid,options);
   println(t)
-  log_T_parallel[i]=log_PARSDMM;
-  T_tot_parallel[i]=t;
+  log_T_parallel[i] = log_PARSDMM
+  T_tot_parallel[i] = t
 
   #serial multilevel
-  @everywhere gc()
+  @everywhere GC.gc()
   println("")
   println("serial multilevel")
-  options.parallel=false
-  n_levels=2
-  coarsening_factor=3
+  options.parallel  = false
+  n_levels          = 2
+  coarsening_factor = 3
   (TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
   (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   println(t)
-  log_T_serial_multilevel[i]=log_PARSDMM;
-  T_tot_serial_multilevel[i]=t;
+  log_T_serial_multilevel[i] = log_PARSDMM
+  T_tot_serial_multilevel[i] = t
 
   #parallel multilevel
-  @everywhere gc()
+  @everywhere GC.gc()
   println("")
   println("parallel multilevel")
-  options.parallel=true
-  n_levels=2
-  coarsening_factor=3
+  options.parallel  = true
+  n_levels          = 2
+  coarsening_factor = 3
   (TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
   (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   println(t)
-  log_T_parallel_multilevel[i]=log_PARSDMM;
-  T_tot_parallel_multilevel[i]=t;
+  log_T_parallel_multilevel[i] = log_PARSDMM
+  T_tot_parallel_multilevel[i] = t
 
   if i==1
     figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))');colorbar

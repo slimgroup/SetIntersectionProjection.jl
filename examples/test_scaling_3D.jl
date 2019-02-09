@@ -1,4 +1,7 @@
+using Distributed
 @everywhere using SetIntersectionProjection
+using LinearAlgebra
+
 using HDF5
 data_dir = "/data/slim/bpeters/SetIntersection_data_results"
 
@@ -10,13 +13,13 @@ end
 #test 2D
 width=[50 100 200 340]
 
-test =Vector{Any}(length(width))
-N = Vector{Any}(length(width))
+test = Vector{Any}(undef,length(width))
+N    = Vector{Any}(undef,length(width))
 
 #PARSDMM options:
-options=PARSDMM_options()
-options.FL=Float32
-options.evol_rel_tol =10*eps(options.FL)
+options              = PARSDMM_options()
+options.FL           = Float32
+options.evol_rel_tol = 10*eps(options.FL)
 set_zero_subnormals(true)
 
 #select working precision
@@ -28,7 +31,8 @@ elseif options.FL==Float32
   TI = Int32
 end
 
-constraint = Vector{SetIntersectionProjection.set_definitions}()
+#define constraints
+constraint = Vector{SetIntersectionProjection.set_definitions}() #initialize
 
 #bound constraints
 m_min     = 1500.0
@@ -71,87 +75,90 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 n,d,o,m_full = h5open(joinpath(data_dir,"overthrust_3D_true_model.h5"),"r") do file
   read(file, "n", "d", "o", "m")
 end
-m_full.=1000./sqrt.(m_full);
 
-log_T_serial=Vector{Any}(length(width))
-T_tot_serial=Vector{Any}(length(width))
-log_T_parallel=Vector{Any}(length(width))
-T_tot_parallel=Vector{Any}(length(width))
-log_T_serial_multilevel=Vector{Any}(length(width))
-T_tot_serial_multilevel=Vector{Any}(length(width))
-log_T_parallel_multilevel=Vector{Any}(length(width))
-T_tot_parallel_multilevel=Vector{Any}(length(width))
+m_full .= 1000.0 ./ sqrt.(m_full);
+
+#initialize arrays to save timings
+log_T_serial   = Vector{Any}(undef,length(width))
+T_tot_serial   = Vector{Any}(undef,length(width))
+log_T_parallel = Vector{Any}(undef,length(width))
+T_tot_parallel = Vector{Any}(undef,length(width))
+
+log_T_serial_multilevel   = Vector{Any}(undef,length(width))
+T_tot_serial_multilevel   = Vector{Any}(undef,length(width))
+log_T_parallel_multilevel = Vector{Any}(undef,length(width))
+T_tot_parallel_multilevel = Vector{Any}(undef,length(width))
 
 options.rho_ini = [1.0;1000.0;1000.0;1000.0;1.0]
 
 for i=length(width):-1:1
   print(i)
 
-  m=m_full[1:width[i],1:width[i],:];
+  m         = m_full[1:width[i],1:width[i],:];
   comp_grid = compgrid( (TF(d[1]), TF(d[2]), TF(d[3])),( size(m,1), size(m,2), size(m,3) ) )
-  m=convert(Vector{TF},vec(m))
+  m         = convert(Vector{TF},vec(m))
 
   N[i]=prod(size(m));
 
   #parallel
-  @everywhere gc()
+  @everywhere GC.gc()
   println("")
   println("parallel")
   options.parallel=true
   @everywhere BLAS.set_num_threads(2)
   (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
-  (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+  (TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
+  (x,log_PARSDMM)        = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
   println(t)
-  log_T_parallel[i]=log_PARSDMM;
-  T_tot_parallel[i]=t;
+  log_T_parallel[i] = log_PARSDMM
+  T_tot_parallel[i] = t
 
   #serial
-  @everywhere gc()
+  @everywhere GC.gc()
   println("")
   println("serial")
   options.parallel=false
   #options.rho_ini = [10.0]
   BLAS.set_num_threads(4)
   (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-  (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
-  (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+  (TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
+  (x,log_PARSDMM)        = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
   println(t)
-  log_T_serial[i]=log_PARSDMM;
-  T_tot_serial[i]=t;
+  log_T_serial[i] = log_PARSDMM
+  T_tot_serial[i] = t
 
   #serial multilevel
-  @everywhere gc()
+  @everywhere GC.gc()
   println("")
   println("serial multilevel")
   BLAS.set_num_threads(4)
   #options.rho_ini = [1000.0]
-  options.parallel=false
-  n_levels=3
-  coarsening_factor=2
+  options.parallel  = false
+  n_levels          = 3
+  coarsening_factor = 2
   (TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,constraint_level)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
   (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   println(t)
-  log_T_serial_multilevel[i]=log_PARSDMM;
-  T_tot_serial_multilevel[i]=t;
+  log_T_serial_multilevel[i] = log_PARSDMM
+  T_tot_serial_multilevel[i] = t
 
   #parallel multilevel
-  @everywhere gc()
+  @everywhere GC.gc()
   println("")
   println("parallel multilevel")
   @everywhere BLAS.set_num_threads(2)
-  options.parallel=true
-  n_levels=3
-  coarsening_factor=2
+  options.parallel  = true
+  n_levels          = 3
+  coarsening_factor = 2
   (TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,constraint_level)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
   (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   val, t, bytes, gctime, memallocs = @timed (x,log_PARSDMM) = PARSDMM_multi_level(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
   println(t)
-  log_T_parallel_multilevel[i]=log_PARSDMM;
-  T_tot_parallel_multilevel[i]=t;
+  log_T_parallel_multilevel[i] = log_PARSDMM
+  T_tot_parallel_multilevel[i] = t
 
 end
 

@@ -13,6 +13,9 @@ using StatsBase
 @everywhere using SetIntersectionProjection
 using MAT
 
+ENV["MPLBACKEND"]="qt5agg"
+using PyPlot
+
 @everywhere mutable struct compgrid
   d :: Tuple
   n :: Tuple
@@ -332,8 +335,6 @@ for i=1:size(d_obs,1)
     P_sub[end] = x -> project_bounds!(x,LBD,UBD)
   end
 end
-
-using PyPlot
 
 #plot training images
 figure();title("training image", fontsize=10)
