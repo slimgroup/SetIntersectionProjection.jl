@@ -32,10 +32,10 @@ elseif FL==32
 end
 
 #data directory for loading and writing results
-data_dir = "/data/slim/bpeters/SetIntersection_data_results"
+result_dir = "Results/"
 
 #load a very small data set (12 images only) (Mablab files for compatibility with matlab only solvers for comparison...)
-file  = matopen(joinpath(data_dir,"SA_patches.mat"))
+file  = matopen("../Data/SA_patches.mat"))
 mtrue = read(file, "SA_patches")
 mtrue = convert(Array{TF,3},mtrue)
 
@@ -341,15 +341,15 @@ figure();title("training image", fontsize=10)
 for i=1:16
   subplot(4,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig(joinpath(data_dir,"training_data_all.eps"),bbox_inches="tight",dpi=600)
-savefig(joinpath(data_dir,"training_data_all.png"),bbox_inches="tight")
+savefig(joinpath(result_dir,"training_data_all.eps"),bbox_inches="tight",dpi=600)
+savefig(joinpath(result_dir,"training_data_all.png"),bbox_inches="tight")
 close()
 
 for i=1:35
   figure();title(string("training image", i), fontsize=10)
   imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
-  savefig(joinpath(data_dir,string("training_data_", i,".eps")),bbox_inches="tight",dpi=600)
-  savefig(joinpath(data_dir,string("training_data_", i,".png")),bbox_inches="tight")
+  savefig(joinpath(result_dir,string("training_data_", i,".eps")),bbox_inches="tight",dpi=600)
+  savefig(joinpath(result_dir,string("training_data_", i,".png")),bbox_inches="tight")
   close()
 end
 close("all")
@@ -359,41 +359,41 @@ figure();
 for i=1:8
   subplot(2,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig(joinpath(data_dir,"training_data_first8.eps"),bbox_inches="tight",dpi=600)
-savefig(joinpath(data_dir,"training_data_first8.png"),bbox_inches="tight")
+savefig(joinpath(result_dir,"training_data_first8.eps"),bbox_inches="tight",dpi=600)
+savefig(joinpath(result_dir,"training_data_first8.png"),bbox_inches="tight")
 close()
 
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 
 for i=1:size(m_est,1)
     figure();imshow(d_obs[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".eps")),bbox_inches="tight",dpi=600)
-    savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".png")),bbox_inches="tight")
+    savefig(joinpath(result_dir,string("deblurring_inpainting_observed",i,".eps")),bbox_inches="tight",dpi=600)
+    savefig(joinpath(result_dir,string("deblurring_inpainting_observed",i,".png")),bbox_inches="tight")
     figure();imshow(m_est[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(m_est[i,(bkl*2):end-(bkl*2),:])),2)))
-    savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
-    savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".png")),bbox_inches="tight")
+    savefig(joinpath(result_dir,string("PARSDMM_deblurring_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
+    savefig(joinpath(result_dir,string("PARSDMM_deblurring_inpainting",i,".png")),bbox_inches="tight")
     figure();imshow(m_evaluation[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".eps")),bbox_inches="tight",dpi=600)
-    savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".png")),bbox_inches="tight")
+    savefig(joinpath(result_dir,string("deblurring_inpainting_evaluation",i,".eps")),bbox_inches="tight",dpi=600)
+    savefig(joinpath(result_dir,string("deblurring_inpainting_evaluation",i,".png")),bbox_inches="tight")
 end
 
-file = matopen(joinpath(data_dir,"m_est.mat"), "w")
+file = matopen(joinpath(result_dir,"m_est.mat"), "w")
 write(file, "m_est", convert(Array{Float64,3},m_est))
 close(file)
 
-file = matopen(joinpath(data_dir,"m_evaluation.mat"), "w")
+file = matopen(joinpath(result_dir,"m_evaluation.mat"), "w")
 write(file, "m_evaluation", convert(Array{Float64,3},m_evaluation))
 close(file)
 
-file = matopen(joinpath(data_dir,"m_train.mat"), "w")
+file = matopen(joinpath(result_dir,"m_train.mat"), "w")
 write(file, "m_train", convert(Array{Float64,3},m_train))
 close(file)
 
-file = matopen(joinpath(data_dir,"d_obs.mat"), "w")
+file = matopen(joinpath(result_dir,"d_obs.mat"), "w")
 write(file, "d_obs", convert(Array{Float64,3},d_obs))
 close(file)
 
-file = matopen(joinpath(data_dir,"FWD_OP.mat"), "w")
+file = matopen(joinpath(result_dir,"FWD_OP.mat"), "w")
 write(file, "FWD_OP", convert(SparseMatrixCSC{Float64,Int64},FWD_OP))
 close(file)
 
@@ -405,8 +405,8 @@ close(file)
 # for i=1:size(m_evaluation,1)
 #   figure()
 #   imshow(x_TFOCS_tv_save[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("TFOCS BPDN-TV, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(x_TFOCS_tv_save[i,(bkl*2):end-(bkl*2),:])),2)))
-#   savefig(joinpath(data_dir,string("TFOCS_TV_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
-#   savefig(joinpath(data_dir,string("TFOCS_TV_inpainting",i,".png")),bbox_inches="tight")
+#   savefig(joinpath(result_dir,string("TFOCS_TV_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
+#   savefig(joinpath(result_dir,string("TFOCS_TV_inpainting",i,".png")),bbox_inches="tight")
 # end
 
 file = matopen("x_SPGL1_wavelet_save_SA.mat")
@@ -418,8 +418,8 @@ SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 for i=1:size(m_evaluation,1)
   figure()
   imshow(x_SPGL_wavelet_save[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("SPGL1 BPDN-wavelet, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(x_SPGL_wavelet_save[i,:,:])),2)))
-  savefig(joinpath(data_dir,string("SPGL1_wavelet_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
-  savefig(joinpath(data_dir,string("SPGL1_wavelet_inpainting",i,".png")),bbox_inches="tight")
+  savefig(joinpath(result_dir,string("SPGL1_wavelet_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
+  savefig(joinpath(result_dir,string("SPGL1_wavelet_inpainting",i,".png")),bbox_inches="tight")
 end
 
 #all results in one figure (PARSDMM + SPGL1)
@@ -450,17 +450,17 @@ end
 for i=1:size(m_est,1)
   subplot(4,4,i+12);imshow(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title(string("BPDN-wavelet, PSNR=", round(psnr(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),maximum(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)])),2)))
 end
-savefig(joinpath(data_dir,string("deblurring_inpainting_results.eps")),bbox_inches="tight",dpi=300)
-savefig(joinpath(data_dir,string("deblurring_inpainting_results.png")),bbox_inches="tight")
+savefig(joinpath(result_dir,string("deblurring_inpainting_results.eps")),bbox_inches="tight",dpi=300)
+savefig(joinpath(result_dir,string("deblurring_inpainting_results.png")),bbox_inches="tight")
 #tight_layout()
 
     # figure();imshow(d_obs[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    # savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".eps")),bbox_inches="tight",dpi=600)
-    # savefig(joinpath(data_dir,string("deblurring_inpainting_observed",i,".png")),bbox_inches="tight")
+    # savefig(joinpath(result_dir,string("deblurring_inpainting_observed",i,".eps")),bbox_inches="tight",dpi=600)
+    # savefig(joinpath(result_dir,string("deblurring_inpainting_observed",i,".png")),bbox_inches="tight")
     # figure();imshow(m_est[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(m_est[i,(bkl*2):end-(bkl*2),:])),2)))
-    # savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
-    # savefig(joinpath(data_dir,string("PARSDMM_deblurring_inpainting",i,".png")),bbox_inches="tight")
+    # savefig(joinpath(result_dir,string("PARSDMM_deblurring_inpainting",i,".eps")),bbox_inches="tight",dpi=600)
+    # savefig(joinpath(result_dir,string("PARSDMM_deblurring_inpainting",i,".png")),bbox_inches="tight")
     # figure();imshow(m_evaluation[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    # savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".eps")),bbox_inches="tight",dpi=600)
-    # savefig(joinpath(data_dir,string("deblurring_inpainting_evaluation",i,".png")),bbox_inches="tight")
+    # savefig(joinpath(result_dir,string("deblurring_inpainting_evaluation",i,".eps")),bbox_inches="tight",dpi=600)
+    # savefig(joinpath(result_dir,string("deblurring_inpainting_evaluation",i,".png")),bbox_inches="tight")
 end

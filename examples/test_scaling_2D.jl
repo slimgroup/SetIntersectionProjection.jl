@@ -4,7 +4,7 @@ using MAT
 ENV["MPLBACKEND"]="qt5agg"
 using PyPlot
 using LinearAlgebra
-data_dir = "/data/slim/bpeters/SetIntersection_data_results"
+
 
 @everywhere mutable struct compgrid
   d :: Tuple
@@ -80,7 +80,7 @@ T_tot_parallel_multilevel = Vector{Any}(undef,length(width))
 for i=1:length(width)
   print(i)
 
-  file = matopen(joinpath(data_dir,"compass_velocity.mat"))
+  file = matopen("../Data/compass_velocity.mat")
   m=read(file, "Data")
   close(file)
   m = m[1:341,1:width[i]]

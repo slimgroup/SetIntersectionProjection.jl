@@ -21,7 +21,6 @@ using PyPlot
 end
 
 #data directory for loading and writing results
-data_dir = "/data/slim/bpeters/SetIntersection_data_results"
 
 #select working precision
 FL=32
@@ -33,8 +32,10 @@ elseif FL==32
   TI = Int32
 end
 
+result_dir = "Results/"
+
 #load a very small data set (12 images only) (Mablab files for compatibility with matlab only solvers for comparison...)
-file  = matopen(joinpath(data_dir,"Ternate_patch.mat"))
+file  = matopen("../Data/Ternate_patch.mat"))
 mtrue = read(file, "Ternate_patch")
 mtrue = convert(Array{TF,3},mtrue)
 
@@ -287,8 +288,8 @@ figure();title("training image", fontsize=10)
 for i=1:16
   subplot(4,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig(joinpath(data_dir,"training_data_all.eps"),bbox_inches="tight",dpi=600)
-savefig(joinpath(data_dir,"training_data_all.png"),bbox_inches="tight")
+savefig(joinpath(result_dir,"training_data_all.eps"),bbox_inches="tight",dpi=600)
+savefig(joinpath(result_dir,"training_data_all.png"),bbox_inches="tight")
 close()
 
 #First 8 in 1 figure
@@ -296,29 +297,29 @@ figure();
 for i=1:8
   subplot(2,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig(joinpath(data_dir,"training_data_first8.eps"),bbox_inches="tight",dpi=600)
-savefig(joinpath(data_dir,"training_data_first8.png"),bbox_inches="tight")
+savefig(joinpath(result_dir,"training_data_first8.eps"),bbox_inches="tight",dpi=600)
+savefig(joinpath(result_dir,"training_data_first8.png"),bbox_inches="tight")
 close()
 
 for i=1:16
   figure();title(string("training image", i), fontsize=10)
   imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
-  savefig(joinpath(data_dir,string("training_data_", i,".eps")),bbox_inches="tight",dpi=600)
-  savefig(joinpath(data_dir,string("training_data_", i,".png")),bbox_inches="tight")
+  savefig(joinpath(result_dir,string("training_data_", i,".eps")),bbox_inches="tight",dpi=600)
+  savefig(joinpath(result_dir,string("training_data_", i,".png")),bbox_inches="tight")
   close()
 end
 
 #plot results
 for i=1:size(m_est,1)
     figure();imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(joinpath(data_dir,string("saturized_observed",i,".eps")),bbox_inches="tight",dpi=600)
-    savefig(joinpath(data_dir,string("saturized_observed",i,".png")),bbox_inches="tight")
+    savefig(joinpath(result_dir,string("saturized_observed",i,".eps")),bbox_inches="tight",dpi=600)
+    savefig(joinpath(result_dir,string("saturized_observed",i,".png")),bbox_inches="tight")
     figure();imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:])),2)))
-    savefig(joinpath(data_dir,string("PARSDMM_desaturation",i,".eps")),bbox_inches="tight",dpi=600)
-    savefig(joinpath(data_dir,string("PARSDMM_desaturation",i,".png")),bbox_inches="tight")
+    savefig(joinpath(result_dir,string("PARSDMM_desaturation",i,".eps")),bbox_inches="tight",dpi=600)
+    savefig(joinpath(result_dir,string("PARSDMM_desaturation",i,".png")),bbox_inches="tight")
     figure();imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(joinpath(data_dir,string("desaturation_evaluation",i,".eps")),bbox_inches="tight",dpi=600)
-    savefig(joinpath(data_dir,string("desaturation_evaluation",i,".png")),bbox_inches="tight")
+    savefig(joinpath(result_dir,string("desaturation_evaluation",i,".eps")),bbox_inches="tight",dpi=600)
+    savefig(joinpath(result_dir,string("desaturation_evaluation",i,".png")),bbox_inches="tight")
     close()
 end
 
@@ -332,8 +333,8 @@ end
 for i=1:size(m_est,1)
   subplot(3,4,i+4);imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
 end
-savefig(joinpath(data_dir,string("desaturation_results.eps")),bbox_inches="tight",dpi=300)
-savefig(joinpath(data_dir,string("desaturation_results.png")),bbox_inches="tight")
+savefig(joinpath(result_dir,string("desaturation_results.eps")),bbox_inches="tight",dpi=300)
+savefig(joinpath(result_dir,string("desaturation_results.png")),bbox_inches="tight")
 
 
 
@@ -347,34 +348,34 @@ savefig(joinpath(data_dir,string("desaturation_results.png")),bbox_inches="tight
 #   xlabel("pixel value", fontsize=12)
 #   ylabel("count", fontsize=12)
 #   title("Histograms of true and estimated image (PARSDMM)", fontsize=12)
-#   savefig(joinpath(data_dir,string("hist_desaturation_PARSDMM",i,".eps")),bbox_inches="tight",dpi=300)
-#   savefig(joinpath(data_dir,string("hist_desaturation_PARSDMM",i,".png")),bbox_inches="tight")
-#   savefig(joinpath(data_dir,string("hist_desaturation_PARSDMM_HQPNG",i,".png")),bbox_inches="tight",dpi=1200)
+#   savefig(joinpath(result_dir,string("hist_desaturation_PARSDMM",i,".eps")),bbox_inches="tight",dpi=300)
+#   savefig(joinpath(result_dir,string("hist_desaturation_PARSDMM",i,".png")),bbox_inches="tight")
+#   savefig(joinpath(result_dir,string("hist_desaturation_PARSDMM_HQPNG",i,".png")),bbox_inches="tight",dpi=1200)
 #   close()
 # end
 
 
-# file = matopen(joinpath(data_dir,"x.mat"), "w")
+# file = matopen(joinpath(result_dir,"x.mat"), "w")
 # write(file, "x", convert(Array{Float64,1},x))
 # close(file)
 
-file = matopen(joinpath(data_dir,"m_est.mat"), "w")
+file = matopen(joinpath(result_dir,"m_est.mat"), "w")
 write(file, "m_est", convert(Array{Float64,3},m_est))
 close(file)
 
-file = matopen(joinpath(data_dir,"m_evaluation.mat"), "w")
+file = matopen(joinpath(result_dir,"m_evaluation.mat"), "w")
 write(file, "m_evaluation", convert(Array{Float64,3},m_evaluation))
 close(file)
 
-file = matopen(joinpath(data_dir,"m_train.mat"), "w")
+file = matopen(joinpath(result_dir,"m_train.mat"), "w")
 write(file, "m_train", convert(Array{Float64,3},m_train))
 close(file)
 
-file = matopen(joinpath(data_dir,"d_obs.mat"), "w")
+file = matopen(joinpath(result_dir,"d_obs.mat"), "w")
 write(file, "d_obs", convert(Array{Float64,3},d_obs))
 close(file)
 #
-# file = matopen(joinpath(data_dir,"BF.mat"), "w")
+# file = matopen(joinpath(result_dir,"BF.mat"), "w")
 # write(file, "BF", convert(SparseMatrixCSC{Float64,Int64},BF))
 # close(file)
 

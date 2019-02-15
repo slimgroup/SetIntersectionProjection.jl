@@ -36,7 +36,7 @@ elseif options.FL==Float32
 end
 
 #load image to project
-file = matopen("compass_velocity.mat")
+file = matopen("../Data/compass_velocity.mat")
 m    = read(file, "Data");close(file)
 m = m[1:341,200:600]
 m = permutedims(a,[2,1])

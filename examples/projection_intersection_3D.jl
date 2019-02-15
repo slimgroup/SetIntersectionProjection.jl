@@ -2,6 +2,8 @@
 # with PARSDMM in serial, parallel or multilevel (serial or parallel)
 # Bas Peters, 2017
 
+#THE DATA FOR THIS SCRIPT IS CURRENTLY NOT AVAILABLE ONLINE
+
 using Distributed
 @everywhere using SetIntersectionProjection
 using HDF5
@@ -15,6 +17,7 @@ end
 
 # Load velocity model
 #get model at:  ftp://slim.eos.ubc.ca/data/SoftwareRelease/WaveformInversion.jl/3DFWI/overthrust_3D_true_model.h5
+#run('wget ftp://slim.eos.ubc.ca/data/SoftwareRelease/WaveformInversion.jl/3DFWI/overthrust_3D_true_model.h5')
 n,d,o,m = h5open("overthrust_3D_true_model.h5","r") do file
 	read(file, "n", "d", "o", "m")
 end

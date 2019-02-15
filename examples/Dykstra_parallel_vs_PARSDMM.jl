@@ -16,10 +16,7 @@ mutable struct compgrid
 end
 
 #read velocity model
-#data_dir = "/Volumes/Users/bpeters/Downloads"
-data_dir = "/data/slim/bpeters/SetIntersection_data_results"
-
-file = matopen(joinpath(data_dir,"compass_velocity.mat"))
+file = matopen("../Data/compass_velocity.mat"))
 m=read(file, "Data")
 close(file)
 
