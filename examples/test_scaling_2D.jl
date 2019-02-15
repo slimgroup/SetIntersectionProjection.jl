@@ -80,11 +80,11 @@ T_tot_parallel_multilevel = Vector{Any}(undef,length(width))
 for i=1:length(width)
   print(i)
 
-  file = matopen("../Data/compass_velocity.mat")
+  file = matopen(joinpath(dirname(pathof(SetIntersectionProjection)), "../examples/Data/compass_velocity.mat"))
   m=read(file, "Data")
   close(file)
   m = m[1:341,1:width[i]]
-  m = permutedims(a,[2,1])
+  m = permutedims(m,[2,1])
 
   comp_grid = compgrid((TF(25), TF(25)),(size(m,1), size(m,2)))
   m    = convert(Vector{TF},vec(m))

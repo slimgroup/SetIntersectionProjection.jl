@@ -5,6 +5,7 @@
 using Distributed
 @everywhere using SetIntersectionProjection
 using MAT
+using LinearAlgebra
 ENV["MPLBACKEND"]="qt5agg"
 using PyPlot
 
@@ -36,10 +37,10 @@ elseif options.FL==Float32
 end
 
 #load image to project
-file = matopen("../Data/compass_velocity.mat")
+file = matopen(joinpath(dirname(pathof(SetIntersectionProjection)), "../examples/Data/compass_velocity.mat"))
 m    = read(file, "Data");close(file)
-m = m[1:341,200:600]
-m = permutedims(a,[2,1])
+m    = m[1:341,200:600]
+m    = permutedims(m,[2,1])
 
 #set up computational grid (25 and 6 m are the original distances between grid points)
 comp_grid = compgrid((TF(25.0), TF(6.0)),(size(m,1), size(m,2)))

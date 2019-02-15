@@ -16,12 +16,12 @@ mutable struct compgrid
 end
 
 #read velocity model
-file = matopen("../Data/compass_velocity.mat"))
+file = matopen(joinpath(dirname(pathof(SetIntersectionProjection)), "../examples/Data/compass_velocity.mat"))
 m=read(file, "Data")
 close(file)
 
 m = m[1:341,200:600];
-m = permutedims(a,[2,1])
+m = permutedims(m,[2,1])
 
 #PARSDMM options:
 options          = PARSDMM_options()

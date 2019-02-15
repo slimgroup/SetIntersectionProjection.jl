@@ -5,6 +5,7 @@
 #THE DATA FOR THIS SCRIPT IS CURRENTLY NOT AVAILABLE ONLINE
 
 using Distributed
+using LinearAlgebra
 @everywhere using SetIntersectionProjection
 using HDF5
 ENV["MPLBACKEND"]="qt5agg"

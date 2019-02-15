@@ -35,7 +35,7 @@ end
 result_dir = "Results/"
 
 #load a very small data set (12 images only) (Mablab files for compatibility with matlab only solvers for comparison...)
-file  = matopen("../Data/Ternate_patch.mat"))
+file  = matopen(joinpath(dirname(pathof(SetIntersectionProjection)), "../examples/Data/Ternate_patch.mat"))
 mtrue = read(file, "Ternate_patch")
 mtrue = convert(Array{TF,3},mtrue)
 
