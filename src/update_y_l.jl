@@ -80,24 +80,24 @@ log_PARSDMM.r_pri[i,ii]  = norm(r_pri[ii])#./(norm(y[ii])+(100*eps(TF))); #add 1
 if Blas_active
   log_PARSDMM.r_dual[i,ii] = norm( BLAS.scal!(lx,rho[ii],TD_OP[ii]'*(y[ii] .- y_old[ii]),1 ))
 else
- log_PARSDMM.r_dual[i,ii] = norm( rho[ii].*(TD_OP[ii]'*(y[ii] .- y_old[ii])) )
+ log_PARSDMM.r_dual[i,ii] = norm( rho[ii] .* (TD_OP[ii]'*(y[ii] .- y_old[ii])) )
 end
 #log feasibility
 if feasibility_only==false
   if mod(i,10)==0 && ii<p#log every 10 it, or whatever number is suitable
     copy!(x_hat[ii],s[ii])
-    log_PARSDMM.set_feasibility[counter,ii]=norm( P_sub[ii](x_hat[ii]) .- s[ii]) ./ (norm(s[ii])+(100*eps(TF))); #use x_hat[ii] as output, because it is already allocated and not used afterwards. The next iteration it will be overwritten anyway before use
+    log_PARSDMM.set_feasibility[counter,ii] = norm( P_sub[ii](x_hat[ii]) .- s[ii]) ./ (norm(s[ii])+(100*eps(TF))); #use x_hat[ii] as output, because it is already allocated and not used afterwards. The next iteration it will be overwritten anyway before use
   end
 else
   if mod(i,10)==0#log every 10 it, or whatever number is suitable
     copy!(x_hat[ii],s[ii])
-    log_PARSDMM.set_feasibility[counter,ii]=norm( P_sub[ii](x_hat[ii]) .- s[ii]) ./ (norm(s[ii])+(100*eps(TF))); #use x_hat[ii] as output, because it is already allocated and not used afterwards. The next iteration it will be overwritten anyway before use
+    log_PARSDMM.set_feasibility[counter,ii] = norm( P_sub[ii](x_hat[ii]) .- s[ii]) ./ (norm(s[ii])+(100*eps(TF))); #use x_hat[ii] as output, because it is already allocated and not used afterwards. The next iteration it will be overwritten anyway before use
   end
 end
 
 end #end y and l update loop
 if mod(i,10)==0
-  counter+=1;
+  counter += 1;
 end
 
 return y,l,r_pri,s,log_PARSDMM,counter,y_old,l_old

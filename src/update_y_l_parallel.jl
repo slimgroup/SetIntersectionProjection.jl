@@ -23,8 +23,8 @@ function update_y_l_parallel(
   feasibility_only=false::Bool
   ) where {TF<:Real,TI<:Integer}
 
-rho1=TF
-rho1=TF(1.0) ./ rho[1];
+rho1 = TF
+rho1 = TF(1.0) ./ rho[1];
 
   copy!(y_old[1],y[1]);
   copy!(l_old[1],l[1]);
@@ -33,26 +33,26 @@ rho1=TF(1.0) ./ rho[1];
   if Blas_active
     if gamma[1]==1 #without relaxation
       copy!(y[1],s[1])
-      #y[1]       = prox[1]( Base.LinAlg.axpy!(-rho1[1],l[1],y[1]) )
-      Base.LinAlg.axpy!(-rho1[1],l[1],y[1])
+      #y[1]       = prox[1]( BLAS.axpy!(-rho1[1],l[1],y[1]) )
+      BLAS.axpy!(-rho1[1],l[1],y[1])
       prox[1](y[1])
-      @. r_pri[1]   = -s[1]+y[1];
-      Base.LinAlg.axpy!(rho[1],r_pri[1],l[1]);
+      @. r_pri[1] = -s[1]+y[1];
+      BLAS.axpy!(rho[1],r_pri[1],l[1]);
     else #relaxed iterations
-      @. x_hat[1]   = gamma[1]*s[1]
-      Base.LinAlg.axpy!(TF(1.0)-gamma[1],y[1],x_hat[1]);
+      @. x_hat[1] = gamma[1]*s[1]
+      BLAS.axpy!(TF(1.0)-gamma[1],y[1],x_hat[1]);
       #y[1]       = copy(x_hat[1]);
       copy!(y[1],x_hat[1])
-      #y[1]       = prox[1]( Base.LinAlg.axpy!(-rho1[1],l[1],y[1]))
-      Base.LinAlg.axpy!(-rho1[1],l[1],y[1])
+      #y[1]       = prox[1]( BLAS.axpy!(-rho1[1],l[1],y[1]))
+      BLAS.axpy!(-rho1[1],l[1],y[1])
       prox[1](y[1])
-       @. r_pri[1]   = -s[1]+y[1];
-      Base.LinAlg.axpy!(rho[1],y[1]-x_hat[1],l[1]);
+       @. r_pri[1] = -s[1]+y[1];
+      BLAS.axpy!(rho[1],y[1]-x_hat[1],l[1]);
     end
   else
     if gamma[1]==1 #without relaxation
       #y[1]       = prox[1]( s[1]-l[1]*rho1[1] );
-       @. y[1]      = s[1]-l[1]*rho1[1]
+       @. y[1]       = s[1]-l[1]*rho1[1]
        prox[1](y[1]);
        @. r_pri[1]   = -s[1]+y[1];
        @. l[1]       = l[1]+rho[1]*r_pri[1];
@@ -77,12 +77,12 @@ rho1=TF(1.0) ./ rho[1];
 if feasibility_only==false
   if mod(i,10)==0 && myid()<nprocs() #ii<length(P_sub)#log every 10 it, or whatever number is suitable
      copy!(x_hat[1],s[1])
-     set_feas[1]=norm(P_sub[1](x_hat[1])-s[1]) ./ (norm(s[1])+(100*eps(TF)))
+     set_feas[1] = norm(P_sub[1](x_hat[1])-s[1]) ./ (norm(s[1])+(100*eps(TF)))
   end
 else
   if mod(i,10)==0 #ii<length(P_sub)#log every 10 it, or whatever number is suitable
      copy!(x_hat[1],s[1])
-     set_feas[1]=norm(P_sub[1](x_hat[1])-s[1]) ./ (norm(s[1])+(100*eps(TF)))
+     set_feas[1] = norm(P_sub[1](x_hat[1])-s[1]) ./ (norm(s[1])+(100*eps(TF)))
   end
 end
 
