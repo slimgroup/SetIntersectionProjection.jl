@@ -37,7 +37,7 @@ if options.parallel==false
   TD_OP_levels   = Vector{Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}}}(undef,n_levels)
 else
   #TD_OP_levels   = Vector{DistributedArrays.DArray{SparseMatrixCSC{TF,TI},1,Array{SparseMatrixCSC{TF,TI},1}}}(n_levels)
-  TD_OP_levels   = Vector{DistributedArrays.DArray{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1,Array{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1}}}(n_levels)
+  TD_OP_levels   = Vector{DistributedArrays.DArray{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1,Array{Union{JOLI.joLinearFunction{TF,TF}, SparseMatrixCSC{TF,TI}},1}}}(undef,n_levels)
 end
 AtA_levels       = Vector{Vector{SparseMatrixCSC{TF,TI}}}(undef,n_levels)
 P_sub_levels     = Vector{Vector{Any}}(undef,n_levels)
@@ -49,8 +49,7 @@ comp_grid_levels = Vector{Any}(undef,n_levels)
 (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,TF)
 (TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
 
-if typeof(AtA)==Vector{Array{TF,2}} #change AtA to CDS
-  #AtA=convert(Vector{Array{TF,2}},AtA);
+if typeof(AtA)==Vector{Array{TF,2}}
   AtA_levels       = Vector{Vector{Array{TF,2}}}(undef,n_levels)
 end
 

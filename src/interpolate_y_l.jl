@@ -29,23 +29,23 @@ function interpolate_y_l(
         l_part_2=l[j][p1e+1:p2e]
         l_part_3=l[j][p2e+1:end]
 
-        itp_l_p1   = interpolate(reshape(l_part_1,comp_grid_levels[i+1].n[1]-1,comp_grid_levels[i+1].n[2],comp_grid_levels[i+1].n[3]), BSpline(Constant()), OnGrid())
-        itp_y_p1   = interpolate(reshape(y_part_1,comp_grid_levels[i+1].n[1]-1,comp_grid_levels[i+1].n[2],comp_grid_levels[i+1].n[3]), BSpline(Constant()), OnGrid())
+        itp_l_p1   = interpolate(reshape(l_part_1,comp_grid_levels[i+1].n[1]-1,comp_grid_levels[i+1].n[2],comp_grid_levels[i+1].n[3]), BSpline(Interpolations.Constant()))
+        itp_y_p1   = interpolate(reshape(y_part_1,comp_grid_levels[i+1].n[1]-1,comp_grid_levels[i+1].n[2],comp_grid_levels[i+1].n[3]), BSpline(Interpolations.Constant()))
 
-        itp_l_p2   = interpolate(reshape(l_part_2,comp_grid_levels[i+1].n[1],comp_grid_levels[i+1].n[2]-1,comp_grid_levels[i+1].n[3]), BSpline(Constant()), OnGrid())
-        itp_y_p2   = interpolate(reshape(y_part_2,comp_grid_levels[i+1].n[1],comp_grid_levels[i+1].n[2]-1,comp_grid_levels[i+1].n[3]), BSpline(Constant()), OnGrid())
+        itp_l_p2   = interpolate(reshape(l_part_2,comp_grid_levels[i+1].n[1],comp_grid_levels[i+1].n[2]-1,comp_grid_levels[i+1].n[3]), BSpline(Interpolations.Constant()))
+        itp_y_p2   = interpolate(reshape(y_part_2,comp_grid_levels[i+1].n[1],comp_grid_levels[i+1].n[2]-1,comp_grid_levels[i+1].n[3]), BSpline(Interpolations.Constant()))
 
-        itp_l_p3   = interpolate(reshape(l_part_3,comp_grid_levels[i+1].n[1],comp_grid_levels[i+1].n[2],comp_grid_levels[i+1].n[3]-1), BSpline(Constant()), OnGrid())
-        itp_y_p3   = interpolate(reshape(y_part_3,comp_grid_levels[i+1].n[1],comp_grid_levels[i+1].n[2],comp_grid_levels[i+1].n[3]-1), BSpline(Constant()), OnGrid())
+        itp_l_p3   = interpolate(reshape(l_part_3,comp_grid_levels[i+1].n[1],comp_grid_levels[i+1].n[2],comp_grid_levels[i+1].n[3]-1), BSpline(Interpolations.Constant()))
+        itp_y_p3   = interpolate(reshape(y_part_3,comp_grid_levels[i+1].n[1],comp_grid_levels[i+1].n[2],comp_grid_levels[i+1].n[3]-1), BSpline(Interpolations.Constant()))
 
-        l_1_fine = itp_l_p1[linspace(1,comp_grid_levels[i+1].n[1]-1,comp_grid_levels[i].n[1]-1), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2]), linspace(1,comp_grid_levels[i+1].n[3],comp_grid_levels[i].n[3])]
-        y_1_fine = itp_y_p1[linspace(1,comp_grid_levels[i+1].n[1]-1,comp_grid_levels[i].n[1]-1), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2]), linspace(1,comp_grid_levels[i+1].n[3],comp_grid_levels[i].n[3])]
+        l_1_fine = itp_l_p1(range(1,stop=comp_grid_levels[i+1].n[1]-1,length=comp_grid_levels[i].n[1]-1), range(1,stop=comp_grid_levels[i+1].n[2],length=comp_grid_levels[i].n[2]), range(1,stop=comp_grid_levels[i+1].n[3],length=comp_grid_levels[i].n[3]))
+        y_1_fine = itp_y_p1(range(1,stop=comp_grid_levels[i+1].n[1]-1,length=comp_grid_levels[i].n[1]-1), range(1,stop=comp_grid_levels[i+1].n[2],length=comp_grid_levels[i].n[2]), range(1,stop=comp_grid_levels[i+1].n[3],length=comp_grid_levels[i].n[3]))
 
-        l_2_fine = itp_l_p2[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2]-1,comp_grid_levels[i].n[2]-1), linspace(1,comp_grid_levels[i+1].n[3],comp_grid_levels[i].n[3])]
-        y_2_fine = itp_y_p2[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2]-1,comp_grid_levels[i].n[2]-1), linspace(1,comp_grid_levels[i+1].n[3],comp_grid_levels[i].n[3])]
+        l_2_fine = itp_l_p2(range(1,stop=comp_grid_levels[i+1].n[1],length=comp_grid_levels[i].n[1]), range(1,stop=comp_grid_levels[i+1].n[2]-1,length=comp_grid_levels[i].n[2]-1), range(1,stop=comp_grid_levels[i+1].n[3],length=comp_grid_levels[i].n[3]))
+        y_2_fine = itp_y_p2(range(1,stop=comp_grid_levels[i+1].n[1],length=comp_grid_levels[i].n[1]), range(1,stop=comp_grid_levels[i+1].n[2]-1,length=comp_grid_levels[i].n[2]-1), range(1,stop=comp_grid_levels[i+1].n[3],length=comp_grid_levels[i].n[3]))
 
-        l_3_fine = itp_l_p3[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2]), linspace(1,comp_grid_levels[i+1].n[3]-1,comp_grid_levels[i].n[3]-1)]
-        y_3_fine = itp_y_p3[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2]), linspace(1,comp_grid_levels[i+1].n[3]-1,comp_grid_levels[i].n[3]-1)]
+        l_3_fine = itp_l_p3(range(1,stop=comp_grid_levels[i+1].n[1],length=comp_grid_levels[i].n[1]), range(1,stop=comp_grid_levels[i+1].n[2],length=comp_grid_levels[i].n[2]), range(1,stop=comp_grid_levels[i+1].n[3]-1,length=comp_grid_levels[i].n[3]-1))
+        y_3_fine = itp_y_p3(range(1,stop=comp_grid_levels[i+1].n[1],length=comp_grid_levels[i].n[1]), range(1,stop=comp_grid_levels[i+1].n[2],length=comp_grid_levels[i].n[2]), range(1,stop=comp_grid_levels[i+1].n[3]-1,length=comp_grid_levels[i].n[3]-1))
 
         l[j]=[vec(l_1_fine);vec(l_2_fine);vec(l_3_fine)]
         y[j]=[vec(y_1_fine);vec(y_2_fine);vec(y_3_fine)]
@@ -56,17 +56,17 @@ function interpolate_y_l(
         l_part_1=l[j][1:(comp_grid_levels[i+1].n[1]-1)*comp_grid_levels[i+1].n[2]]
         l_part_2=l[j][1+(comp_grid_levels[i+1].n[1]-1)*comp_grid_levels[i+1].n[2]:end]
 
-        itp_l_p1   = interpolate(reshape(l_part_1,comp_grid_levels[i+1].n[1]-1,comp_grid_levels[i+1].n[2]), BSpline(Constant()), OnGrid())
-        itp_y_p1   = interpolate(reshape(y_part_1,comp_grid_levels[i+1].n[1]-1,comp_grid_levels[i+1].n[2]), BSpline(Constant()), OnGrid())
+        itp_l_p1   = interpolate(reshape(l_part_1,comp_grid_levels[i+1].n[1]-1,comp_grid_levels[i+1].n[2]), BSpline(Interpolations.Constant()))
+        itp_y_p1   = interpolate(reshape(y_part_1,comp_grid_levels[i+1].n[1]-1,comp_grid_levels[i+1].n[2]), BSpline(Interpolations.Constant()))
 
-        itp_l_p2   = interpolate(reshape(l_part_2,comp_grid_levels[i+1].n[1],comp_grid_levels[i+1].n[2]-1), BSpline(Constant()), OnGrid())
-        itp_y_p2   = interpolate(reshape(y_part_2,comp_grid_levels[i+1].n[1],comp_grid_levels[i+1].n[2]-1), BSpline(Constant()), OnGrid())
+        itp_l_p2   = interpolate(reshape(l_part_2,comp_grid_levels[i+1].n[1],comp_grid_levels[i+1].n[2]-1), BSpline(Interpolations.Constant()))
+        itp_y_p2   = interpolate(reshape(y_part_2,comp_grid_levels[i+1].n[1],comp_grid_levels[i+1].n[2]-1), BSpline(Interpolations.Constant()))
 
-        l_1_fine = itp_l_p1[linspace(1,comp_grid_levels[i+1].n[1]-1,comp_grid_levels[i].n[1]-1), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2])]
-        y_1_fine = itp_y_p1[linspace(1,comp_grid_levels[i+1].n[1]-1,comp_grid_levels[i].n[1]-1), linspace(1,comp_grid_levels[i+1].n[2],comp_grid_levels[i].n[2])]
+        l_1_fine = itp_l_p1(range(1,stop=comp_grid_levels[i+1].n[1]-1,length=comp_grid_levels[i].n[1]-1), range(1,stop=comp_grid_levels[i+1].n[2],length=comp_grid_levels[i].n[2]))
+        y_1_fine = itp_y_p1(range(1,stop=comp_grid_levels[i+1].n[1]-1,length=comp_grid_levels[i].n[1]-1), range(1,stop=comp_grid_levels[i+1].n[2],length=comp_grid_levels[i].n[2]))
 
-        l_2_fine = itp_l_p2[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2]-1,comp_grid_levels[i].n[2]-1)]
-        y_2_fine = itp_y_p2[linspace(1,comp_grid_levels[i+1].n[1],comp_grid_levels[i].n[1]), linspace(1,comp_grid_levels[i+1].n[2]-1,comp_grid_levels[i].n[2]-1)]
+        l_2_fine = itp_l_p2(range(1,stop=comp_grid_levels[i+1].n[1],length=comp_grid_levels[i].n[1]), range(1,stop=comp_grid_levels[i+1].n[2]-1,length=comp_grid_levels[i].n[2]-1))
+        y_2_fine = itp_y_p2(range(1,stop=comp_grid_levels[i+1].n[1],length=comp_grid_levels[i].n[1]), range(1,stop=comp_grid_levels[i+1].n[2]-1,length=comp_grid_levels[i].n[2]-1))
 
         l[j]=[vec(l_1_fine);vec(l_2_fine)]
         y[j]=[vec(y_1_fine);vec(y_2_fine)]
@@ -77,15 +77,15 @@ function interpolate_y_l(
       #in each dimension compared to the model grid for x and m
       s = ( comp_grid_levels[i].n .- set_Prop_levels[i].TD_n[j] )
       #y and l have same dimensions
-      itp_l   = interpolate(reshape(l[j],set_Prop_levels[i+1].TD_n[j]), BSpline(Constant()), OnGrid())
-      itp_y   = interpolate(reshape(y[j],set_Prop_levels[i+1].TD_n[j]), BSpline(Constant()), OnGrid())
+      itp_l   = interpolate(reshape(l[j],set_Prop_levels[i+1].TD_n[j]), BSpline(Interpolations.Constant()))
+      itp_y   = interpolate(reshape(y[j],set_Prop_levels[i+1].TD_n[j]), BSpline(Interpolations.Constant()))
 
       if dim3
-        l_fine = itp_l[linspace(1,set_Prop_levels[i+1].TD_n[j][1],comp_grid_levels[i].n[1]-s[1]), linspace(1,set_Prop_levels[i+1].TD_n[j][2],comp_grid_levels[i].n[2]-s[2]), linspace(1,set_Prop_levels[i+1].TD_n[j][3],comp_grid_levels[i].n[3]-s[3])]
-        y_fine = itp_y[linspace(1,set_Prop_levels[i+1].TD_n[j][1],comp_grid_levels[i].n[1]-s[1]), linspace(1,set_Prop_levels[i+1].TD_n[j][2],comp_grid_levels[i].n[2]-s[2]), linspace(1,set_Prop_levels[i+1].TD_n[j][3],comp_grid_levels[i].n[3]-s[3])]
+        l_fine = itp_l(range(1,stop=set_Prop_levels[i+1].TD_n[j][1],length=comp_grid_levels[i].n[1]-s[1]), range(1,stop=set_Prop_levels[i+1].TD_n[j][2],length=comp_grid_levels[i].n[2]-s[2]), range(1,stop=set_Prop_levels[i+1].TD_n[j][3],length=comp_grid_levels[i].n[3]-s[3]))
+        y_fine = itp_y(range(1,stop=set_Prop_levels[i+1].TD_n[j][1],length=comp_grid_levels[i].n[1]-s[1]), range(1,stop=set_Prop_levels[i+1].TD_n[j][2],length=comp_grid_levels[i].n[2]-s[2]), range(1,stop=set_Prop_levels[i+1].TD_n[j][3],length=comp_grid_levels[i].n[3]-s[3]))
       else
-        l_fine = itp_l[linspace(1,set_Prop_levels[i+1].TD_n[j][1],comp_grid_levels[i].n[1]-s[1]), linspace(1,set_Prop_levels[i+1].TD_n[j][2],comp_grid_levels[i].n[2]-s[2])]
-        y_fine = itp_y[linspace(1,set_Prop_levels[i+1].TD_n[j][1],comp_grid_levels[i].n[1]-s[1]), linspace(1,set_Prop_levels[i+1].TD_n[j][2],comp_grid_levels[i].n[2]-s[2])]
+        l_fine = itp_l(range(1,stop=set_Prop_levels[i+1].TD_n[j][1],length=comp_grid_levels[i].n[1]-s[1]), range(1,stop=set_Prop_levels[i+1].TD_n[j][2],length=comp_grid_levels[i].n[2]-s[2]))
+        y_fine = itp_y(range(1,stop=set_Prop_levels[i+1].TD_n[j][1],length=comp_grid_levels[i].n[1]-s[1]), range(1,stop=set_Prop_levels[i+1].TD_n[j][2],length=comp_grid_levels[i].n[2]-s[2]))
       end
       l[j]=vec(l_fine)
       y[j]=vec(y_fine)

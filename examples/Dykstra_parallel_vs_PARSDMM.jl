@@ -3,9 +3,10 @@
 #we use ARADMM to solve Dykstra subproblems.
 
 using SetIntersectionProjection
-include(joinpath(Pkg.dir("SetIntersectionProjection"),"examples/Dykstra_prox_parallel.jl"))
-include(joinpath(Pkg.dir("SetIntersectionProjection"),"examples/Dykstra_prox_parallel2.jl"))
+include(joinpath(dirname(pathof(SetIntersectionProjection)), "../examples/Dykstra_prox_parallel.jl"))
+include(joinpath(dirname(pathof(SetIntersectionProjection)), "../examples/Dykstra_prox_parallel2.jl"))
 using MAT
+using LinearAlgebra
 
 ENV["MPLBACKEND"]="qt5agg"
 using PyPlot
@@ -32,10 +33,10 @@ set_zero_subnormals(true)
 #select working precision
 if options.FL==Float64
   TF = Float64
-  TI = Int64
+  #TI = Int64
 elseif options.FL==Float32
   TF = Float32
-  TI = Int32
+  #TI = Int32
 end
 
 comp_grid = compgrid((TF(25), TF(6)),(size(m,1), size(m,2)))
