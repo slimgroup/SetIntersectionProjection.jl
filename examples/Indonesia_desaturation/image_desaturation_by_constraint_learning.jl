@@ -32,8 +32,6 @@ elseif FL==32
   TI = Int32
 end
 
-result_dir = "Results/"
-
 #load a very small data set (12 images only) (Mablab files for compatibility with matlab only solvers for comparison...)
 file  = matopen(joinpath(dirname(pathof(SetIntersectionProjection)), "../examples/Data/Ternate_patch.mat"))
 mtrue = read(file, "Ternate_patch")
@@ -212,8 +210,8 @@ BLAS.set_num_threads(2)
 
 (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL) #obtain projector and transform-domain operator pairs
 
-#add the blurring filer sparse matrix as a transform domain matrix, along with the properties
-push!(TD_OP,SparseMatrixCSC{TF}(LinearAlgebra.I,comp_grid.n[2],comp_grid.n[2]))
+#add identity matrix as linear operator for the desaturation data-fit constraint
+push!(TD_OP,SparseMatrixCSC{TF}(LinearAlgebra.I,comp_grid.n[1]*comp_grid.n[2]))
 push!(set_Prop.AtA_offsets,[0]) #these are dummy values, actual ofsetts are automatically detected
 push!(set_Prop.ncvx,false)
 push!(set_Prop.banded,true)
@@ -252,7 +250,6 @@ for i=1:size(d_obs,1)
  [@spawnat pid y[:L][1]=TD_OP[:L][1]*x_ini for pid in y.pids]
  #[@spawnat pid l[:L][1]=randn(TF,length(l[:L][1])) for pid in l.pids]
 
-
   p2proj = deepcopy(x_ini) #don't couple initial guess and point to project.
   @time (x,log_PARSDMM) = PARSDMM(p2proj,AtA,TD_OP,set_Prop,P_sub,comp_grid,options,x_ini,[],y)
   m_est[i,:,:]=reshape(x,comp_grid.n)
@@ -269,10 +266,11 @@ for i=1:size(d_obs,1)
     UBD[ind_max_clip] .= 255.0f0
     P_sub[end] = x -> project_bounds!(x,LBD,UBD)
 
-    x_ini= vec(d_obs[i+1,:,:])
+    global x_ini = vec(d_obs[i+1,:,:])
     x_ini[ind_max_clip] .= 225.0f0
     x_ini[ind_min_clip] .= 0.0f0
   end
+
 end
 #
 # FWD_OP="mask"
@@ -288,8 +286,8 @@ figure();title("training image", fontsize=10)
 for i=1:16
   subplot(4,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig(joinpath(result_dir,"training_data_all.eps"),bbox_inches="tight",dpi=600)
-savefig(joinpath(result_dir,"training_data_all.png"),bbox_inches="tight")
+savefig("training_data_all.eps",bbox_inches="tight",dpi=600)
+savefig("training_data_all.png",bbox_inches="tight")
 close()
 
 #First 8 in 1 figure
@@ -297,29 +295,29 @@ figure();
 for i=1:8
   subplot(2,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig(joinpath(result_dir,"training_data_first8.eps"),bbox_inches="tight",dpi=600)
-savefig(joinpath(result_dir,"training_data_first8.png"),bbox_inches="tight")
+savefig("training_data_first8.eps",bbox_inches="tight",dpi=600)
+savefig("training_data_first8.png",bbox_inches="tight")
 close()
 
 for i=1:16
   figure();title(string("training image", i), fontsize=10)
   imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
-  savefig(joinpath(result_dir,string("training_data_", i,".eps")),bbox_inches="tight",dpi=600)
-  savefig(joinpath(result_dir,string("training_data_", i,".png")),bbox_inches="tight")
+  savefig(string("training_data_", i,".eps"),bbox_inches="tight",dpi=600)
+  savefig(string("training_data_", i,".png"),bbox_inches="tight")
   close()
 end
 
 #plot results
 for i=1:size(m_est,1)
     figure();imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(joinpath(result_dir,string("saturized_observed",i,".eps")),bbox_inches="tight",dpi=600)
-    savefig(joinpath(result_dir,string("saturized_observed",i,".png")),bbox_inches="tight")
+    savefig(string("saturized_observed",i,".eps"),bbox_inches="tight",dpi=600)
+    savefig(string("saturized_observed",i,".png"),bbox_inches="tight")
     figure();imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:])),2)))
-    savefig(joinpath(result_dir,string("PARSDMM_desaturation",i,".eps")),bbox_inches="tight",dpi=600)
-    savefig(joinpath(result_dir,string("PARSDMM_desaturation",i,".png")),bbox_inches="tight")
+    savefig(string("PARSDMM_desaturation",i,".eps"),bbox_inches="tight",dpi=600)
+    savefig(string("PARSDMM_desaturation",i,".png"),bbox_inches="tight")
     figure();imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(joinpath(result_dir,string("desaturation_evaluation",i,".eps")),bbox_inches="tight",dpi=600)
-    savefig(joinpath(result_dir,string("desaturation_evaluation",i,".png")),bbox_inches="tight")
+    savefig(string("desaturation_evaluation",i,".eps"),bbox_inches="tight",dpi=600)
+    savefig(string("desaturation_evaluation",i,".png"),bbox_inches="tight")
     close()
 end
 
@@ -333,95 +331,22 @@ end
 for i=1:size(m_est,1)
   subplot(3,4,i+4);imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
 end
-savefig(joinpath(result_dir,string("desaturation_results.eps")),bbox_inches="tight",dpi=300)
-savefig(joinpath(result_dir,string("desaturation_results.png")),bbox_inches="tight")
+savefig("desaturation_results.eps",bbox_inches="tight",dpi=300)
+savefig("desaturation_results.png",bbox_inches="tight")
 
 
-
-# #plot histograms of reconstructed on top of true
-# nbins=10
-# for i=1:size(m_est,1)
-#   fig = figure("pyplot_histogram") # Not strictly required
-#   ax = axes() # Not strictly required
-#   h = plt[:hist](vec(m_evaluation[i,:,:]),nbins) # Histogram of true image
-#   h = plt[:hist](vec(m_est[i,:,:]),nbins,alpha=0.5) # Histogram of estimated image
-#   xlabel("pixel value", fontsize=12)
-#   ylabel("count", fontsize=12)
-#   title("Histograms of true and estimated image (PARSDMM)", fontsize=12)
-#   savefig(joinpath(result_dir,string("hist_desaturation_PARSDMM",i,".eps")),bbox_inches="tight",dpi=300)
-#   savefig(joinpath(result_dir,string("hist_desaturation_PARSDMM",i,".png")),bbox_inches="tight")
-#   savefig(joinpath(result_dir,string("hist_desaturation_PARSDMM_HQPNG",i,".png")),bbox_inches="tight",dpi=1200)
-#   close()
-# end
-
-
-# file = matopen(joinpath(result_dir,"x.mat"), "w")
-# write(file, "x", convert(Array{Float64,1},x))
-# close(file)
-
-file = matopen(joinpath(result_dir,"m_est.mat"), "w")
+file = matopen("m_est.mat"), "w")
 write(file, "m_est", convert(Array{Float64,3},m_est))
 close(file)
 
-file = matopen(joinpath(result_dir,"m_evaluation.mat"), "w")
+file = matopen("m_evaluation.mat"), "w")
 write(file, "m_evaluation", convert(Array{Float64,3},m_evaluation))
 close(file)
 
-file = matopen(joinpath(result_dir,"m_train.mat"), "w")
+file = matopen("m_train.mat"), "w")
 write(file, "m_train", convert(Array{Float64,3},m_train))
 close(file)
 
-file = matopen(joinpath(result_dir,"d_obs.mat"), "w")
+file = matopen("d_obs.mat"), "w")
 write(file, "d_obs", convert(Array{Float64,3},d_obs))
 close(file)
-#
-# file = matopen(joinpath(result_dir,"BF.mat"), "w")
-# write(file, "BF", convert(SparseMatrixCSC{Float64,Int64},BF))
-# close(file)
-
-# (TV_OP, dummy1, dummy2, dummy3)=get_TD_operator(comp_grid,"TV",TF)
-# file = matopen("TV_OP.mat", "w")
-# write(file, "TV_OP", convert(SparseMatrixCSC{Float64,Int64},TV_OP))
-# close(file)
-#
-# #load TFOCS matlab results and plot
-# file = matopen("x_TFOCS_tv_save2.mat")
-# x_TFOCS_tv_save=read(file, "x_TFOCS_tv_save2")
-# x_TFOCS_tv_save=reshape(x_TFOCS_tv_save,4,comp_grid.n[1],comp_grid.n[2])
-#
-# file = matopen("m_evaluation.mat")
-# m_evaluation=read(file, "m_evaluation")
-#
-# SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
-# for i=1:size(m_est,1)
-#   figure()
-#   imshow(x_TFOCS_tv_save[i,51:end-51,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("TFOCS BPDN-TV, SNR=", round(SNR(vec(m_evaluation[i,51:end-51,:]),vec(x_TFOCS_tv_save[i,51:end-51,:])),2)))
-#   savefig(string("TFOCS_TV_inpainting",i,".eps"),bbox_inches="tight",dpi=600)
-# end
-
-#
-# #plot zoomed section
-# z_parsdmm_1 = m_est[1,51:400,1700:end]
-# z_TFOCS_1   = reshape(x_TFOCS_tv_save[1,:,:],comp_grid.n)
-# z_TFOCS_1   = z_TFOCS_1[51:400,1700:2051];
-# z_true_1    = m_evaluation[1,1:400,1700:end];
-#
-# z_parsdmm_2 = m_est[2,500:end,600:800]
-# z_TFOCS_2   = reshape(x_TFOCS_tv_save[2,:,:],comp_grid.n)
-# z_TFOCS_2   = z_TFOCS_2[500:926,600:800];
-# z_true_2    = m_evaluation[2,500:end,600:800];
-#
-# figure();imshow(z_parsdmm_1,cmap="gray",vmin=0.0,vmax=255.0); title("PARSDMM zoomed")
-# savefig(string("PARSDMM_inpainting_zoomed_1.eps"),bbox_inches="tight",dpi=600)
-# figure();imshow(z_parsdmm_2,cmap="gray",vmin=0.0,vmax=255.0); title("PARSDMM zoomed")
-# savefig(string("PARSDMM_inpainting_zoomed_2.eps"),bbox_inches="tight",dpi=600)
-#
-# figure();imshow(z_TFOCS_1,cmap="gray",vmin=0.0,vmax=255.0); title("BPDN-TV zoomed")
-# savefig(string("TFOCS_inpainting_zoomed_1.eps"),bbox_inches="tight",dpi=600)
-# figure();imshow(z_TFOCS_2,cmap="gray",vmin=0.0,vmax=255.0); title("BPDN-TV zoomed")
-# savefig(string("TFOCS_inpainting_zoomed_2.eps"),bbox_inches="tight",dpi=600)
-#
-# figure();imshow(z_true_1,cmap="gray",vmin=0.0,vmax=255.0); title("true zoomed")
-# savefig(string("true_inpainting_zoomed_1.eps"),bbox_inches="tight",dpi=600)
-# figure();imshow(z_true_2,cmap="gray",vmin=0.0,vmax=255.0); title("true zoomed")
-# savefig(string("true_inpainting_zoomed_2.eps"),bbox_inches="tight",dpi=600)
