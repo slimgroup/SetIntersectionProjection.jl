@@ -62,7 +62,7 @@ function get_projector(constraint,comp_grid,special_operator_list::Array{String,
     if constraint.TD_OP in special_operator_list
       P = x -> copy!(x,A'*project_rank!(reshape(A*x,TD_n),constraint.max,constraint.app_mode[2]))
     else
-      P = x -> project_rank!(reshape(x,TD_n),constraint.max,constraint.app_mode[2])
+      P = x -> project_rank!(reshape(x,TD_n),constraint.max,constraint.app_mode)
     end
   end
 

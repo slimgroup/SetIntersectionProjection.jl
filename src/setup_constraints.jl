@@ -58,7 +58,7 @@ for i = 1:nr_constraints
 
       #verify input consistency
       if (constraint[i].set_type in ["nuclear", "rank"]) && (constraint[i].app_mode[1] in ["matrix","tensor"]) && (length(comp_grid.n)==3)
-        error("requested rank or nuclear norm constraints on a tensor, use app_mode=(slice,x) e.t.c. to define constraints per slice")
+        error("requested rank or nuclear norm constraints on a tensor, use mode=(slice,x) e.t.c. to define constraints per slice")
       end
 
       # #catch a few things not currently implemented, yet..

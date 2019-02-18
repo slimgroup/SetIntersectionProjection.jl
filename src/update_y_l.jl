@@ -45,7 +45,7 @@ for ii=1:p
       copy!(y[ii],s[ii])
       #y[ii]       = prox[ii]( BLAS.axpy!(-rho1[ii],l[ii],y[ii]) )
       BLAS.axpy!(-rho1[ii],l[ii],y[ii])
-      prox[ii](y[ii])
+      y[ii] = prox[ii](y[ii])
       r_pri[ii]   .= -s[ii] .+ y[ii];
       BLAS.axpy!(rho[ii],r_pri[ii],l[ii]);
     else #relaxed iterations
@@ -55,7 +55,7 @@ for ii=1:p
       copy!(y[ii],x_hat[ii])
       #y[ii]       = prox[ii]( BLAS.axpy!(-rho1[ii],l[ii],y[ii]))
       BLAS.axpy!(-rho1[ii],l[ii],y[ii])
-      prox[ii](y[ii])
+      y[ii] = prox[ii](y[ii])
       r_pri[ii]   .= -s[ii] .+ y[ii];
       BLAS.axpy!(rho[ii],y[ii] .- x_hat[ii],l[ii]);
     end
@@ -63,14 +63,14 @@ for ii=1:p
     if gamma[ii]==1 #without relaxation
       #y[ii]       = prox[ii]( s[ii].-l[ii].*rho1[ii] );
       y[ii]      .= s[ii] .- l[ii].*rho1[ii]
-      prox[ii](y[ii]);
+      y[ii] = prox[ii](y[ii]);
       r_pri[ii]   .= -s[ii] .+ y[ii];
       l[ii]       .= l[ii] .+ rho[ii] .* r_pri[ii];
     else #relaxed iterations
       x_hat[ii]   .= gamma[ii].*s[ii] .+ ( TF(1.0) .- gamma[ii] ) .* y[ii];
       #y[ii]       = prox[ii]( x_hat[ii].-l[ii].*rho1[ii] );
       y[ii]       .= x_hat[ii] .- l[ii] .* rho1[ii]
-      prox[ii]( y[ii] );
+      y[ii] = prox[ii]( y[ii] );
       r_pri[ii]   .= -s[ii] .+ y[ii];
       l[ii]       .= l[ii] .+ rho[ii] .* ( -x_hat[ii] .+ y[ii] );
     end

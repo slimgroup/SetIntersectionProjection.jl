@@ -53,11 +53,12 @@
   project_cardinality!(x,2)
   @test x==[0;0;0;2;-3]
 
-  #test mode that projects each row of a matrix separately
+  #test mode that projects each column of a matrix separately
   X=randn(50,100)
   project_cardinality!(X,7,("fiber","x"))
   [@test count(!iszero, X[:,i]) == 7 for i=1:size(X,2)]
 
+  #test mode that projects each row of a matrix separately
   X=randn(50,100)
   project_cardinality!(X,11,("fiber","z"))
   [@test count(!iszero, X[i,:]) == 11 for i=1:size(X,1)]

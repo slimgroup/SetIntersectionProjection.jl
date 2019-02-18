@@ -35,7 +35,7 @@ rho1 = TF(1.0) ./ rho[1];
       copy!(y[1],s[1])
       #y[1]       = prox[1]( BLAS.axpy!(-rho1[1],l[1],y[1]) )
       BLAS.axpy!(-rho1[1],l[1],y[1])
-      prox[1](y[1])
+      y[1] = prox[1](y[1])
       @. r_pri[1] = -s[1]+y[1];
       BLAS.axpy!(rho[1],r_pri[1],l[1]);
     else #relaxed iterations
@@ -45,7 +45,7 @@ rho1 = TF(1.0) ./ rho[1];
       copy!(y[1],x_hat[1])
       #y[1]       = prox[1]( BLAS.axpy!(-rho1[1],l[1],y[1]))
       BLAS.axpy!(-rho1[1],l[1],y[1])
-      prox[1](y[1])
+      y[1] = prox[1](y[1])
        @. r_pri[1] = -s[1]+y[1];
       BLAS.axpy!(rho[1],y[1]-x_hat[1],l[1]);
     end
@@ -53,14 +53,14 @@ rho1 = TF(1.0) ./ rho[1];
     if gamma[1]==1 #without relaxation
       #y[1]       = prox[1]( s[1]-l[1]*rho1[1] );
        @. y[1]       = s[1]-l[1]*rho1[1]
-       prox[1](y[1]);
+       y[1] = prox[1](y[1]);
        @. r_pri[1]   = -s[1]+y[1];
        @. l[1]       = l[1]+rho[1]*r_pri[1];
     else #relaxed iterations
        @. x_hat[1]   = gamma[1]*s[1] + ( TF(1.0)-gamma[1] )*y[1]
       #y[1]       = prox[1]( x_hat[1]-l[1]*rho1[1] );
        @. y[1]       = x_hat[1]-l[1]*rho1[1]
-       prox[1]( y[1] )
+       y[1] = prox[1]( y[1] )
        @. r_pri[1]   = -s[1]+y[1]
        @. l[1]       = l[1]+rho[1]*( -x_hat[1]+y[1] )
     end
