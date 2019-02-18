@@ -56,29 +56,37 @@
   #test mode that projects each row of a matrix separately
   X=randn(50,100)
   project_cardinality!(X,7,("fiber","x"))
-  [@test count(!iszero, X[:,i]) <= 7 for i=1:size(X,2)]
+  [@test count(!iszero, X[:,i]) == 7 for i=1:size(X,2)]
 
   X=randn(50,100)
   project_cardinality!(X,11,("fiber","z"))
-  [@test count(!iszero, X[i,:]) <= 11 for i=1:size(X,1)]
+  [@test count(!iszero, X[i,:]) == 11 for i=1:size(X,1)]
 
   #test mode that projects each fiber of a tensor separately (either in x,y or z direction)
   X=randn(50,60,30)
   project_cardinality!(X,7,("fiber","x"))
-  [@test count(!iszero, X[:,i,j]) <= 7 for i=1:size(X,2) for j=1:size(X,3)]
+  [@test count(!iszero, X[:,i,j]) == 7 for i=1:size(X,2) for j=1:size(X,3)]
 
   X=randn(50,60,30)
   project_cardinality!(X,6,("fiber","y"))
-  [@test count(!iszero, X[i,:,j]) <= 6 for i=1:size(X,1) for j=1:size(X,3)]
+  [@test count(!iszero, X[i,:,j]) == 6 for i=1:size(X,1) for j=1:size(X,3)]
 
   X=randn(50,60,30)
   project_cardinality!(X,4,("fiber","z"))
-  [@test count(!iszero, X[i,j,:]) <= 4 for i=1:size(X,1) for j=1:size(X,2)]
+  [@test count(!iszero, X[i,j,:]) == 4 for i=1:size(X,1) for j=1:size(X,2)]
 
   #test mode that projects onto each slice of a tensor separately (either in x,y or z direction)
   X=randn(50,60,30)
-  project_cardinality!(X,7,("slice","x"))
-  [@test count(!iszero, X[i,:,:]) <= 7 for i=1:size(X,1)]
+  test=project_cardinality!(X,7,("slice","x"),false)
+  [@test count(!iszero, test[i,:,:]) == 7 for i=1:size(X,1)]
+
+  X=randn(50,60,30)
+  test=project_cardinality!(X,6,("slice","y"),false)
+  [@test count(!iszero, test[:,i,:]) == 6 for i=1:size(X,2)]
+
+  X=randn(50,60,30)
+  project_cardinality!(X,5,("slice","z"),false)
+  [@test count(!iszero, X[:,:,i]) == 5 for i=1:size(X,3)]
 
 # test project_l2!
   #test for sigma smaller than 2-norm of vector
@@ -120,16 +128,29 @@
     Y=randn(40,100) #test flat matrix
     Z=randn(100,100) #test square matrix
     X=vec(X); Y=vec(Y); Z=vec(Z)
-    project_rank!(reshape(X,grid_X.n),29,"")
+    project_rank!(reshape(X,grid_X.n),12,"")
     project_rank!(reshape(Y,grid_Y.n),3,"")
-    project_rank!(reshape(Z,grid_Z.n),64,"")
+    project_rank!(reshape(Z,grid_Z.n),4,"")
     X=reshape(X,grid_X.n[1],grid_X.n[2])
     Y=reshape(Y,grid_Y.n[1],grid_Y.n[2])
     Z=reshape(Z,grid_Z.n[1],grid_Z.n[2])
     r_X=rank(X); r_Y=rank(Y); r_Z=rank(Z);
-    @test r_X<=29
-    @test r_Y<=3
-    @test r_Z<=64
+    @test r_X==12
+    @test r_Y==3
+    @test r_Z==4
+
+    #test rank projection on slices of a 3D tensor
+    X=randn(50,60,30)
+    project_rank!(X,7,("slice","x"))
+    [@test rank(X[i,:,:]) == 7 for i=1:size(X,1)]
+
+    X=randn(50,60,30)
+    project_rank!(X,6,("slice","y"))
+    [@test rank(X[:,i,:]) == 6 for i=1:size(X,2)]
+
+    X=randn(50,60,30)
+    project_rank!(X,5,("slice","z"))
+    [@test rank(X[:,:,i]) == 5 for i=1:size(X,3)]
 
 #test project nuclear! (codes assumes input and output are vectors)
   X=randn(100,40) #test tall matrix
@@ -150,9 +171,9 @@
   XX=deepcopy(X)
   YY=deepcopy(Y)
   ZZ=deepcopy(Z)
-  project_nuclear!(reshape(X,grid_X.n),nn_X*1.1)
-  project_nuclear!(reshape(Y,grid_Y.n),nn_Y*1.1)
-  project_nuclear!(reshape(Z,grid_Z.n),nn_Z*1.1)
+  project_nuclear!(reshape(X,grid_X.n),nn_X*1.1,"")
+  project_nuclear!(reshape(Y,grid_Y.n),nn_Y*1.1,"")
+  project_nuclear!(reshape(Z,grid_Z.n),nn_Z*1.1,"")
   @test isapprox(XX,X,rtol=20*eps())
   @test isapprox(YY,Y,rtol=20*eps())
   @test isapprox(ZZ,Z,rtol=20*eps())
@@ -167,9 +188,9 @@
   X=vec(X)
   Y=vec(Y)
   Z=vec(Z)
-  project_nuclear!(reshape(X,grid_X.n),nn_X*0.5)
-  project_nuclear!(reshape(Y,grid_Y.n),nn_Y*0.5)
-  project_nuclear!(reshape(Z,grid_Z.n),nn_Z*0.5)
+  project_nuclear!(reshape(X,grid_X.n),nn_X*0.5,"")
+  project_nuclear!(reshape(Y,grid_Y.n),nn_Y*0.5,"")
+  project_nuclear!(reshape(Z,grid_Z.n),nn_Z*0.5,"")
   X=reshape(X,grid_X.n[1],grid_X.n[2])
   Y=reshape(Y,grid_Y.n[1],grid_Y.n[2])
   Z=reshape(Z,grid_Z.n[1],grid_Z.n[2])
@@ -180,20 +201,65 @@
   @test isapprox(nn_Yp,nn_Y*0.5,rtol=20*eps())
   @test isapprox(nn_Zp,nn_Z*0.5,rtol=20*eps())
 
+  #test nuclear norm projection onto slices of a 3D tensor
+  X=randn(50,60,30)
+  project_nuclear!(X,1.234,("slice","x"))
+  [@test isapprox(norm(svdvals(X[i,:,:]),1), 1.234,rtol=100*eps()) for i=1:size(X,1)]
+
+  X=randn(50,60,30)
+  project_nuclear!(X,1.234,("slice","y"))
+  [@test isapprox(norm(svdvals(X[:,i,:]),1), 1.234,rtol=100*eps()) for i=1:size(X,2)]
+
+  X=randn(50,60,30)
+  project_nuclear!(X,1.234,("slice","z"))
+  [@test isapprox(norm(svdvals(X[:,:,i]),1), 1.234,rtol=100*eps()) for i=1:size(X,3)]
+
 #test project_subspace!
+  #on a vector inputs
   #orthogonal subspace
   M=randn(100,50)
-  F=svdfact(M)
+  F=svd(M)
   x=randn(100)
   y=deepcopy(x)
   project_subspace!(x,F.U,true)
-  @test isapprox(x,F.U*(F.U'*x),rtol=eps()*10)
+  @test isapprox(x,F.U*(F.U'*y),rtol=eps()*10)
 
   #non-orthogonal subspace
   M=randn(100,50)
   x=randn(100)
   y=deepcopy(x)
-  project_subspace!(x,M,true)
-  @test isapprox(x,M*((M'*M)\(M'*x)),rtol=eps()*10)
+  project_subspace!(x,M,false)
+  @test isapprox(x,M*((M'*M)\(M'*y)),rtol=eps()*10)
+
+  #on matrix input: project every column onto the subspace
+  M=randn(100,50)
+  x=randn(100,5)
+  y=deepcopy(x)
+  project_subspace!(x,M,false,("fiber","x"))
+  @test isapprox(x,M*((M'*M)\(M'*y)),rtol=eps()*10)
+
+  #on matrix input: project every row onto the subspace
+  M=randn(23,50)
+  x=randn(5,23)
+  y=deepcopy(x)
+  project_subspace!(x,M,false,("fiber","z"))
+  @test isapprox(x,(M*((M'*M)\(M'*y')))',rtol=eps()*10)
+
+#test projection onto relaxed histogram
+
+  #first test exact histogram projection
+  ref = sort(randn(100))
+  x   = randn(100)
+  project_histogram_relaxed!(x,ref,ref)
+  @test ref == sort(x)
+
+  #first test exact histogram projection
+  LB = sort(randn(100))
+  UB = LB.+0.7
+  x   = randn(100)
+  project_histogram_relaxed!(x,LB,UB)
+  x = sort(x)
+  [@test x[i] <= UB[i] for i=1:100]
+  [@test x[i] >= LB[i] for i=1:100]
 
 end

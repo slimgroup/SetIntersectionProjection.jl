@@ -34,7 +34,7 @@ function project_bounds!(x::Array{TF,2},LB::Vector{TF},UB::Vector{TF},mode::Tupl
     Threads.@threads for i=1:size(x,2)
       @inbounds x[:,i].=min.(max.(x[:,i],LB),UB)
     end
-  elseif mode[2] == "y"
+  elseif mode[2] == "z"
     Threads.@threads for i=1:size(x,1)
       @inbounds x[i,:].=min.(max.(x[i,:],LB),UB)
     end

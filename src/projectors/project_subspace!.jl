@@ -24,21 +24,29 @@ function project_subspace!(
                           x     ::Array{TF,2},
                           A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
                           orth  ::Bool,
-                          mode  ::String
+                          mode  ::Tuple{String,String}
                           ) where {TF<:Real}
-(n1,n2)=size(x)
-if mode == "x" #project each x[:,i] onto the subspace, so each column of x
+
+(n1,n2) = deepcopy(size(x))
+
+if mode[1] == "slice"
+  error("mode[1] for project_subspace! must be: fiber")
+end
+
+if mode[2] == "x" #project each x[:,i] onto the subspace, so each column of x
   if orth == true
      x .= A*(A'*x)
   else
     x .= A*((A'*A)\(A'*x))
   end
-elseif mode == "y" #project each x[i,:] onto the subspace, so each row of x
+elseif mode[2] == "z" #project each x[i,:] onto the subspace, so each row of x
   if orth == true
      x .= (A*(A'*x'))'
   else
     x .= (A*((A'*A)\(A'*x')))'
   end
+else
+  error("mode[2] for project_subspace! with 2D array input must be: x, or z")
 end
 
 x = vec(x)
@@ -53,15 +61,17 @@ function project_subspace!(
                           x     ::Array{TF,3},
                           A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
                           orth  ::Bool,
-                          mode  ::String
+                          mode  ::Tuple{String,String}
                           ) where {TF<:Real}
-  (n1,n2,n3)=size(x)
+
+  (n1,n2,n3) = deepcopy(size(x))
+
   #permute and reshape
   if mode == "x"
-    permutedims(x,[2;3;1]);
+    x = permutedims(x,[2;3;1]);
     x = reshape(x,n2*n3,n1)
   elseif mode == "y"
-    permutedims(x,[1;3;2]);
+    x = permutedims(x,[1;3;2]);
     x = reshape(x,n1*n3,n2)
   elseif mode == "z"
     x = reshape(x,n1*n2,n3) #there are n3 slices of dimension n1*n2
@@ -77,10 +87,10 @@ function project_subspace!(
   #permute back and vectorize
   if mode == "x"
     x = reshape(x,n2,n3,n1)
-    permutedims(x,[3;1;2]);
+    x = permutedims(x,[3;1;2]);
   elseif mode == "y"
     x = reshape(x,n1,n3,n2)
-    permutedims(x,[1;3;2]);
+    x = permutedims(x,[1;3;2]);
   elseif mode == "z"
     x = reshape(x,n1,n2,n3) #there are n3 slices of dimension n1*n2
   end

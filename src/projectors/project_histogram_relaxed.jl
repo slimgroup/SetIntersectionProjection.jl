@@ -8,19 +8,19 @@ sorts x by magnitude. The LB and UB are vectors that are the sorted magnitude of
 """
 function project_histogram_relaxed!(x::Vector{TF},LB::Vector{TF},UB::Vector{TF}) where {TF<:Real}
 
-sort_ind = sortperm( x, by=abs)
-x.=x[sort_ind]
+sort_ind = sortperm( x)#, by=abs)
+x .= x[sort_ind]
 #we use sorting from small to large. LB and UB also need to be sorted from small to large!
 @inbounds Threads.@threads for j in (1:length(x))
   @inbounds  x[j] = min(x[j],UB[j])
   @inbounds  x[j] = max(LB[j],x[j])
 end
-sort_ind_sort_ind = sortperm( sort_ind)
-x.=x[sort_ind_sort_ind] #rearrange back to original order
+sort_ind_sort_ind = sortperm(sort_ind)
+x .= x[sort_ind_sort_ind] #rearrange back to original order
 
 # This version needs two sorts.
 # We can also apply the bounds in a loop over the x[sort_ind] coeffs
 # without sorting x and sorting it back, but it requires memory access
-# to x, LB and UB in non linear order.
+# to x, LB and UB in non sequential order.
 return x
 end

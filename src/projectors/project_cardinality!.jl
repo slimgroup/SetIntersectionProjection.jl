@@ -72,7 +72,7 @@ function project_cardinality!(
   project m onto {m | card(m)<= k} : x = argmin_x 1/2 ||x-m||2^2 s.t. card(x)<=k
   """
 
-(n1,n2,n3) = size(x)
+(n1,n2,n3) = deepcopy(size(x))
 #sort_ind = sortperm( a, by=abs, rev=true)
 #val_max=x[sort_ind[1:k]]
 #x=zeros(length(x))
@@ -109,37 +109,38 @@ if mode[1] == "fiber"
   end
 
 elseif mode[1] == "slice" #Slice based projection for 3D tensor
+  #code currently does not mutate the input for slice projections for 3D tensors...
+  #permute and reshape
   if mode[2] == "x"
-    x = reshape(x,n1,n2*n3)
-    Threads.@threads for i=1:n1
-      sort_ind = sortperm( view(x[i,:,:]), by=abs, rev=true)
-      @inbounds x[i,sort_ind[k+1:end]] .= 0.0
-    end
-    x = reshape(x,n1,n2,n3)
-  elseif mode[2] == "z"
-    x = reshape(x,n1*n2,n3)
-    Threads.@threads for i=1:n3
-      sort_ind = sortperm( x[:,i], by=abs, rev=true)
-      @inbounds x[sort_ind[k+1:end],i] .= 0.0
-    end
-    x = reshape(x,n1,n2,n3)
+    x = permutedims(x,[2;3;1])
+    x = reshape(x,n2*n3,n1)
   elseif mode[2] == "y"
-    permutedims(x,[2;1;3]);
-    x = reshape(x,n2,n1*n3)
-    Threads.@threads for i=1:size(x,1)
-      sort_ind = sortperm( x[i,:], by=abs, rev=true)
-      @inbounds x[i,sort_ind[k+1:end]] .= 0.0
-    end
-    x = reshape(x,n2,n1,n3);
-    permutedims(x,[2;1;3]);
-  end #end if
+    x = permutedims(x,[1;3;2])
+    x = reshape(x,n1*n3,n2)
+  elseif mode[2] == "z"
+    x = reshape(x,n1*n2,n3) #there are n3 slices of dimension n1*n2
+  end
 
+  #project, same for all modes because we permuted and reshaped already
+  Threads.@threads for i=1:size(x,2)
+    sort_ind = sortperm( view(x,:,i), by=abs, rev=true)
+    @inbounds x[sort_ind[k+1:end],i] .= 0.0
+  end
+
+  #reverse reshape and permute back
+  if mode[2] == "x"
+    x = reshape(x,n2,n3,n1)
+    x = permutedims(x,[3;1;2]);
+  elseif mode[2] == "y"
+    x = reshape(x,n1,n3,n2)
+    x = permutedims(x,[1;3;2]);
+  elseif mode[2] == "z"
+    x = reshape(x,n1,n2,n3) #there are n3 slices of dimension n1*n2
+  end
 end #if slice/fiber mode
 
 if return_vec==true
-  return vec(x)
-else
-  return x
+  x=vec(x)
 end
-
+return x
 end

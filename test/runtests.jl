@@ -1,18 +1,20 @@
 
-using DistributedArrays
 using LinearAlgebra
+using Test
 
+using DistributedArrays
+using Distributed
 # # add at least 3 worker processes
 if nworkers() < 3
-    n = max(3, min(8, Sys.CPU_CORES))
+    n = max(3, min(8, Sys.CPU_THREADS))
     addprocs(n; exeflags=`--check-bounds=yes`)
 end
 @assert nprocs() > 3
 @assert nworkers() >= 3
 
-@everywhere importall DistributedArrays
-@everywhere importall JOLI
-using Base.Test
+@everywhere using DistributedArrays
+@everywhere using JOLI
+
 @everywhere using SetIntersectionProjection
 
 @everywhere mutable struct compgrid
