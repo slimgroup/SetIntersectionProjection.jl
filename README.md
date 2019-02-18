@@ -4,7 +4,7 @@ Julia software for computing projections onto intersections of constraint sets.
 [Documentation](https://petersbas.github.io/SetIntersectionProjectionDocs/)
 
 
-##Installation for Julia 1.1:
+## Installation for Julia 1.1:
 
  - install [Julia Operators LIbrary (JOLI)](https://github.com/slimgroup/JOLI.jl)
  - then add SetIntersectionProjection:

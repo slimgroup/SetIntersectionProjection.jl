@@ -9,7 +9,7 @@ nl2 = norm(x,2)
 if nl2 <= sigma
   return x
 else
-  Base.LinAlg.scale!(x,sigma/nl2)
+  rmul!(x,sigma/nl2)
 end
 
 return x

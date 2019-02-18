@@ -16,7 +16,7 @@ function project_cardinality!(
 
 #alternative
 sort_ind = sortperm( x, by=abs, rev=true)
-x[sort_ind[k+1:end]]=0.0;
+x[sort_ind[k+1:end]] .= 0.0
   return x
 end
 
@@ -37,18 +37,20 @@ function project_cardinality!(
 #x[sort_ind[1:k]]=val_max
 
 #alternative
-if mode == "x"
-Threads.@threads for i=1:size(x,2)
-    #sort_ind = sortperm( x[:,i], by=abs, rev=true)
-    sort_ind = sortperm( view(x,:,i), by=abs, rev=true)
-@inbounds x[sort_ind[k+1:end],i]=0.0;
+if mode[1] == "fiber"
+  if mode[2] == "x"
+  Threads.@threads for i=1:size(x,2)
+      sort_ind = sortperm( view(x,:,i), by=abs, rev=true)
+  @inbounds x[sort_ind[k+1:end],i] .= 0.0
+    end
+  elseif mode[2] == "z"
+  Threads.@threads for i=1:size(x,1)
+      sort_ind = sortperm( view(x,i,:), by=abs, rev=true)
+  @inbounds x[i,sort_ind[k+1:end]] .= 0.0
+    end
   end
-elseif mode == "y"
-Threads.@threads for i=1:size(x,1)
-    #sort_ind = sortperm( x[:,i], by=abs, rev=true)
-    sort_ind = sortperm( view(x,i,:), by=abs, rev=true)
-@inbounds x[i,sort_ind[k+1:end]]=0.0;
-  end
+else
+  error("for 2D models, the mode of application for project_cardinality! needs to be (fiber,x) or (fiber,y). Or, provide the model as a vector")
 end
 
 if return_vec==true
@@ -70,7 +72,7 @@ function project_cardinality!(
   project m onto {m | card(m)<= k} : x = argmin_x 1/2 ||x-m||2^2 s.t. card(x)<=k
   """
 
-(n1,n2,n3)=size(x)
+(n1,n2,n3) = size(x)
 #sort_ind = sortperm( a, by=abs, rev=true)
 #val_max=x[sort_ind[1:k]]
 #x=zeros(length(x))
@@ -78,14 +80,14 @@ function project_cardinality!(
 
 #alternative
 
-#Fiber based projection
+#Fiber based projection for 3D tensor
 if mode[1] == "fiber"
   if mode[2] == "x"
     for i=1:n2
     Threads.@threads for j=1:n3
           #sort_ind = sortperm( x[:,i], by=abs, rev=true)
           sort_ind = sortperm( view(x,:,i,j), by=abs, rev=true)
-  @inbounds x[sort_ind[k+1:end],i,j]=0.0;
+  @inbounds x[sort_ind[k+1:end],i,j] .= 0.0
         end
     end
   elseif mode[2] == "z"
@@ -93,7 +95,7 @@ if mode[1] == "fiber"
     for j=1:n2
         #sort_ind = sortperm( x[:,i], by=abs, rev=true)
         sort_ind = sortperm( view(x,i,j,:), by=abs, rev=true)
-  @inbounds x[i,j,sort_ind[k+1:end]]=0.0;
+  @inbounds x[i,j,sort_ind[k+1:end]] .= 0.0
       end
     end
   elseif mode[2] == "y"
@@ -101,24 +103,24 @@ if mode[1] == "fiber"
     Threads.@threads for j=1:n3
         #sort_ind = sortperm( x[:,i], by=abs, rev=true)
         sort_ind = sortperm( view(x,i,:,j), by=abs, rev=true)
-  @inbounds x[i,sort_ind[k+1:end],j]=0.0;
+  @inbounds x[i,sort_ind[k+1:end],j] .= 0.0
       end
     end
   end
 
-elseif mode[1] == "slice" #Slice based projection
+elseif mode[1] == "slice" #Slice based projection for 3D tensor
   if mode[2] == "x"
     x = reshape(x,n1,n2*n3)
     Threads.@threads for i=1:n1
-      sort_ind = sortperm( x[i,:], by=abs, rev=true)
-      @inbounds x[i,sort_ind[k+1:end]]=0.0;
+      sort_ind = sortperm( view(x[i,:,:]), by=abs, rev=true)
+      @inbounds x[i,sort_ind[k+1:end]] .= 0.0
     end
     x = reshape(x,n1,n2,n3)
   elseif mode[2] == "z"
     x = reshape(x,n1*n2,n3)
     Threads.@threads for i=1:n3
       sort_ind = sortperm( x[:,i], by=abs, rev=true)
-      @inbounds x[sort_ind[k+1:end],i]=0.0;
+      @inbounds x[sort_ind[k+1:end],i] .= 0.0
     end
     x = reshape(x,n1,n2,n3)
   elseif mode[2] == "y"
@@ -126,7 +128,7 @@ elseif mode[1] == "slice" #Slice based projection
     x = reshape(x,n2,n1*n3)
     Threads.@threads for i=1:size(x,1)
       sort_ind = sortperm( x[i,:], by=abs, rev=true)
-      @inbounds x[i,sort_ind[k+1:end]]=0.0;
+      @inbounds x[i,sort_ind[k+1:end]] .= 0.0
     end
     x = reshape(x,n2,n1,n3);
     permutedims(x,[2;1;3]);

@@ -10,11 +10,11 @@ nl2 = norm(x,2)
 if sigma_min <= nl2 <= sigma_max
   return x
 elseif nl2 > sigma_max
-  Base.LinAlg.scale!(x,sigma_max/nl2)
+  rmul!(x,sigma_max/nl2)
 elseif nl2 < sigma_min && nl2>0
-  Base.LinAlg.scale!(x,sigma_min/nl2)
+  rmul!(x,sigma_min/nl2)
 elseif nl2 < sigma_min && nl2==0
-  copy!(x,ones(TF,length(x)).*(sigma_min./sqrt(length(x))))
+  copy!(x,ones(TF,length(x)) .* (sigma_min ./ sqrt(length(x))))
 end
 
 return x

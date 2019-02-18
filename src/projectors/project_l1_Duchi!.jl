@@ -12,8 +12,7 @@ function project_l1_Duchi!(v::Union{Vector{TF},Vector{Complex{TF}}}, b::TF) wher
 # %   b.
 # %
 # % Author: John Duchi (jduchi@cs.berkeley.edu)
-# Translated to Julia 0.6 by Bas Peters
-
+# Translated (with some modification) to Julia 1.1 by Bas Peters
 if (b <= TF(0))
   error("Radius of L1 ball is negative");
 end
@@ -21,8 +20,8 @@ if norm(v, 1) <= b
   return v
 end
 lv=length(v)
-u = Vector{TF}(lv)
-sv= Vector{TF}(lv)
+u = Vector{TF}(undef,lv)
+sv= Vector{TF}(undef,lv)
 
 #u = sort(abs(v),'descend');
 #u = sort(abs.(v), rev=true) #faster than the line below
@@ -50,7 +49,7 @@ rho = max(1,min(lv,findlast(u .> ((sv.-b)./ (1.0:1.0:lv)))))
 theta = max.(TF(0) , (sv[rho] .- b) ./ rho)::TF
 
 #w = sign(v) .* max(abs(v) - theta, 0);
-v .= sign.(v) .* max.(abs.(v).-theta, TF(0))
+v .= sign.(v) .* max.(abs.(v) .- theta, TF(0))
 
 return v
 end #end project_l1_Duchi
