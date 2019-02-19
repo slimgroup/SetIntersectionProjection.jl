@@ -9,20 +9,20 @@ such that A' * A = I to avoid linear system solves all together in this stage.
 """
 function project_subspace!(
                           x     ::Vector{TF},
-                          A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
+                          A     ::Union{Array{Any},Array{TF,2}},
                           orth  ::Bool
                           ) where {TF<:Real}
   if orth == true
-     x .= A*(A'*x) ::Vector{TF}
+     x .= A*(A'*x)
   else
-    x .= A*((A'*A)\(A'*x)) ::Vector{TF}
+    x .= A*((A'*A)\(A'*x))
   end
 
 end
 
 function project_subspace!(
                           x     ::Array{TF,2},
-                          A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
+                          A     ::Union{Array{Any},Array{TF,2}},
                           orth  ::Bool,
                           mode  ::Tuple{String,String}
                           ) where {TF<:Real}
@@ -59,7 +59,7 @@ correct slices. Every slice needs to become a column of the matrix (x) we projec
 """
 function project_subspace!(
                           x     ::Array{TF,3},
-                          A     ::Union{Array{TF,2},SparseMatrixCSC{Integer,TF}},
+                          A     ::Union{Array{Any},Array{TF,2}},
                           orth  ::Bool,
                           mode  ::Tuple{String,String}
                           ) where {TF<:Real}

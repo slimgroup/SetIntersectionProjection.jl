@@ -27,6 +27,7 @@ end
 @testset "SetIntersectionProjection" begin
 
 include("test_projectors.jl")
+include("test_setup_constraints.jl")
 
 #still need to port the stuff below to Julia 1.1
 

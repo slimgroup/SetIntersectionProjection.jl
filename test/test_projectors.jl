@@ -246,15 +246,15 @@
   project_subspace!(x,M,false,("fiber","z"))
   @test isapprox(x,(M*((M'*M)\(M'*y')))',rtol=eps()*10)
 
-#test projection onto relaxed histogram
 
+#test projection onto relaxed histogram
   #first test exact histogram projection
   ref = sort(randn(100))
   x   = randn(100)
   project_histogram_relaxed!(x,ref,ref)
   @test ref == sort(x)
 
-  #first test exact histogram projection
+  #relaxed histogram projection
   LB = sort(randn(100))
   UB = LB.+0.7
   x   = randn(100)

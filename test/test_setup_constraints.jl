@@ -2,10 +2,6 @@
 
 FL=64
 TF=Float64
-mutable struct compgrid
-  d :: Tuple
-  n :: Tuple
-end
 
 comp_grid = compgrid((1.0, 1.0),(100, 201))
 comp_grid3D = compgrid((1.0, 1.0, 1.0),(50, 60, 30))
@@ -370,7 +366,149 @@ options.FL = TF
   @test isapprox(nn_Xp,nn_X*0.567,rtol=20*eps())
 
   #test nuclear norm projection onto slices of a 3D tensor
+  X = vec(randn(comp_grid3D.n))
+  constraint = Vector{SetIntersectionProjection.set_definitions}()
+  m_min     = 0
+  m_max     = 1.234
+  set_type  = "nuclear"
+  TD_OP     = "identity"
+  app_mode  = ("slice","x")
+  custom_TD_OP = ([],false)
+  push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+  (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid3D,options.FL)
+  P_sub[1](X)
+  X=reshape(X,comp_grid3D.n)
+  [@test isapprox(norm(svdvals(X[i,:,:]),1), 1.234,rtol=100*eps()) for i=1:size(X,1)]
 
+  X = vec(randn(comp_grid3D.n))
+  constraint = Vector{SetIntersectionProjection.set_definitions}()
+  m_min     = 0
+  m_max     = 1.234
+  set_type  = "nuclear"
+  TD_OP     = "identity"
+  app_mode  = ("slice","y")
+  custom_TD_OP = ([],false)
+  push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+  (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid3D,options.FL)
+  P_sub[1](X)
+  X=reshape(X,comp_grid3D.n)
+  [@test isapprox(norm(svdvals(X[:,i,:]),1), 1.234,rtol=100*eps()) for i=1:size(X,2)]
+
+  X = vec(randn(comp_grid3D.n))
+  constraint = Vector{SetIntersectionProjection.set_definitions}()
+  m_min     = 0
+  m_max     = 1.234
+  set_type  = "nuclear"
+  TD_OP     = "identity"
+  app_mode  = ("slice","z")
+  custom_TD_OP = ([],false)
+  push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+  (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid3D,options.FL)
+  P_sub[1](X)
+  X=reshape(X,comp_grid3D.n)
+  [@test isapprox(norm(svdvals(X[:,:,i]),1), 1.234,rtol=100*eps()) for i=1:size(X,3)]
+
+
+#test project_subspace!
+  #on a vector inputs
+  #orthogonal subspace
+  M=randn(100,50)
+  F=svd(M)
+  x=randn(100)
+  y=deepcopy(x)
+  constraint = Vector{SetIntersectionProjection.set_definitions}()
+  m_min     = 0
+  m_max     = 0.0
+  set_type  = "subspace"
+  TD_OP     = "identity"
+  app_mode  = ("matrix","")
+  custom_TD_OP = (F.U,true)
+  push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+  (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+  P_sub[1](x)
+  @test isapprox(x,F.U*(F.U'*y),rtol=eps()*100)
+
+  #non-orthogonal subspace
+  M=randn(100,50)
+  x=randn(100)
+  y=deepcopy(x)
+  constraint = Vector{SetIntersectionProjection.set_definitions}()
+  m_min     = 0
+  m_max     = 0.0
+  set_type  = "subspace"
+  TD_OP     = "identity"
+  app_mode  = ("matrix","")
+  custom_TD_OP = (M,false)
+  push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+  (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+  P_sub[1](x)
+  @test isapprox(x,M*((M'*M)\(M'*y)),rtol=eps()*10)
+
+  #on matrix input: project every column onto the subspace
+  M=randn(prod(comp_grid.n[1]),50)
+  x=randn(prod(comp_grid.n))
+  y=deepcopy(x)
+  x=vec(x)
+  constraint = Vector{SetIntersectionProjection.set_definitions}()
+  m_min     = 0
+  m_max     = 0.0
+  set_type  = "subspace"
+  TD_OP     = "identity"
+  app_mode  = ("fiber","x")
+  custom_TD_OP = (M,false)
+  push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+  (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+  P_sub[1](x)
+  @test isapprox(x,vec(M*((M'*M)\(M'*reshape(y,comp_grid.n)))),rtol=eps()*10)
+
+  #on matrix input: project every row onto the subspace
+  M=randn(prod(comp_grid.n[2]),50)
+  x=randn(prod(comp_grid.n))
+  y=deepcopy(x)
+  x=vec(x)
+  constraint = Vector{SetIntersectionProjection.set_definitions}()
+  m_min     = 0
+  m_max     = 0.0
+  set_type  = "subspace"
+  TD_OP     = "identity"
+  app_mode  = ("fiber","z")
+  custom_TD_OP = (M,false)
+  push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+  (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+  P_sub[1](x)
+  @test isapprox(x,vec((M*((M'*M)\(M'*reshape(y,comp_grid.n)')))'),rtol=eps()*10)
+
+#test projection onto relaxed histogram
+  #first test exact histogram projection
+  ref = sort(randn(100))
+  x   = randn(100)
+  constraint = Vector{SetIntersectionProjection.set_definitions}()
+  m_min     = ref
+  m_max     = ref
+  set_type  = "histogram"
+  TD_OP     = "identity"
+  app_mode  = ("matrix","")
+  custom_TD_OP = ([],false)
+  push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+  (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+  P_sub[1](x)
+  @test ref == sort(x)
+
+  #relaxed histogram projection
+  x   = randn(100)
+  constraint = Vector{SetIntersectionProjection.set_definitions}()
+  m_min     = sort(randn(100))
+  m_max     = m_min.+0.7
+  set_type  = "histogram"
+  TD_OP     = "identity"
+  app_mode  = ("matrix","")
+  custom_TD_OP = ([],false)
+  push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+  (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+  P_sub[1](x)
+  x = sort(x)
+  [@test x[i] <= m_max[i] for i=1:100]
+  [@test x[i] >= m_min[i] for i=1:100]
 
 # #test projection onto l1-ball with DFT operator
 # constraint=Dict()

@@ -4,7 +4,7 @@ export project_histogram_relaxed!
 Computes the projection of x onto a (relaxed) histogram.
 P*LB <= P*x <= P*UB
 x is a vector and the bounds are vectors as well. P is the orthogonal permutation matrix that
-sorts x by magnitude. The LB and UB are vectors that are the sorted magnitude of the bounds
+sorts x. The LB and UB are vectors that are the sorted values of the bounds
 """
 function project_histogram_relaxed!(x::Vector{TF},LB::Vector{TF},UB::Vector{TF}) where {TF<:Real}
 

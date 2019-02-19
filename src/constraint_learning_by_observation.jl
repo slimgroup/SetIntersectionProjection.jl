@@ -31,10 +31,10 @@ observations["rank_095"]     = zeros(TI,n_train_ex)
 observations["TV"]           = zeros(TF,n_train_ex)
 observations["Dx_l1"]        = zeros(TF,n_train_ex)
 observations["Dz_l1"]        = zeros(TF,n_train_ex)
-observations["curvelet_l1"]  = zeros(TF,n_train_ex)
+#observations["curvelet_l1"]  = zeros(TF,n_train_ex)
 observations["DFT_l1"]       = zeros(TF,n_train_ex)
 observations["DFT_card_095"] = zeros(TI,n_train_ex)
-observations["curvelet_card_095"]= zeros(TI,n_train_ex)
+#observations["curvelet_card_095"]= zeros(TI,n_train_ex)
 observations["TV_card_095"]  = zeros(TI,n_train_ex)
 observations["annulus"]      = zeros(TF,n_train_ex)
 observations["TV_annulus"]   = zeros(TF,n_train_ex)
@@ -61,7 +61,7 @@ observations["hist_TV_max"]   = zeros(TF,(t2-1)*t3+t2*(t3-1))
 (Dx_OP, dummy1, dummy2, Dx_TD_n) = get_TD_operator(comp_grid,"D_x",TF)
 (Dz_OP, dummy1, dummy2, Dz_TD_n) = get_TD_operator(comp_grid,"D_z",TF)
 (TV_OP, dummy1, dummy2, TD_n_TV) = get_TD_operator(comp_grid,"TV",TF)
-(C_OP, dummy1, dummy2, dummy3)   = get_TD_operator(comp_grid,"curvelet",TF)
+#(C_OP, dummy1, dummy2, dummy3)   = get_TD_operator(comp_grid,"curvelet",TF)
 (DFT, dummy1, dummy2, dummy3)    = get_TD_operator(comp_grid,"DFT",TF)
 #DFT = x-> vec(fft(reshape(x,comp_grid.n)))
 DCT = x-> vec(dct(reshape(x,comp_grid.n)))
@@ -117,7 +117,7 @@ for i=1:n_train_ex #can be changed to a parallel loop for larger datasets
     observations["TV_annulus"][i]=norm(TV_OP*vec(training_image),2)
 
     #observe curvelet domain l1 norm
-    observations["curvelet_l1"][i]=norm(C_OP*training_image,1)
+    #observations["curvelet_l1"][i]=norm(C_OP*training_image,1)
 
     #observe Fourier domain l1 norm
     observations["DFT_l1"][i]=norm(DFT*training_image,1)
@@ -127,8 +127,8 @@ for i=1:n_train_ex #can be changed to a parallel loop for larger datasets
     observations["DFT_card_095"][i]=length(temp)-findfirst(temp.>0.05)
 
     #observe nr or required curvelet atoms to represent95%
-    temp=C_OP*training_image; temp=abs.(temp); temp=sort(temp); temp=cumsum(temp); temp=temp./maximum(temp);
-    observations["curvelet_card_095"][i]=length(temp)-findfirst(temp.>0.05)
+    # temp=C_OP*training_image; temp=abs.(temp); temp=sort(temp); temp=cumsum(temp); temp=temp./maximum(temp);
+    # observations["curvelet_card_095"][i]=length(temp)-findfirst(temp.>0.05)
 
     #observe nr or required TV atoms to represent95%
     temp=TV_OP*training_image; temp=abs.(temp); temp=sort(temp); temp=cumsum(temp); temp=temp./maximum(temp);

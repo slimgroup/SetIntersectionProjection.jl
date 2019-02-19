@@ -46,15 +46,15 @@ function get_projector(constraint,comp_grid,special_operator_list::Array{String,
     if constraint.app_mode[1]  in ["matrix","tensor"]
       P = x -> project_subspace!(x,constraint.custom_TD_OP[1],constraint.custom_TD_OP[2])
     else
-      P = x -> project_subspace!(reshape(x,comp_grid.n),constraint.custom_TD_OP[1],constraint.custom_TD_OP[2],constraint.app_mode[2])
+      P = x -> project_subspace!(reshape(x,comp_grid.n),constraint.custom_TD_OP[1],constraint.custom_TD_OP[2],constraint.app_mode)
     end
   end
 
   if constraint.set_type == "nuclear"
     if constraint.TD_OP in special_operator_list
-      P = x -> copy!(x,A'*project_nuclear!(reshape(A*x,TD_n),constraint.max,constraint.app_mode[2]))
+      P = x -> copy!(x,A'*project_nuclear!(reshape(A*x,TD_n),constraint.max,constraint.app_mode))
     else
-      P = x -> project_nuclear!(reshape(x,TD_n),constraint.max,constraint.app_mode[2])
+      P = x -> project_nuclear!(reshape(x,TD_n),constraint.max,constraint.app_mode)
     end
   end
 
