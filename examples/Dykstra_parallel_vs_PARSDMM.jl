@@ -94,8 +94,8 @@ xmax = comp_grid.d[1]*comp_grid.n[1]
 zmax = comp_grid.d[2]*comp_grid.n[2]
 vmi=1500
 vma=4500
-figure();imshow(reshape(m,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
-figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection PARSDMM (bounds, bounds on D_z, TV))")
+figure();imshow(permutedims(reshape(m,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
+figure();imshow(permutedims(reshape(x,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection PARSDMM (bounds, bounds on D_z, TV))")
 
 
 # parallel Dykstra: first set up projectors onto complicated sets
@@ -152,11 +152,11 @@ closed_form[1]=true
 closed_form[2]=false
 closed_form[3]=false
 
-figure();imshow(reshape(m2,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
+figure();imshow(permutedims(reshape(m2,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
 
 @time (x,obj,feasibility_err_dyk,cg_it,ARADMM_it,l1_P,bounds_P,evol_x_PDyk)=Dykstra_prox_parallel(m2,P,P_sub,TD_OPS,closed_form,maxit_dyk,dyk_feas_tol,obj_dyk_tol)
 
-figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection Dykstra (bounds, bounds on D_z, TV)")
+figure();imshow(permutedims(reshape(x,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection Dykstra (bounds, bounds on D_z, TV)")
 
 
 fig, ax = subplots()
@@ -259,8 +259,8 @@ xmax = comp_grid.d[1]*comp_grid.n[1]
 zmax = comp_grid.d[2]*comp_grid.n[2]
 vmi=1500
 vma=4500
-figure();imshow(reshape(m,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
-figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection PARSDMM (bounds, rank)")
+figure();imshow(permutedims(reshape(m,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
+figure();imshow(permutedims(reshape(x,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection PARSDMM (bounds, rank)")
 
 # parallel Dykstra: first set up projectors onto complicated sets
 #use same stopping conditions as for PARSDMM
@@ -300,11 +300,11 @@ closed_form=Vector{Bool}(undef,2)
 closed_form[1]=true
 closed_form[2]=false
 
-figure();imshow(reshape(m,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
+figure();imshow(permutedims(reshape(m,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
 
 @time (x,obj,feasibility_err_dyk,cg_it,ARADMM_it,svd_P,~,evol_x_PDyk)=Dykstra_prox_parallel(m,P,P_sub,TD_OPS,closed_form,maxit_dyk,dyk_feas_tol,obj_dyk_tol)
 
-figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection Dykstra (bounds, bounds on D_z, TV)")
+figure();imshow(permutedims(reshape(x,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection Dykstra (bounds, bounds on D_z, TV)")
 
 fig, ax = subplots()
 ax[:semilogy](feas_axis,log_PARSDMM.set_feasibility[:,1],color="b",label="PARSDMM - bounds",linewidth=5);

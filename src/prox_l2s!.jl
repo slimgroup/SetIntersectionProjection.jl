@@ -6,6 +6,6 @@ function prox_l2s!(
   m   ::Vector{TF}
   ) where {TF<:Real}
 
-  x.= (x .* rho .+ m) ./ (rho .+ 1);
+  x .= (x .* rho .+ m) ./ (rho .+ 1.0);
   return x
 end

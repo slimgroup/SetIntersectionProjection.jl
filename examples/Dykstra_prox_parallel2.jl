@@ -41,12 +41,12 @@ function Dykstra_prox_parallel2(
 # Initialize
 N       = length(x)
 m = length(P) #number of constraints
-ptp   = Vector{TF}(N)
-x_old = Vector{TF}(N)
-copy!(ptp,x)
-copy!(x_old,x)
-z=Vector{Vector{TF}}(m)
-p=Vector{Vector{TF}}(m)
+ptp   = Vector{TF}(undef,N)
+x_old = Vector{TF}(undef,N)
+copyto!(ptp, x)
+copyto!(x_old,x)
+z=Vector{Vector{TF}}(undef,m)
+p=Vector{Vector{TF}}(undef,m)
 
 obj=zeros(TF,maxit_dyk)
 rel_feasibility_err=zeros(TF,maxit_dyk+1,m)
@@ -58,7 +58,7 @@ cg_it=zeros(Int64,maxit_dyk)
 
 for i=1:m
     z[i]=zeros(TF,N)
-    copy!(z[i],x)
+    copyto!(z[i],x)
     p[i]=zeros(TF,N)
 end
 omega   = 1.0 ./ m; #weights are hardcored here
@@ -83,14 +83,14 @@ for n=1:maxit_dyk
           if m==2; temp2= sum(log_PARSDMM.cg_it); end
           if m==2; svd_P[n] = length(log_PARSDMM.obj); end
         else
-          copy!(p[i],P[i](z[i]))
+          copyto!(p[i],P[i](z[i]))
         end
   end
   ARADMM_it[n] = temp1
   cg_it[n] = temp2
 
     #averaging step
-    if n>1; copy!(x_old,x); end;
+    if n>1; copyto!(x_old,x); end;
     fill!(x,TF(0.0))
     for i=1:m
         x .= x .+ omega.*p[i];
