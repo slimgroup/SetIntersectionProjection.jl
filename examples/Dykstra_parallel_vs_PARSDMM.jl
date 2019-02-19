@@ -246,7 +246,7 @@ BLAS.set_num_threads(2) #2 is fine for a small problem
 (P_sub,TD_OPS,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
 (TD_OPS,AtA,l,y) = PARSDMM_precompute_distribute(TD_OPS,set_Prop,comp_grid,options)
 
-println("PARSDMM serial (bounds, bounds on D_z and TV):")
+println("PARSDMM serial (bounds and rank constraint on D_z):")
 @time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OPS,set_Prop,P_sub,comp_grid,options);
 
 cg_axis=[0 ; cumsum(log_PARSDMM.cg_it)];
@@ -278,7 +278,7 @@ options.obj_tol      = 0.5*options.obj_tol
 options.feas_tol     = 0.5*options.feas_tol
 options.evol_rel_tol = 10*eps(TF)
 
-P=Vector{Any}(2)
+P=Vector{Any}(undef,2)
 P[1]=P_sub[1] #projector onto bounds is easy.
 
 # Set up ARADMM to project onto set of transform-domain rank (PARSDMM with 1 constraint set is equivalent to ARADMM)

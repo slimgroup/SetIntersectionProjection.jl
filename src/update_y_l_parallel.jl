@@ -76,13 +76,13 @@ rho1 = TF(1.0) ./ rho[1];
 #log feasibility
 if feasibility_only==false
   if mod(i,10)==0 && myid()<nprocs() #ii<length(P_sub)#log every 10 it, or whatever number is suitable
-     copy!(x_hat[1],s[1])
-     set_feas[1] = norm(P_sub[1](x_hat[1])-s[1]) ./ (norm(s[1])+(100*eps(TF)))
+     temp = P_sub[1](deepcopy(s[1]))
+     set_feas[1] = norm(temp-s[1]) ./ (norm(s[1])+(100*eps(TF)))
   end
 else
   if mod(i,10)==0 #ii<length(P_sub)#log every 10 it, or whatever number is suitable
-     copy!(x_hat[1],s[1])
-     set_feas[1] = norm(P_sub[1](x_hat[1])-s[1]) ./ (norm(s[1])+(100*eps(TF)))
+     temp = P_sub[1](deepcopy(s[1]))
+     set_feas[1] = norm(temp-s[1]) ./ (norm(s[1])+(100*eps(TF)))
   end
 end
 

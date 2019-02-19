@@ -85,13 +85,15 @@ end
 #log feasibility
 if feasibility_only==false
   if mod(i,10)==0 && ii<p#log every 10 it, or whatever number is suitable
-    copy!(x_hat[ii],s[ii])
-    log_PARSDMM.set_feasibility[counter,ii] = norm( P_sub[ii](x_hat[ii]) .- s[ii]) ./ (norm(s[ii])+(100*eps(TF))); #use x_hat[ii] as output, because it is already allocated and not used afterwards. The next iteration it will be overwritten anyway before use
+    temp = P_sub[ii](deepcopy(s[ii]))
+    #copy!(x_hat[ii],s[ii])
+    log_PARSDMM.set_feasibility[counter,ii] = norm( temp .- s[ii]) ./ (norm(s[ii])+(100*eps(TF))); #use x_hat[ii] as output, because it is already allocated and not used afterwards. The next iteration it will be overwritten anyway before use
   end
 else
   if mod(i,10)==0#log every 10 it, or whatever number is suitable
-    copy!(x_hat[ii],s[ii])
-    log_PARSDMM.set_feasibility[counter,ii] = norm( P_sub[ii](x_hat[ii]) .- s[ii]) ./ (norm(s[ii])+(100*eps(TF))); #use x_hat[ii] as output, because it is already allocated and not used afterwards. The next iteration it will be overwritten anyway before use
+    #copy!(x_hat[ii],s[ii])
+    temp = P_sub[ii](deepcopy(s[ii]))
+    log_PARSDMM.set_feasibility[counter,ii] = norm( temp .- s[ii]) ./ (norm(s[ii])+(100*eps(TF))); #use x_hat[ii] as output, because it is already allocated and not used afterwards. The next iteration it will be overwritten anyway before use
   end
 end
 
