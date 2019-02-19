@@ -97,7 +97,7 @@ for n=1:maxit_dyk
     end
 
     #log objective
-    obj[n].=0.5*norm(ptp-x,2).^2;
+    obj[n] = 0.5*norm(ptp-x,2).^2;
 
     #updating
     for i=1:m
