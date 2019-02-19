@@ -134,8 +134,9 @@ for n=1:maxit_dyk
         cg_it=cg_it[1:n]
         l1_P=l1_P[1:n]
         ARADMM_it=ARADMM_it[1:n]
+        evol_x = evol_x[1:n]
         rel_feasibility_err=rel_feasibility_err[1:n+1,:]
-        return x,obj,rel_feasibility_err,cg_it,ARADMM_it,l1_P,bounds_P
+        return x,obj,rel_feasibility_err,cg_it,ARADMM_it,l1_P,bounds_P,evol_x
     end
 end
 

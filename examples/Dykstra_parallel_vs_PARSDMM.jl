@@ -27,7 +27,8 @@ m = permutedims(m,[2,1])
 #PARSDMM options:
 options          = PARSDMM_options()
 options.FL       = Float32
-options.feas_tol = 0.01f0
+options.feas_tol = 0.001f0
+options.evol_rel_tol = 0.0001f0
 set_zero_subnormals(true)
 
 #select working precision
@@ -112,7 +113,7 @@ obj_tol_target = deepcopy(options.obj_tol)
 # if set too loose, we will not see overall convergence
 options.obj_tol      = 0.8*options.obj_tol
 options.feas_tol     = 0.8*options.feas_tol
-options.evol_rel_tol = 10*eps(TF)
+options.evol_rel_tol = 10*eps(TF)#0.2*options.feas_tol
 
 P=Vector{Any}(undef,3)
 P[1]=P_sub[1] #projector onto bounds is easy.
@@ -206,7 +207,7 @@ savefig("Dykstra_vs_PARSDMM_feasibility_CG.png",bbox_inches="tight")
 
 fig, ax = subplots()
 #ax[:semilogy](abs.(diff(log_PARSDMM.obj)./log_PARSDMM.obj[1:end-1]),color="b",label="PARSDMM",linewidth=5);
-ax[:semilogy](cumsum(ARADMM_it[1:end]),evol_x_PDyk[1:end-1,1],color="r",linestyle=":",label="Parallel Dykstra",linewidth=5);
+ax[:semilogy](cumsum(ARADMM_it[1:end]),evol_x_PDyk[1:length(ARADMM_it[1:end]),1],color="r",linestyle=":",label="Parallel Dykstra",linewidth=5);
 ax[:semilogy](log_PARSDMM.evol_x[3:end],color="b",label="PARSDMM",linewidth=5);
 #ax[:semilogy](ones(sum(ARADMM_it[2:end])).*obj_tol_target,label="target");
 #title(L"relative change in $|| \mathbf{m} - \mathbf{x} ||$", fontsize=16)
