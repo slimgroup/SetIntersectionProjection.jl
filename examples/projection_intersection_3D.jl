@@ -23,7 +23,7 @@ n,d,o,m = h5open("overthrust_3D_true_model.h5","r") do file
 	read(file, "n", "d", "o", "m")
 end
 m .= 1000.0 ./ sqrt.(m);
-m = m[1:250,1:250,:];
+m = m[50:200,50:200,:];
 
 comp_grid = compgrid( (d[1], d[2], d[3]),( size(m,1), size(m,2), size(m,3) ) )
 m=vec(m);
@@ -108,14 +108,14 @@ subplot(3, 3, 9);semilogy(log_PARSDMM.evol_x)         ;title("x evolution")
 m_plot = reshape(m,comp_grid.n)
 figure();
 subplot(3,1,1);imshow(m_plot[:,:,Int64(round(comp_grid.n[3]/2))],cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, ymax, 0]); title("model to project x-y slice")
-subplot(3,1,2);imshow(m_plot[:,Int64(round(comp_grid.n[2]/2)),:]',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project x-z slice")
-subplot(3,1,3);imshow(m_plot[Int64(round(comp_grid.n[1]/2)),:,:]',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  ymax, zmax, 0]); title("model to project y-z slice")
+subplot(3,1,2);imshow(permutedims(m_plot[:,Int64(round(comp_grid.n[2]/2)),:],[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project x-z slice")
+subplot(3,1,3);imshow(permutedims(m_plot[Int64(round(comp_grid.n[1]/2)),:,:],[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  ymax, zmax, 0]); title("model to project y-z slice")
 
 x_plot = reshape(x,comp_grid.n)
 figure();
 subplot(3,1,1);imshow(x_plot[:,:,Int64(round(comp_grid.n[3]/2))],cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, ymax, 0]); title("projected model x-y slice")
-subplot(3,1,2);imshow(x_plot[:,Int64(round(comp_grid.n[2]/2)),:]',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("projected model x-z slice")
-subplot(3,1,3);imshow(x_plot[Int64(round(comp_grid.n[1]/2)),:,:]',cmap="jet",vmin=vmi,vmax=vma,extent=[0,  ymax, zmax, 0]); title("projected model y-z slice")
+subplot(3,1,2);imshow(permutedims(x_plot[:,Int64(round(comp_grid.n[2]/2)),:],[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("projected model x-z slice")
+subplot(3,1,3);imshow(permutedims(x_plot[Int64(round(comp_grid.n[1]/2)),:,:],[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  ymax, zmax, 0]); title("projected model y-z slice")
 
 #use multilevel-serial (2-levels)
 #2 levels, the gird point spacing at level 2 is 3X that of the original (level 1) grid

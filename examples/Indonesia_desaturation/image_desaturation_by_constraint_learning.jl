@@ -70,22 +70,22 @@ custom_TD_OP = ([],false)
 push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 #relaxed histogram constraint:
-# m_min     = observations["hist_min"]
-# m_max     = observations["hist_max"]
-# set_type  = "histogram"
-# TD_OP     = "identity"
-# app_mode  = ("matrix","")
-# custom_TD_OP = ([],false)
-# push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+m_min     = observations["hist_min"]
+m_max     = observations["hist_max"]
+set_type  = "histogram"
+TD_OP     = "identity"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 #relaxed histogram constraint on discrete derivative of the image:
-# m_min     = observations["hist_TV_min"]
-# m_max     = observations["hist_TV_max"]
-# set_type  = "histogram"
-# TD_OP     = "TV"
-# app_mode  = ("matrix","")
-# custom_TD_OP = ([],false)
-# push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+m_min     = observations["hist_TV_min"]
+m_max     = observations["hist_TV_max"]
+set_type  = "histogram"
+TD_OP     = "TV"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 # #rank that preserves 95% of the training images:
 # m_min     = 0
@@ -211,7 +211,7 @@ BLAS.set_num_threads(2)
 (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL) #obtain projector and transform-domain operator pairs
 
 #add identity matrix as linear operator for the desaturation data-fit constraint
-push!(TD_OP,SparseMatrixCSC{TF}(LinearAlgebra.I,comp_grid.n[1]*comp_grid.n[2]))
+push!(TD_OP,SparseMatrixCSC{TF}(LinearAlgebra.I,comp_grid.n[1]*comp_grid.n[2],comp_grid.n[1]*comp_grid.n[2]))
 push!(set_Prop.AtA_offsets,[0]) #these are dummy values, actual ofsetts are automatically detected
 push!(set_Prop.ncvx,false)
 push!(set_Prop.banded,true)
@@ -253,8 +253,8 @@ for i=1:size(d_obs,1)
   p2proj = deepcopy(x_ini) #don't couple initial guess and point to project.
   @time (x,log_PARSDMM) = PARSDMM(p2proj,AtA,TD_OP,set_Prop,P_sub,comp_grid,options,x_ini,[],y)
   m_est[i,:,:]=reshape(x,comp_grid.n)
-  println("SNR:", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:])),2))
-  println("PSNR:", round(psnr(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:]),maximum(m_evaluation[i,:,:])),2))
+  println("SNR:", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:])),digits=2))
+  println("PSNR:", round(psnr(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:]),maximum(m_evaluation[i,:,:])),digits=2))
 
   if i+1<=size(d_obs,1)
     data = vec(d_obs[i+1,:,:])
@@ -286,8 +286,7 @@ figure();title("training image", fontsize=10)
 for i=1:16
   subplot(4,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig("training_data_all.eps",bbox_inches="tight",dpi=600)
-savefig("training_data_all.png",bbox_inches="tight")
+savefig("training_data_all.png",bbox_inches="tight",dpi=600)
 close()
 
 #First 8 in 1 figure
@@ -295,29 +294,24 @@ figure();
 for i=1:8
   subplot(2,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig("training_data_first8.eps",bbox_inches="tight",dpi=600)
-savefig("training_data_first8.png",bbox_inches="tight")
+savefig("training_data_first8.png",bbox_inches="tight",dpi=600)
 close()
 
 for i=1:16
   figure();title(string("training image", i), fontsize=10)
   imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
-  savefig(string("training_data_", i,".eps"),bbox_inches="tight",dpi=600)
-  savefig(string("training_data_", i,".png"),bbox_inches="tight")
+  savefig(string("training_data_", i,".png"),bbox_inches="tight",dpi=600)
   close()
 end
 
 #plot results
 for i=1:size(m_est,1)
     figure();imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(string("saturized_observed",i,".eps"),bbox_inches="tight",dpi=600)
-    savefig(string("saturized_observed",i,".png"),bbox_inches="tight")
-    figure();imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:])),2)))
-    savefig(string("PARSDMM_desaturation",i,".eps"),bbox_inches="tight",dpi=600)
-    savefig(string("PARSDMM_desaturation",i,".png"),bbox_inches="tight")
+    savefig(string("saturized_observed",i,".png"),bbox_inches="tight",dpi=600)
+    figure();imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:])),digits=2)))
+    savefig(string("PARSDMM_desaturation",i,".png"),bbox_inches="tight",dpi=600)
     figure();imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(string("desaturation_evaluation",i,".eps"),bbox_inches="tight",dpi=600)
-    savefig(string("desaturation_evaluation",i,".png"),bbox_inches="tight")
+    savefig(string("desaturation_evaluation",i,".png"),bbox_inches="tight",dpi=600)
     close()
 end
 
@@ -326,27 +320,26 @@ for i=1:size(m_est,1)
   subplot(3,4,i);imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("Observed");
 end
 for i=1:size(m_est,1)
-  subplot(3,4,i+8);imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, PSNR=", round(psnr(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:]),maximum(m_evaluation[i,:,:])),2)))
+  subplot(3,4,i+8);imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, PSNR=", round(psnr(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:]),maximum(m_evaluation[i,:,:])),digits=2)))
 end
 for i=1:size(m_est,1)
   subplot(3,4,i+4);imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
 end
-savefig("desaturation_results.eps",bbox_inches="tight",dpi=300)
-savefig("desaturation_results.png",bbox_inches="tight")
+savefig("desaturation_results.png",bbox_inches="tight",dpi=300)
 
 
-file = matopen("m_est.mat"), "w")
+file = matopen("m_est.mat", "w")
 write(file, "m_est", convert(Array{Float64,3},m_est))
 close(file)
 
-file = matopen("m_evaluation.mat"), "w")
+file = matopen("m_evaluation.mat", "w")
 write(file, "m_evaluation", convert(Array{Float64,3},m_evaluation))
 close(file)
 
-file = matopen("m_train.mat"), "w")
+file = matopen("m_train.mat", "w")
 write(file, "m_train", convert(Array{Float64,3},m_train))
 close(file)
 
-file = matopen("d_obs.mat"), "w")
+file = matopen("d_obs.mat", "w")
 write(file, "d_obs", convert(Array{Float64,3},d_obs))
 close(file)

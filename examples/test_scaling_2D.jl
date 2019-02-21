@@ -145,17 +145,14 @@ for i=1:length(width)
   T_tot_parallel_multilevel[i] = t
 
   if i==1
-    figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))');colorbar
-    savefig("projection_intersection_timings_2D_fig1.eps",bbox_inches="tight",dpi=300)
-    savefig("projection_intersection_timings_2D_fig1.png",bbox_inches="tight")
+    figure();imshow(permutedims(reshape(x,(comp_grid.n[1],comp_grid.n[2])),[2,1]));colorbar
+    savefig("projection_intersection_timings_2D_fig1.png",bbox_inches="tight",dpi=300)
   elseif i==3
-    figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))');colorbar
-    savefig("projection_intersection_timings_2D_fig2.eps",bbox_inches="tight",dpi=300)
-    savefig("projection_intersection_timings_2D_fig2.png",bbox_inches="tight")
+    figure();imshow(permutedims(reshape(x,(comp_grid.n[1],comp_grid.n[2])),[2,1]));colorbar
+    savefig("projection_intersection_timings_2D_fig2.png",bbox_inches="tight",dpi=300)
   elseif i==6
-    figure();imshow(reshape(x,(comp_grid.n[1],comp_grid.n[2]))');colorbar
-    savefig("projection_intersection_timings_2D_fig3.eps",bbox_inches="tight",dpi=300)
-    savefig("projection_intersection_timings_2D_fig3.png",bbox_inches="tight")
+    figure();imshow(permutedims(reshape(x,(comp_grid.n[1],comp_grid.n[2])),[2,1]));colorbar
+    savefig("projection_intersection_timings_2D_fig3.png",bbox_inches="tight",dpi=300)
   end
 
 
@@ -172,8 +169,7 @@ ax[:legend]()
 title(string("time 2D vs grid size, JuliaThreads=",Threads.nthreads(),", BLAS threads=",ccall((:openblas_get_num_threads64_, Base.libblas_name), Cint, ())), fontsize=12)
 xlabel("N gridpoints", fontsize=15)
 ylabel("time [seconds]", fontsize=15)
-savefig("projection_intersection_timings2D_1.eps",bbox_inches="tight",dpi=1200)
-savefig("projection_intersection_timings2D_1.png",bbox_inches="tight")
+savefig("projection_intersection_timings2D_1.png",bbox_inches="tight",dpi=1200)
 
 #######################################################################################
 #######################################################################################

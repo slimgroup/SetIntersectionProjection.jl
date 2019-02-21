@@ -106,22 +106,22 @@ custom_TD_OP = ([],false)
 push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 #relaxed histogram constraint:
-# m_min     = observations["hist_min"]
-# m_max     = observations["hist_max"]
-# set_type  = "histogram"
-# TD_OP     = "identity"
-# app_mode  = ("matrix","")
-# custom_TD_OP = ([],false)
-# push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+m_min     = observations["hist_min"]
+m_max     = observations["hist_max"]
+set_type  = "histogram"
+TD_OP     = "identity"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 #relaxed histogram constraint on discrete derivative of the image:
-# m_min     = observations["hist_TV_min"]
-# m_max     = observations["hist_TV_max"]
-# set_type  = "histogram"
-# TD_OP     = "TV"
-# app_mode  = ("matrix","")
-# custom_TD_OP = ([],false)
-# push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+m_min     = observations["hist_TV_min"]
+m_max     = observations["hist_TV_max"]
+set_type  = "histogram"
+TD_OP     = "TV"
+app_mode  = ("matrix","")
+custom_TD_OP = ([],false)
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 # #rank that preserves 95% of the training images:
 # m_min     = 0
@@ -338,8 +338,7 @@ figure();title("training image", fontsize=10)
 for i=1:16
   subplot(4,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig("training_data_all.eps"),bbox_inches="tight",dpi=600)
-savefig("training_data_all.png"),bbox_inches="tight")
+savefig("training_data_all.png",bbox_inches="tight",dpi=600)
 close()
 
 # for i=1:35
@@ -356,41 +355,38 @@ figure();
 for i=1:8
   subplot(2,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig("training_data_first8.eps"),bbox_inches="tight",dpi=600)
-savefig("training_data_first8.png"),bbox_inches="tight")
+savefig("training_data_first8.png",bbox_inches="tight",dpi=600)
 close()
 
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 
 for i=1:size(m_est,1)
     figure();imshow(d_obs[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(string("deblurring_inpainting_observed",i,".eps"),bbox_inches="tight",dpi=600)
-    savefig(string("deblurring_inpainting_observed",i,".png"),bbox_inches="tight")
+    savefig(string("deblurring_inpainting_observed",i,".png"),bbox_inches="tight",dpi=600)
     figure();imshow(m_est[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(m_est[i,(bkl*2):end-(bkl*2),:])),digits=2)))
-    savefig(string("PARSDMM_deblurring_inpainting",i,".eps"),bbox_inches="tight",dpi=600)
-    savefig(string("PARSDMM_deblurring_inpainting",i,".png"),bbox_inches="tight")
+    savefig(string("PARSDMM_deblurring_inpainting",i,".png"),bbox_inches="tight",dpi=600)
     figure();imshow(m_evaluation[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(string("deblurring_inpainting_evaluation",i,".eps"),bbox_inches="tight",dpi=600)
-    savefig(string("deblurring_inpainting_evaluation",i,".png"),bbox_inches="tight")
+    savefig(string("deblurring_inpainting_evaluation",i,".png"),bbox_inches="tight",dpi=600)
+    close("all")
 end
 
-file = matopen("m_est.mat"), "w")
+file = matopen("m_est.mat", "w")
 write(file, "m_est", convert(Array{Float64,3},m_est))
 close(file)
 
-file = matopen("m_evaluation.mat"), "w")
+file = matopen("m_evaluation.mat", "w")
 write(file, "m_evaluation", convert(Array{Float64,3},m_evaluation))
 close(file)
 
-file = matopen("m_train.mat"), "w")
+file = matopen("m_train.mat", "w")
 write(file, "m_train", convert(Array{Float64,3},m_train))
 close(file)
 
-file = matopen("d_obs.mat"), "w")
+file = matopen("d_obs.mat", "w")
 write(file, "d_obs", convert(Array{Float64,3},d_obs))
 close(file)
 
-file = matopen("FWD_OP.mat"), "w")
+file = matopen("FWD_OP.mat", "w")
 write(file, "FWD_OP", convert(SparseMatrixCSC{Float64,Int64},FWD_OP))
 close(file)
 
@@ -401,10 +397,11 @@ x_SPGL_wavelet_save = convert(Array{TF,3},x_SPGL_wavelet_save)
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 for i=1:size(m_evaluation,1)
   figure()
-  imshow(x_SPGL_wavelet_save[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("SPGL1 BPDN-wavelet, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(x_SPGL_wavelet_save[i,:,:])),digits=2)))
-  savefig(string("SPGL1_wavelet_inpainting",i,".eps"),bbox_inches="tight",dpi=600)
-  savefig(string("SPGL1_wavelet_inpainting",i,".png"),bbox_inches="tight")
+  imshow(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title(string("SPGL1 BPDN-wavelet, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)])),digits=2)))
+  savefig(string("SPGL1_wavelet_inpainting",i,".png"),bbox_inches="tight",dpi=600)
+  close()
 end
+
 
 #all results in one figure (PARSDMM + SPGL1)
 # figure()
@@ -434,8 +431,7 @@ end
 for i=1:size(m_est,1)
   subplot(4,4,i+12);imshow(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title(string("BPDN-wavelet, PSNR=", round(psnr(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),maximum(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)])),digits=2)))
 end
-savefig(string("deblurring_inpainting_results.eps")),bbox_inches="tight",dpi=300)
-savefig(string("deblurring_inpainting_results.png")),bbox_inches="tight")
+savefig("deblurring_inpainting_results.png",bbox_inches="tight",dpi=300)
 #tight_layout()
 
-end
+#end

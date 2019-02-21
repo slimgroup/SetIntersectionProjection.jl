@@ -88,6 +88,8 @@ for i = 1:nr_constraints
         set_Prop.ncvx[i]     = true
       elseif constraint[i].set_type == "bounds" && constraint[i].TD_OP != "identity" && TF(maximum(constraint[i].min))>TF(0.0)
         set_Prop.ncvx[i]     = true
+      elseif constraint[i].set_type == "histogram" && constraint[i].TD_OP != "identity" && TF(maximum(constraint[i].min))>TF(0.0)
+        set_Prop.ncvx[i]     = true
       else
         set_Prop.ncvx[i]     = false
       end

@@ -178,8 +178,7 @@ title("relative set feasibility error", fontsize=16)
 xlabel(L"number of sequential $\ell_1$ projections", fontsize=16)
 ax[:legend](fontsize=10)
 ax[:tick_params]("both",labelsize=12)
-savefig("Dykstra_vs_PARSDMM_feasibility.eps",bbox_inches="tight",dpi=1200)
-savefig("Dykstra_vs_PARSDMM_feasibility.png",bbox_inches="tight")
+savefig("Dykstra_vs_PARSDMM_feasibility.png",bbox_inches="tight",dpi=1200)
 
 
 fig, ax = subplots()
@@ -201,8 +200,7 @@ title("relative set feasibility error", fontsize=16)
 xlabel("number of sequential CG iterations", fontsize=16)
 ax[:legend](fontsize=10)
 ax[:tick_params]("both",labelsize=12)
-savefig("Dykstra_vs_PARSDMM_feasibility_CG.eps",bbox_inches="tight",dpi=1200)
-savefig("Dykstra_vs_PARSDMM_feasibility_CG.png",bbox_inches="tight")
+savefig("Dykstra_vs_PARSDMM_feasibility_CG.png",bbox_inches="tight",dpi=1200)
 
 
 fig, ax = subplots()
@@ -215,8 +213,7 @@ title(L"relative change in $|| x^k - x^{k-1} ||$", fontsize=16)
 xlabel(L"number of sequential $\ell_1$ projections", fontsize=16)
 ax[:legend](fontsize=10)
 ax[:tick_params]("both",labelsize=12)
-savefig("Dykstra_vs_PARSDMM_x_evol.eps",bbox_inches="tight",dpi=1200)
-savefig("Dykstra_vs_PARSDMM_x_evol.png",bbox_inches="tight")
+savefig("Dykstra_vs_PARSDMM_x_evol.png",bbox_inches="tight",dpi=1200)
 
 #######################################################################################
 #######################################################################################
@@ -317,8 +314,7 @@ title("relative set feasibility error", fontsize=16)
 xlabel("number of sequential SVDs", fontsize=16)
 ax[:legend](fontsize=10)
 ax[:tick_params]("both",labelsize=12)
-savefig("Dykstra_vs_PARSDMM_feasibility2.eps",bbox_inches="tight",dpi=1200)
-savefig("Dykstra_vs_PARSDMM_feasibility2.png",bbox_inches="tight")
+savefig("Dykstra_vs_PARSDMM_feasibility2.png",bbox_inches="tight",dpi=1200)
 
 
 fig, ax = subplots()
@@ -331,9 +327,7 @@ title("relative set feasibility error", fontsize=16)
 xlabel("number of sequential CG iterations", fontsize=16)
 ax[:legend](fontsize=10)
 ax[:tick_params]("both",labelsize=12)
-savefig("Dykstra_vs_PARSDMM_feasibility_CG2.eps",bbox_inches="tight",dpi=1200)
-savefig("Dykstra_vs_PARSDMM_feasibility_CG2.png",bbox_inches="tight")
-
+savefig("Dykstra_vs_PARSDMM_feasibility_CG2.png",bbox_inches="tight",dpi=1200)
 
 fig, ax = subplots()
 ax[:semilogy](log_PARSDMM.evol_x[3:end],color="b",label="PARSDMM",linewidth=5);
@@ -343,5 +337,4 @@ title(L"relative change in $|| x^k - x^{k-1} ||$", fontsize=16)
 xlabel("number of sequential SVDs", fontsize=16)
 ax[:legend](fontsize=10)
 ax[:tick_params]("both",labelsize=12)
-savefig("Dykstra_vs_PARSDMM_x_evol2.eps",bbox_inches="tight",dpi=1200)
-savefig("Dykstra_vs_PARSDMM_x_evol2.png",bbox_inches="tight")
+savefig("Dykstra_vs_PARSDMM_x_evol2.png",bbox_inches="tight",dpi=1200)
