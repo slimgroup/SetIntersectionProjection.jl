@@ -132,8 +132,7 @@ function plot_velocity(vs,title_str,model,keyword,rec_x,rec_z,src_x,src_z)
     colorbar()
     figure;plot(rec_x,rec_z,linewidth=1.0, marker="o",linestyle="")
     figure;plot(src_x,src_z,linewidth=1.0, marker="x",linestyle="","k")
-    savefig(joinpath(save_dir,string("CFWI_simple_freq_m_est_",keyword,".eps")),bbox_inches="tight",dpi=300)
-    savefig(joinpath(save_dir,string("CFWI_simple_freq_m_est_",keyword,".png")),bbox_inches="tight")
+    savefig(joinpath(save_dir,string("CFWI_simple_freq_m_est_",keyword,".png")),bbox_inches="tight",dpi=300)
     return nothing
 end
 plot_velocity(v,"a) True velocity",model,"true",repmat(xrec,length(zrec),1),zrec,xsrc,repmat(zsrc,length(xsrc),1))
@@ -263,7 +262,7 @@ for j in constraint_strategy_list
 
 elseif j==2 #various types of cardinality and rank
 		keyword="cardmat_cardcol_rank_bounds"
-    title_str="g) fiber, matrix grad. card. & rank & bounds"
+    title_str="c) fiber, matrix grad. card. & rank & bounds"
 
     constraint = Vector{SetIntersectionProjection.set_definitions}()
 
@@ -360,7 +359,7 @@ elseif j==2 #various types of cardinality and rank
 
     elseif j==4 # various types of cardinality
     			keyword="cardmat_cardcol_bounds"
-          title_str="f) fiber, matrix grad. card. & bounds"
+          title_str="b) fiber, matrix grad. card. & bounds"
 
     			constraint = Vector{SetIntersectionProjection.set_definitions}()
 
@@ -409,7 +408,7 @@ elseif j==2 #various types of cardinality and rank
 
         elseif j==5
     				keyword="cardmat_bounds"
-            title_str="e) matrix grad. card. & bounds"
+            title_str="a) matrix grad. card. & bounds & rank"
 
     				constraint = Vector{SetIntersectionProjection.set_definitions}()
 

@@ -79,13 +79,13 @@ custom_TD_OP = ([],false)
 push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 #relaxed histogram constraint on discrete derivative of the image:
-m_min     = observations["hist_TV_min"]
-m_max     = observations["hist_TV_max"]
-set_type  = "histogram"
-TD_OP     = "TV"
-app_mode  = ("matrix","")
-custom_TD_OP = ([],false)
-push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+# m_min     = observations["hist_TV_min"]
+# m_max     = observations["hist_TV_max"]
+# set_type  = "histogram"
+# TD_OP     = "TV"
+# app_mode  = ("matrix","")
+# custom_TD_OP = ([],false)
+# push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 # #rank that preserves 95% of the training images:
 # m_min     = 0
@@ -272,14 +272,22 @@ for i=1:size(d_obs,1)
   end
 
 end
-#
-# FWD_OP="mask"
-# multi_level=false
-# n_levels=2
-# coarsening_factor=2.0
-# (m_est,mask_save)=ICLIP_inpainting(FWD_OP,d_obs,m_evaluation,constraint,comp_grid,options,multi_level,n_levels,coarsening_factor)
 
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
+
+#all results in one figure
+figure()
+for i=1:size(m_est,1)
+  subplot(3,4,i);imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("Observed");
+end
+for i=1:size(m_est,1)
+  subplot(3,4,i+8);imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, PSNR=", round(psnr(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:]),maximum(m_evaluation[i,:,:])),digits=2)))
+end
+for i=1:size(m_est,1)
+  subplot(3,4,i+4);imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
+end
+savefig("desaturation_results.png",bbox_inches="tight",dpi=300)
+close("all")
 
 #plot training images
 figure();title("training image", fontsize=10)
@@ -294,7 +302,7 @@ figure();
 for i=1:8
   subplot(2,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig("training_data_first8.png",bbox_inches="tight",dpi=600)
+savefig("training_data_first8.png",bbox_inches="tight",dpi=300)
 close()
 
 for i=1:16
@@ -304,7 +312,7 @@ for i=1:16
   close()
 end
 
-#plot results
+#plot results individually
 for i=1:size(m_est,1)
     figure();imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
     savefig(string("saturized_observed",i,".png"),bbox_inches="tight",dpi=600)
@@ -312,22 +320,10 @@ for i=1:size(m_est,1)
     savefig(string("PARSDMM_desaturation",i,".png"),bbox_inches="tight",dpi=600)
     figure();imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
     savefig(string("desaturation_evaluation",i,".png"),bbox_inches="tight",dpi=600)
-    close()
+    close("all")
 end
 
-figure()
-for i=1:size(m_est,1)
-  subplot(3,4,i);imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("Observed");
-end
-for i=1:size(m_est,1)
-  subplot(3,4,i+8);imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, PSNR=", round(psnr(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:]),maximum(m_evaluation[i,:,:])),digits=2)))
-end
-for i=1:size(m_est,1)
-  subplot(3,4,i+4);imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-end
-savefig("desaturation_results.png",bbox_inches="tight",dpi=300)
-
-
+#save stuff
 file = matopen("m_est.mat", "w")
 write(file, "m_est", convert(Array{Float64,3},m_est))
 close(file)

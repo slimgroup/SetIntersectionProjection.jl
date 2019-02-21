@@ -115,13 +115,13 @@ custom_TD_OP = ([],false)
 push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 #relaxed histogram constraint on discrete derivative of the image:
-m_min     = observations["hist_TV_min"]
-m_max     = observations["hist_TV_max"]
-set_type  = "histogram"
-TD_OP     = "TV"
-app_mode  = ("matrix","")
-custom_TD_OP = ([],false)
-push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+# m_min     = observations["hist_TV_min"]
+# m_max     = observations["hist_TV_max"]
+# set_type  = "histogram"
+# TD_OP     = "TV"
+# app_mode  = ("matrix","")
+# custom_TD_OP = ([],false)
+# push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
 # #rank that preserves 95% of the training images:
 # m_min     = 0
@@ -355,7 +355,7 @@ figure();
 for i=1:8
   subplot(2,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig("training_data_first8.png",bbox_inches="tight",dpi=600)
+savefig("training_data_first8.png",bbox_inches="tight",dpi=300)
 close()
 
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
