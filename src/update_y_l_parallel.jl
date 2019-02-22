@@ -32,7 +32,7 @@ rho1 = TF(1.0) ./ rho[1];
   s[1] = TD_OP[1]*x;
   if Blas_active
     if gamma[1]==1 #without relaxation
-      copy!(y[1],s[1])
+      copyto!(y[1],s[1])
       #y[1]       = prox[1]( BLAS.axpy!(-rho1[1],l[1],y[1]) )
       BLAS.axpy!(-rho1[1],l[1],y[1])
       y[1] = prox[1](y[1])
@@ -42,7 +42,7 @@ rho1 = TF(1.0) ./ rho[1];
       @. x_hat[1] = gamma[1]*s[1]
       BLAS.axpy!(TF(1.0)-gamma[1],y[1],x_hat[1]);
       #y[1]       = copy(x_hat[1]);
-      copy!(y[1],x_hat[1])
+      copyto!(y[1],x_hat[1])
       #y[1]       = prox[1]( BLAS.axpy!(-rho1[1],l[1],y[1]))
       BLAS.axpy!(-rho1[1],l[1],y[1])
       y[1] = prox[1](y[1])

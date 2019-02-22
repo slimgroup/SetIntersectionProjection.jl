@@ -44,16 +44,16 @@ observations["D_x_max"]      = zeros(TF,n_train_ex)
 observations["D_z_min"]      = zeros(TF,n_train_ex)
 observations["D_z_max"]      = zeros(TF,n_train_ex)
 
-observations["DCT_x_LB"]      = zeros(TF,t2) .+ 100
+observations["DCT_x_LB"]      = zeros(TF,t2) .+ 1e8
 observations["DCT_x_UB"]      = zeros(TF,t2)
 
-observations["DCT_y_LB"]      = zeros(TF,t3) .+ 100 #add 100 because we take the min looping over every training image,
+observations["DCT_y_LB"]      = zeros(TF,t3) .+ 1e8 #add because we take the min looping over every training image,
 observations["DCT_y_UB"]      = zeros(TF,t3)
 
-observations["hist_min"]      = zeros(TF,t2*t3) .+ 10000
+observations["hist_min"]      = zeros(TF,t2*t3) .+ 1e8
 observations["hist_max"]      = zeros(TF,t2*t3)
 
-observations["hist_TV_min"]   = zeros(TF,(t2-1)*t3+t2*(t3-1)) .+ 10000
+observations["hist_TV_min"]   = zeros(TF,(t2-1)*t3+t2*(t3-1)) .+ 1e8
 observations["hist_TV_max"]   = zeros(TF,(t2-1)*t3+t2*(t3-1))
 
 #get transform-domain operators
