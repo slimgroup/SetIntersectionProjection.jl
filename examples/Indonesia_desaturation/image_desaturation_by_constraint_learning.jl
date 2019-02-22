@@ -12,9 +12,6 @@ using SparseArrays
 using Random
 using StatsBase
 
-ENV["MPLBACKEND"]="qt5agg"
-using PyPlot
-
 @everywhere mutable struct compgrid
   d :: Tuple
   n :: Tuple
@@ -274,6 +271,9 @@ for i=1:size(d_obs,1)
 end
 
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
+
+ENV["MPLBACKEND"]="qt5agg"
+using PyPlot
 
 #all results in one figure
 figure()

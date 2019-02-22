@@ -29,6 +29,7 @@ observations["nuclear_Dx"]   = zeros(TF,n_train_ex)
 observations["nuclear_Dz"]   = zeros(TF,n_train_ex)
 observations["rank_095"]     = zeros(TI,n_train_ex)
 observations["TV"]           = zeros(TF,n_train_ex)
+observations["wavelet_l1"]   = zeros(TF,n_train_ex)
 observations["Dx_l1"]        = zeros(TF,n_train_ex)
 observations["Dz_l1"]        = zeros(TF,n_train_ex)
 #observations["curvelet_l1"]  = zeros(TF,n_train_ex)
@@ -63,6 +64,8 @@ observations["hist_TV_max"]   = zeros(TF,(t2-1)*t3+t2*(t3-1))
 (TV_OP, dummy1, dummy2, TD_n_TV) = get_TD_operator(comp_grid,"TV",TF)
 #(C_OP, dummy1, dummy2, dummy3)   = get_TD_operator(comp_grid,"curvelet",TF)
 (DFT, dummy1, dummy2, dummy3)    = get_TD_operator(comp_grid,"DFT",TF)
+(DWT, dummy1, dummy2, dummy3)    = get_TD_operator(comp_grid,"wavelet",TF)
+
 #DFT = x-> vec(fft(reshape(x,comp_grid.n)))
 DCT = x-> vec(dct(reshape(x,comp_grid.n)))
 
@@ -104,6 +107,9 @@ for i=1:n_train_ex #can be changed to a parallel loop for larger datasets
 
     #observe anisotropic total-variation
     observations["TV"][i]=norm(TV_OP*training_image,1)
+
+    #Wavelet l1
+    observations["wavelet_l1"][i]=norm(DWT*training_image,1)
 
     #different direction separately
     observations["Dx_l1"][i] = norm(Dx_OP*training_image,1)
