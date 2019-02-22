@@ -39,6 +39,7 @@ function project_bounds!(x::Array{TF,2},LB::Vector{TF},UB::Vector{TF},mode::Tupl
       @inbounds x[i,:].=min.(max.(x[i,:],LB),UB)
     end
   end
+  x = vec(x)
 return x
 end
 
@@ -71,6 +72,6 @@ if mode[1] == "fiber"
 elseif mode[1] == "slice"
     error("bound constraints per slice of a tensor currently not implemented, yet...")
 end
-
+  x = vec(x)
 return x
 end
