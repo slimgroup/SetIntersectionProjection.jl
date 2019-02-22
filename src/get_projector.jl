@@ -5,13 +5,13 @@ function get_projector(constraint,comp_grid,special_operator_list::Array{String,
   if constraint.set_type == "bounds"
     if constraint.app_mode[1] in ["matrix","tensor"]
       if constraint.TD_OP in special_operator_list
-        P = x -> copy!(x,A'*project_bounds!(A*x,constraint.min,constraint.max))
+        P = x -> copyto!(x,A'*project_bounds!(A*x,constraint.min,constraint.max))
       else
         P = x -> project_bounds!(x,constraint.min,constraint.max)
       end
     else
       if constraint.TD_OP in special_operator_list
-        P = x -> copy!(x,A'*project_bounds!(reshape(A*x,TD_n),constraint.min,constraint.max,constraint.app_mode))
+        P = x -> copyto!(x,A'*project_bounds!(reshape(A*x,TD_n),constraint.min,constraint.max,constraint.app_mode))
       else
         P = x -> project_bounds!(reshape(x,TD_n),constraint.min,constraint.max,constraint.app_mode)
       end
@@ -20,7 +20,7 @@ function get_projector(constraint,comp_grid,special_operator_list::Array{String,
 
   if constraint.set_type == "l1"
     if constraint.TD_OP in special_operator_list
-      P = x -> copy!(x,A'*project_l1_Duchi!(A*x,constraint.max))
+      P = x -> copyto!(x,A'*project_l1_Duchi!(A*x,constraint.max))
     else
       P = x -> project_l1_Duchi!(x,constraint.max)
     end
@@ -28,7 +28,7 @@ function get_projector(constraint,comp_grid,special_operator_list::Array{String,
 
   if constraint.set_type == "l2"
     if constraint.TD_OP in special_operator_list
-      P = x -> copy!(x,A'*project_l2!(A*x,constraint.max))
+      P = x -> copyto!(x,A'*project_l2!(A*x,constraint.max))
     else
       P = x -> project_l2!(x,constraint.max)
     end
@@ -36,7 +36,7 @@ function get_projector(constraint,comp_grid,special_operator_list::Array{String,
 
   if constraint.set_type == "annulus"
     if constraint.TD_OP in special_operator_list
-      P = x -> copy!(x,A'*project_annulus!(A*x,constraint.min,constraint.max))
+      P = x -> copyto!(x,A'*project_annulus!(A*x,constraint.min,constraint.max))
     else
       P =  x -> project_annulus!(x,constraint.min,constraint.max)
     end
@@ -52,7 +52,7 @@ function get_projector(constraint,comp_grid,special_operator_list::Array{String,
 
   if constraint.set_type == "nuclear"
     if constraint.TD_OP in special_operator_list
-      P = x -> copy!(x,A'*project_nuclear!(reshape(A*x,TD_n),constraint.max,constraint.app_mode))
+      P = x -> copyto!(x,A'*project_nuclear!(reshape(A*x,TD_n),constraint.max,constraint.app_mode))
     else
       P = x -> project_nuclear!(reshape(x,TD_n),constraint.max,constraint.app_mode)
     end
@@ -60,7 +60,7 @@ function get_projector(constraint,comp_grid,special_operator_list::Array{String,
 
   if constraint.set_type == "rank"
     if constraint.TD_OP in special_operator_list
-      P = x -> copy!(x,A'*project_rank!(reshape(A*x,TD_n),constraint.max,constraint.app_mode[2]))
+      P = x -> copyto!(x,A'*project_rank!(reshape(A*x,TD_n),constraint.max,constraint.app_mode[2]))
     else
       P = x -> project_rank!(reshape(x,TD_n),constraint.max,constraint.app_mode)
     end
@@ -73,13 +73,13 @@ function get_projector(constraint,comp_grid,special_operator_list::Array{String,
   if constraint.set_type == "cardinality"
     if constraint.app_mode[1]  in ["matrix","tensor"]
       if constraint.TD_OP in special_operator_list
-        P = x -> copy!(x,A'*project_cardinality!(A*x,convert(Integer,constraint.max)))
+        P = x -> copyto!(x,A'*project_cardinality!(A*x,convert(Integer,constraint.max)))
       else
         P = x -> project_cardinality!(x,convert(Integer,constraint.max))
       end
     else
       if constraint.TD_OP in special_operator_list
-        P = x -> copy!(x,A'*project_cardinality!(reshape(A*x,TD_n),convert(Integer,constraint.max)),constraint.app_mode)
+        P = x -> copyto!(x,A'*project_cardinality!(reshape(A*x,TD_n),convert(Integer,constraint.max)),constraint.app_mode)
       else
         P = x -> project_cardinality!(reshape(x,TD_n),convert(Integer,constraint.max),constraint.app_mode)
       end

@@ -51,7 +51,7 @@ AtA   = Vector{SparseMatrixCSC{TF,TI}}(undef,nr_constraints)
 set_Prop=set_properties(zeros(nr_constraints),zeros(nr_constraints),zeros(nr_constraints),Vector{Tuple{TI,TI}}(undef,nr_constraints),Vector{Tuple{String,String,String,String}}(undef,nr_constraints),zeros(nr_constraints),Vector{Vector{TI}}(undef,nr_constraints))
 
 #other initialization
-special_operator_list = ["DFT", "DCT"] #complex valued operators that are orthogonal
+special_operator_list = ["DFT", "DCT", "wavelet"] #complex valued operators that are orthogonal
 N =  prod(comp_grid.n)
 
 for i = 1:nr_constraints

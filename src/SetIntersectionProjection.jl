@@ -12,6 +12,7 @@ using Statistics
 using Parameters
 using Interpolations
 using DistributedArrays
+using Wavelets
 using JOLI
 using SortingAlgorithms
 

@@ -46,8 +46,10 @@ if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3d version
       error("currently no 3D DFT implemented, needs to be done soon")
     elseif TD_type == "DCT"
       error("currently no 3D DCT implemented, needs to be done soon")
-  elseif TD_type == "curvelet" || TD_type == "Curvelet"
-      error("currently no 3D DFT implemented, needs to be done soon")
+  elseif TD_type == "curvelet"
+      error("currently no 3D curvelet implemented, needs to be done soon")
+    elseif TD_type == "wavelet"
+      error("currently no 3D wavelet implemented, needs to be done soon")
   else
       error("provided an unknown transform domain operator. check function get_TD_operator(comp_grid,TD_type,TF) for options")
   end
@@ -76,18 +78,16 @@ else #use 2d version
   elseif TD_type == "DFT"
     TD_OP=joDFT(convert(Int64,n1),convert(Int64,n2);planned=false,DDT=TF,RDT=Complex{TF})
     AtA_diag = true ; dense = true ; TD_n = (n1,n2) ; banded=false
-  elseif TD_type == "curvelet" || TD_type == "Curvelet"
+  elseif TD_type == "curvelet"
     TD_OP = joCurvelet2D(convert(Int64,n1),convert(Int64,n2);DDT=TF,RDT=TF,real_crvlts=true,all_crvlts=true)
     AtA_diag = true ; dense = true ; TD_n = (0,0) ; banded=false
-    else
-      error("provided an unknown transform domain operator. check function get_TD_operator(comp_grid,TD_type,TF) for options")
-    end
+  elseif TD_type == "wavelet"
+     TD_OP = joDWT(n1,n2,wavelet(WT.db4);L=maxtransformlevels(min(n1,n2)),DDT=TF,RDT=TF)
+     AtA_diag = true ; dense = true ; TD_n = (n1,n2) ; banded=false
+  else
+    error("provided an unknown transform domain operator. check function get_TD_operator(comp_grid,TD_type,TF) for options")
+  end
 end
-
-#see if i can remove this conversion below, it should be redundant
-# if typeof(TD_OP)<:SparseMatrixCSC
-#   TD_OP=convert(SparseMatrixCSC{TF,TI},TD_OP)
-# end
 
 return TD_OP, AtA_diag, dense, TD_n, banded
 end
