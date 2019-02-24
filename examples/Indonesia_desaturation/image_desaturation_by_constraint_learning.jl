@@ -276,50 +276,58 @@ ENV["MPLBACKEND"]="qt5agg"
 using PyPlot
 
 #all results in one figure
-figure()
+figure(figsize=(4.8, 3.15))
+FS  = 5
+LS  = 3
+TML = 1
+PD  = 1
 for i=1:size(m_est,1)
-  subplot(3,4,i);imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("Observed");
+  subplot(3,4,i);imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("Observed",FontSize=FS);tick_params(labelsize=LS,length=TML,pad=PD)
 end
 for i=1:size(m_est,1)
-  subplot(3,4,i+8);imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, PSNR=", round(psnr(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:]),maximum(m_evaluation[i,:,:])),digits=2)))
+  subplot(3,4,i+8);imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, PSNR=", round(psnr(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:]),maximum(m_evaluation[i,:,:])),digits=2)),FontSize=FS);;tick_params(labelsize=LS,length=TML,pad=PD)
 end
 for i=1:size(m_est,1)
-  subplot(3,4,i+4);imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
+  subplot(3,4,i+4);imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True",FontSize=FS);tick_params(labelsize=LS,length=TML,pad=PD)
 end
-savefig("desaturation_results.png",bbox_inches="tight",dpi=300)
+tight_layout()
+PyPlot.subplots_adjust(wspace=-0.5, hspace=0.3)
+savefig("desaturation_results.png",bbox_inches="tight",dpi=600)
 close("all")
+
+#First 8 in 1 figure
+figure(figsize=(4.8, 2.4))
+for i=1:8
+  subplot(2,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
+end
+tight_layout()
+PyPlot.subplots_adjust(wspace=-0.5, hspace=0.1)
+savefig("training_data_first8.png",bbox_inches="tight",dpi=600)
+close()
 
 #plot training images
 figure();title("training image", fontsize=10)
 for i=1:16
   subplot(4,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig("training_data_all.png",bbox_inches="tight",dpi=600)
-close()
-
-#First 8 in 1 figure
-figure();
-for i=1:8
-  subplot(2,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
-end
-savefig("training_data_first8.png",bbox_inches="tight",dpi=300)
+savefig("training_data_all.eps",bbox_inches="tight",dpi=600)
 close()
 
 for i=1:16
   figure();title(string("training image", i), fontsize=10)
   imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
-  savefig(string("training_data_", i,".png"),bbox_inches="tight",dpi=600)
+  savefig(string("training_data_", i,".eps"),bbox_inches="tight",dpi=600)
   close()
 end
 
 #plot results individually
 for i=1:size(m_est,1)
     figure();imshow(d_obs[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(string("saturized_observed",i,".png"),bbox_inches="tight",dpi=600)
+    savefig(string("saturized_observed",i,".eps"),bbox_inches="tight",dpi=600)
     figure();imshow(m_est[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,:,:]),vec(m_est[i,:,:])),digits=2)))
-    savefig(string("PARSDMM_desaturation",i,".png"),bbox_inches="tight",dpi=600)
+    savefig(string("PARSDMM_desaturation",i,".eps"),bbox_inches="tight",dpi=600)
     figure();imshow(m_evaluation[i,:,:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(string("desaturation_evaluation",i,".png"),bbox_inches="tight",dpi=600)
+    savefig(string("desaturation_evaluation",i,".eps"),bbox_inches="tight",dpi=600)
     close("all")
 end
 

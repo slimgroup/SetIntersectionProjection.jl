@@ -123,7 +123,7 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 # #rank that preserves 95% of the training images:
 # m_min     = 0
 # observations["rank_095"]=sort(vec(observations["rank_095"]))
-# m_max     = convert(TI,round(quantile(observations["rank_095"],0.50)))
+# m_max     = convert(TI,round(quantile(observations["rank_095"],0.33)))
 # set_type  = "rank"
 # TD_OP     = "identity"
 # app_mode  = ("matrix","")
@@ -132,7 +132,7 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 
 #nuclear norm constraint
 m_min     = 0
-m_max     = convert(TF,quantile(vec(observations["nuclear_norm"]),0.50))
+m_max     = convert(TF,quantile(vec(observations["nuclear_norm"]),0.33))
 set_type  = "nuclear"
 TD_OP     = "identity"
 app_mode  = ("matrix","")
@@ -141,7 +141,7 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 
 #nuclear norm constraint on the x-derivative of the image
 m_min     = 0
-m_max     = convert(TF,quantile(vec(observations["nuclear_Dx"]),0.50))
+m_max     = convert(TF,quantile(vec(observations["nuclear_Dx"]),0.33))
 set_type  = "nuclear"
 TD_OP     = "D_x"
 app_mode  = ("matrix","")
@@ -150,7 +150,7 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 
 #nuclear norm constraint on the z-derivative of the image
 m_min     = 0
-m_max     = convert(TF,quantile(vec(observations["nuclear_Dz"]),0.50))
+m_max     = convert(TF,quantile(vec(observations["nuclear_Dz"]),0.33))
 set_type  = "nuclear"
 TD_OP     = "D_z"
 app_mode  = ("matrix","")
@@ -159,7 +159,7 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 
 #anisotropic total-variation constraint:
 m_min     = 0
-m_max     = convert(TF,quantile(vec(observations["TV"]),0.50))
+m_max     = convert(TF,quantile(vec(observations["TV"]),0.33))
 set_type  = "l1"
 TD_OP     = "TV"
 app_mode  = ("matrix","")
@@ -168,7 +168,7 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 
 #anisotropic total-variation constraint:
 m_min     = 0
-m_max     = convert(TF,quantile(vec(observations["wavelet_l1"]),0.50))
+m_max     = convert(TF,quantile(vec(observations["wavelet_l1"]),0.33))
 set_type  = "l1"
 TD_OP     = "wavelet"
 app_mode  = ("matrix","")
@@ -177,7 +177,7 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 
 #l2 constraint on discrete derivatives of the image:
 m_min     = 0
-m_max     = convert(TF,quantile(vec(observations["D_l2"]),0.50))
+m_max     = convert(TF,quantile(vec(observations["D_l2"]),0.33))
 set_type  = "l2"
 TD_OP     = "TV"
 app_mode  = ("matrix","")
@@ -186,11 +186,11 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 
 # constraint["use_TD_l1_2"]=false
 # constraint["TD_l1_operator_2"]="curvelet"
-# constraint["TD_l1_sigma_2"] = 0.5f0*convert(TF,quantile(vec(observations["curvelet_l1"]),0.50))
+# constraint["TD_l1_sigma_2"] = 0.5f0*convert(TF,quantile(vec(observations["curvelet_l1"]),0.33))
 #
 # constraint["use_TD_l1_3"]=false
 # constraint["TD_l1_operator_3"]="DFT"
-# constraint["TD_l1_sigma_3"] = convert(TF,quantile(vec(observations["DFT_l1"]),0.50))
+# constraint["TD_l1_sigma_3"] = convert(TF,quantile(vec(observations["DFT_l1"]),0.33))
 
 #bound constraints on x-derivative
 m_min     = convert(TF,quantile(vec(observations["D_x_min"]),0.15))
@@ -308,7 +308,7 @@ end
 #   figure();title(string("training image", i), fontsize=10)
 #   imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 #   savefig(string("training_data_", i,".eps"),bbox_inches="tight",dpi=600)
-#   savefig(string("training_data_", i,".png"),bbox_inches="tight")
+#   savefig(string("training_data_", i,".eps"),bbox_inches="tight")
 #   close()
 # end
 # close("all")
@@ -321,7 +321,7 @@ figure();
 for i=1:8
   subplot(2,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig("training_data_first8.png",bbox_inches="tight",dpi=300)
+savefig("training_data_first8.eps",bbox_inches="tight",dpi=300)
 close()
 
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
@@ -350,32 +350,45 @@ file = matopen("x_SPGL1_wavelet_save_SA.mat")
 x_SPGL_wavelet_save=read(file, "x_SPGL1_wavelet_save_SA")
 x_SPGL_wavelet_save = convert(Array{TF,3},x_SPGL_wavelet_save)
 
+figure(figsize=(4.8, 4.8))
+FS  = 5
+LS  = 3
+TML = 1
+PD  = 1
+for i=1:size(m_est,1)
+  subplot(4,4,i);imshow(d_obs[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title("observed",FontSize=FS,verticalalignment="bottom");tick_params(labelsize=LS,length=TML,pad=PD)
+end
+for i=1:size(m_est,1)
+  subplot(4,4,i+8);imshow(m_est[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title(FontSize=FS,string("PARSDMM, PSNR=", round(psnr(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(m_est[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),maximum(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)])),digits=2)));tick_params(labelsize=LS,length=TML,pad=PD)
+end
+for i=1:size(m_est,1)
+  subplot(4,4,i+4);imshow(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title(FontSize=FS,"True");tick_params(labelsize=LS,length=TML,pad=PD)
+end
+for i=1:size(m_est,1)
+  subplot(4,4,i+12);imshow(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title(FontSize=FS,string("BPDN-wavelet, PSNR=", round(psnr(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),maximum(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)])),digits=2)));tick_params(labelsize=LS,length=TML,pad=PD)
+end
+tight_layout()
+PyPlot.subplots_adjust(wspace=-0.05, hspace=0.25)
+savefig("deblurring_inpainting_results.png",bbox_inches="tight",dpi=600)
 
 
-
-figure()
-for i=1:size(m_est,1)
-  subplot(4,4,i);imshow(d_obs[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
+#First 8 in 1 figure
+figure(figsize=(6.4, 3.2))
+for i=1:8
+  subplot(2,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-for i=1:size(m_est,1)
-  subplot(4,4,i+8);imshow(m_est[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, PSNR=", round(psnr(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(m_est[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),maximum(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)])),digits=2)))
-end
-for i=1:size(m_est,1)
-  subplot(4,4,i+4);imshow(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-end
-for i=1:size(m_est,1)
-  subplot(4,4,i+12);imshow(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title(string("BPDN-wavelet, PSNR=", round(psnr(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),maximum(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)])),digits=2)))
-end
-savefig("deblurring_inpainting_results.png",bbox_inches="tight",dpi=300)
-#tight_layout()
+tight_layout()
+PyPlot.subplots_adjust(wspace=-0.15, hspace=0.1)
+savefig("training_data_first8.png",bbox_inches="tight",dpi=600)
+close()
 
 for i=1:size(m_est,1)
     figure();imshow(d_obs[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("observed");
-    savefig(string("deblurring_inpainting_observed",i,".png"),bbox_inches="tight",dpi=600)
+    savefig(string("deblurring_inpainting_observed",i,".eps"),bbox_inches="tight",dpi=600)
     figure();imshow(m_est[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title(string("PARSDMM, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),:]),vec(m_est[i,(bkl*2):end-(bkl*2),:])),digits=2)))
-    savefig(string("PARSDMM_deblurring_inpainting",i,".png"),bbox_inches="tight",dpi=600)
+    savefig(string("PARSDMM_deblurring_inpainting",i,".eps"),bbox_inches="tight",dpi=600)
     figure();imshow(m_evaluation[i,(bkl*2):end-(bkl*2),:],cmap="gray",vmin=0.0,vmax=255.0); title("True")
-    savefig(string("deblurring_inpainting_evaluation",i,".png"),bbox_inches="tight",dpi=600)
+    savefig(string("deblurring_inpainting_evaluation",i,".eps"),bbox_inches="tight",dpi=600)
     close("all")
 end
 
@@ -399,13 +412,13 @@ figure();title("training image", fontsize=10)
 for i=1:16
   subplot(4,4,i);imshow(m_train[i,:,:],cmap="gray",vmin=0.0,vmax=255.0);axis("off") #title("training image", fontsize=10)
 end
-savefig("training_data_all.png",bbox_inches="tight",dpi=600)
+savefig("training_data_all.eps",bbox_inches="tight",dpi=600)
 close()
 
 SNR(in1,in2)=20*log10(norm(in1)/norm(in1-in2))
 for i=1:size(m_evaluation,1)
   figure()
   imshow(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)],cmap="gray",vmin=0.0,vmax=255.0); title(string("SPGL1 BPDN-wavelet, SNR=", round(SNR(vec(m_evaluation[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)]),vec(x_SPGL_wavelet_save[i,(bkl*2):end-(bkl*2),(bkl*2):end-(bkl*2)])),digits=2)))
-  savefig(string("SPGL1_wavelet_inpainting",i,".png"),bbox_inches="tight",dpi=600)
+  savefig(string("SPGL1_wavelet_inpainting",i,".eps"),bbox_inches="tight",dpi=600)
   close()
 end

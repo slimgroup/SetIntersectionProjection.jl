@@ -118,21 +118,27 @@ v = vec(v);
 v0 = vec(v0);
 
 function plot_velocity(vs,title_str,model,keyword,rec_x,rec_z,src_x,src_z)
-    fig = figure()
+    fig = figure(figsize=(2.1, 1.6))
+    FS  = 4
+    LS  = 3
+    TML = 1
+    PD  = 1
     #ax1 = axes()
     #vplot = imshow(reshape(vs,model.n...),vmin=minimum(v)-50,vmax=maximum(v)+50,axes=ax1,cmap="jet",extent=[0.0 , model.d[2]*model.n[2] , model.d[1]*model.n[1] , 0.0])
     vplot = imshow(reshape(vs,model.n...),vmin=minimum(v)-50,vmax=maximum(v)+50,cmap="jet",extent=[0.0 , model.d[2]*model.n[2] , model.d[1]*model.n[1] , 0.0])
-    title(title_str)
-    xlabel("x [m]")
-    ylabel("z [m]")
+    tick_params(labelsize=LS,length=TML,pad=PD)
+    title(title_str,FontSize=FS)
+    xlabel("x [m]",FontSize=FS)
+    ylabel("z [m]",FontSize=FS)
     zt = 0:20:n[1]
     xt = 0:20:n[2]
     #xticks(xt,round.(Int,xt*model.d[2]))
     #yticks(zt,round.(Int,zt*model.d[1]))
-    colorbar()
-    figure;plot(rec_x,rec_z,linewidth=1.0, marker="o",linestyle="")
-    figure;plot(src_x,src_z,linewidth=1.0, marker="x",linestyle="","k")
-    savefig(joinpath(save_dir,string("CFWI_simple_freq_m_est_",keyword,".png")),bbox_inches="tight",dpi=300)
+    cbar = colorbar()
+    cbar[:ax][:tick_params](labelsize=LS)
+    figure;plot(rec_x,rec_z,linewidth=1.0, marker="o",linestyle="",markersize=2)
+    figure;plot(src_x,src_z,linewidth=1.0, marker="x",linestyle="","k",markersize=2)
+    savefig(joinpath(save_dir,string("CFWI_simple_freq_m_est_",keyword,".eps")),bbox_inches="tight",dpi=300)
     return nothing
 end
 plot_velocity(v,"a) True velocity",model,"true",repmat(xrec,length(zrec),1),zrec,xsrc,repmat(zsrc,length(xsrc),1))
@@ -262,7 +268,7 @@ for j in constraint_strategy_list
 
 elseif j==2 #various types of cardinality and rank
 		keyword="cardmat_cardcol_rank_bounds"
-    title_str="c) fiber, matrix grad. card. & rank & bounds"
+    title_str="c)"# fiber, matrix grad. card. & rank & bounds"
 
     constraint = Vector{SetIntersectionProjection.set_definitions}()
 
@@ -359,7 +365,7 @@ elseif j==2 #various types of cardinality and rank
 
     elseif j==4 # various types of cardinality
     			keyword="cardmat_cardcol_bounds"
-          title_str="b) fiber, matrix grad. card. & bounds"
+          title_str="b)"#" fiber, matrix grad. card. & bounds"
 
     			constraint = Vector{SetIntersectionProjection.set_definitions}()
 
@@ -408,7 +414,7 @@ elseif j==2 #various types of cardinality and rank
 
         elseif j==5
     				keyword="cardmat_bounds"
-            title_str="a) matrix grad. card. & bounds & rank"
+            title_str="a)"# matrix grad. card. & bounds & rank"
 
     				constraint = Vector{SetIntersectionProjection.set_definitions}()
 

@@ -12,8 +12,8 @@ using Statistics
 using Parameters
 using Interpolations
 using DistributedArrays
-using Wavelets
 using JOLI
+using Wavelets
 using SortingAlgorithms
 
 export log_type_PARSDMM, set_properties, PARSDMM_options, set_definitions

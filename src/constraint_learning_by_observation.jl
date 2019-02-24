@@ -64,8 +64,9 @@ observations["hist_TV_max"]   = zeros(TF,(t2-1)*t3+t2*(t3-1))
 (TV_OP, dummy1, dummy2, TD_n_TV) = get_TD_operator(comp_grid,"TV",TF)
 #(C_OP, dummy1, dummy2, dummy3)   = get_TD_operator(comp_grid,"curvelet",TF)
 (DFT, dummy1, dummy2, dummy3)    = get_TD_operator(comp_grid,"DFT",TF)
-(DWT, dummy1, dummy2, dummy3)    = get_TD_operator(comp_grid,"wavelet",TF)
-
+if comp_grid.n[1]==comp_grid.n[2]
+  (DWT, dummy1, dummy2, dummy3)    = get_TD_operator(comp_grid,"wavelet",TF)
+end
 #DFT = x-> vec(fft(reshape(x,comp_grid.n)))
 DCT = x-> vec(dct(reshape(x,comp_grid.n)))
 
@@ -109,7 +110,9 @@ for i=1:n_train_ex #can be changed to a parallel loop for larger datasets
     observations["TV"][i]=norm(TV_OP*training_image,1)
 
     #Wavelet l1
-    observations["wavelet_l1"][i]=norm(DWT*training_image,1)
+    if comp_grid.n[1]==comp_grid.n[2]
+      observations["wavelet_l1"][i]=norm(DWT*training_image,1)
+    end
 
     #different direction separately
     observations["Dx_l1"][i] = norm(Dx_OP*training_image,1)

@@ -7,7 +7,7 @@ on all grids for multilevel PARSDMM
 function setup_multi_level_PARSDMM(
                                    m                  ::Vector{TF},
                                    n_levels           ::Integer,
-                                   coarsening_factor  ::Union{TF,Integer},
+                                   coarsening_factor  ::Union{Real,Integer},
                                    comp_grid,
                                    constraint,
                                    options
