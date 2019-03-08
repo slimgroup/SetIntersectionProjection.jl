@@ -77,6 +77,14 @@ if stop==true #stop if feasibility of input is detected by PARSDMM_initialize
   log_PARSDMM.rho             = log_PARSDMM.rho[[1],:]
   return x, log_PARSDMM, l, y
 end
+
+#make sure proper vectors are supplied as initial guess for Minkowski sets.
+if options.Minkowski == true
+  if length(x)==length(m)
+    x = [x ; zeros(TF,length(m)) ]
+  end
+end
+
 counter=2
 
 x_solve_tol_ref=TF(1.0) #scalar required to determine tolerance for x-minimization, initial value doesn't matter
@@ -138,7 +146,7 @@ for i=1:maxit #main loop
 
   # Stopping conditions
   tic()
-  (stop,adjust_rho,adjust_feasibility_rho,ind_ref)=stop_PARSDMM(log_PARSDMM,i,evol_rel_tol,feas_tol,obj_tol,adjust_rho,adjust_feasibility_rho,ind_ref,counter);
+  (stop,adjust_rho,adjust_gamma,adjust_feasibility_rho,ind_ref)=stop_PARSDMM(log_PARSDMM,i,evol_rel_tol,feas_tol,obj_tol,adjust_rho,adjust_gamma,adjust_feasibility_rho,ind_ref,counter);
   if stop==true
     (TD_OP,AtA,log_PARSDMM) = output_check_PARSDMM(x,TD_OP,AtA,log_PARSDMM,i,counter)
     return x, log_PARSDMM, l, y
@@ -207,8 +215,12 @@ for i=1:maxit #main loop
         end
      end #end adjust_feasibility_rho
 
+     # if i>20 && adjust_rho==true && log_PARSDMM.r_pri_total[i]>maximum(log_PARSDMM.r_pri_total[(i-1):-1:max((i-50),1)])
+     #   rho[end]=TF(2.0)*rho[end]
+     # end
+
      #enforce max and min values for rho, to prevent the condition number of Q -> inf
-     rho = max.(min.(rho,TF(1e5)),TF(1e-2)) #hardcoded bounds
+     rho = max.(min.(rho,TF(1e4)),TF(1e-2)) #hardcoded bounds
      log_PARSDMM.T_adjust_rho_gamma=log_PARSDMM.T_adjust_rho_gamma+toq();
 
      tic()

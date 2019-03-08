@@ -11,6 +11,7 @@ function stop_PARSDMM(
                     feas_tol                 ::TF,
                     obj_tol                  ::TF,
                     adjust_rho               ::Bool,
+                    adjust_gamma             ::Bool,
                     adjust_feasibility_rho   ::Bool,
                     ind_ref                  ::Integer,
                     counter                  ::Integer
@@ -32,6 +33,8 @@ function stop_PARSDMM(
 
     # fix rho to ensure regular ADMM convergence if primal residual does not decrease over a 20 iteration window
     if i>20 && adjust_rho==true && log_PARSDMM.r_pri_total[i]>maximum(log_PARSDMM.r_pri_total[(i-1):-1:max((i-50),1)])
+      #println("increasing rho (identity matrix) to decrease condition number of AtA (iteration",i,")")
+
       println("no primal residual reduction, fixing PARSDMM rho & gamma (iteration ",i,")")
       adjust_rho = false;
       adjust_feasibility_rho = false;
@@ -49,5 +52,5 @@ function stop_PARSDMM(
       println("no primal residual reduction, exiting PARSDMM (iteration ",i,")")
       stop = true;
     end
-    return stop,adjust_rho,adjust_feasibility_rho,ind_ref
+    return stop,adjust_rho,adjust_gamma,adjust_feasibility_rho,ind_ref
 end #stop_psdmm

@@ -100,6 +100,10 @@ function PARSDMM_initialize(
                                 stop=true
                             end
 
+                            for ii=1:pp
+                              println("using constraints: ",set_Prop.tag[ii])
+                            end
+
                             # if one of the sets is non-convex, use different lambda and rho update frequency, don't update gamma and set a different fixed gamma
                             for ii=1:pp
                                 if set_Prop.ncvx[ii] == true
