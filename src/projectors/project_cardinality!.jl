@@ -37,13 +37,13 @@ function project_cardinality!(
 #x[sort_ind[1:k]]=val_max
 
 #alternative
-if mode == "x"
+if mode[2] == "x"
 Threads.@threads for i=1:size(x,2)
     #sort_ind = sortperm( x[:,i], by=abs, rev=true)
     sort_ind = sortperm( view(x,:,i), by=abs, rev=true)
 @inbounds x[sort_ind[k+1:end],i]=0.0;
   end
-elseif mode == "y"
+elseif mode[2] == "y"
 Threads.@threads for i=1:size(x,1)
     #sort_ind = sortperm( x[:,i], by=abs, rev=true)
     sort_ind = sortperm( view(x,i,:), by=abs, rev=true)
