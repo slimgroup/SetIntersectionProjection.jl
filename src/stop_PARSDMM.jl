@@ -11,6 +11,7 @@ function stop_PARSDMM(
                     feas_tol                 ::TF,
                     obj_tol                  ::TF,
                     adjust_rho               ::Bool,
+                    adjust_gamma             ::Bool,
                     adjust_feasibility_rho   ::Bool,
                     ind_ref                  ::Integer,
                     counter                  ::Integer
@@ -49,5 +50,5 @@ function stop_PARSDMM(
       println("no primal residual reduction, exiting PARSDMM (iteration ",i,")")
       stop = true;
     end
-    return stop,adjust_rho,adjust_feasibility_rho,ind_ref
+    return stop,adjust_rho,adjust_gamma,adjust_feasibility_rho,ind_ref
 end #stop_psdmm

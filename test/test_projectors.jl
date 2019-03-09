@@ -246,6 +246,29 @@
   project_subspace!(x,M,false,("fiber","z"))
   @test isapprox(x,(M*((M'*M)\(M'*y')))',rtol=eps()*10)
 
+  #on tensor input: project every z slice onto the subspace
+  x=randn(23,50,11)
+  y=deepcopy(x)
+  M=randn(23*50,5)
+  project_subspace!(x,M,false,("slice","z"))
+  x=reshape(x,size(y))
+  [@test isapprox(vec(x[:,:,i]),M*((M'*M)\(M'*vec(y[:,:,i]))),rtol=eps()*10) for i=1:11]
+
+  #on tensor input: project every y slice onto the subspace
+  x=randn(23,11,50)
+  y=deepcopy(x)
+  M=randn(23*50,5)
+  x=project_subspace!(x,M,false,("slice","y"))
+  x=reshape(x,size(y))
+  [@test isapprox(vec(x[:,i,:]),M*((M'*M)\(M'*vec(y[:,i,:]))),rtol=eps()*10) for i=1:11]
+
+  #on tensor input: project every x slice onto the subspace
+  x=randn(11,23,50)
+  y=deepcopy(x)
+  M=randn(23*50,5)
+  x=project_subspace!(x,M,false,("slice","x"))
+  x=reshape(x,size(y))
+  [@test isapprox(vec(x[i,:,:]),M*((M'*M)\(M'*vec(y[i,:,:]))),rtol=eps()*10) for i=1:11]
 
 #test projection onto relaxed histogram
   #first test exact histogram projection

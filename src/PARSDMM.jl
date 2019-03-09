@@ -138,7 +138,7 @@ for i=1:maxit #main loop
 
   # Stopping conditions
   #tic()
-  (stop,adjust_rho,adjust_feasibility_rho,ind_ref)=stop_PARSDMM(log_PARSDMM,i,evol_rel_tol,feas_tol,obj_tol,adjust_rho,adjust_feasibility_rho,ind_ref,counter);
+  (stop,adjust_rho,adjust_gamma,adjust_feasibility_rho,ind_ref)=stop_PARSDMM(log_PARSDMM,i,evol_rel_tol,feas_tol,obj_tol,adjust_rho,adjust_gamma,adjust_feasibility_rho,ind_ref,counter);
   if stop==true
     (TD_OP,AtA,log_PARSDMM) = output_check_PARSDMM(x,TD_OP,AtA,log_PARSDMM,i,counter)
     return x, log_PARSDMM, l, y

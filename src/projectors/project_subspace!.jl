@@ -66,34 +66,39 @@ function project_subspace!(
 
   (n1,n2,n3) = deepcopy(size(x))
 
+if mode[1] == "slice"
   #permute and reshape
-  if mode == "x"
+  if mode[2] == "x"
     x = permutedims(x,[2;3;1]);
     x = reshape(x,n2*n3,n1)
-  elseif mode == "y"
+  elseif mode[2] == "y"
     x = permutedims(x,[1;3;2]);
     x = reshape(x,n1*n3,n2)
-  elseif mode == "z"
+  elseif mode[2] == "z"
     x = reshape(x,n1*n2,n3) #there are n3 slices of dimension n1*n2
   end
 
   #project every column of matrix x (a slice of the original tensor)
   if orth == true
-     x .= A*(A'*x) ::Array{TF,2}
+     x .= A*(A'*x)
   else
-    x .= A*((A'*A)\(A'*x)) ::Array{TF,2}
+    x .= A*((A'*A)\(A'*x))
   end
 
   #permute back and vectorize
-  if mode == "x"
+  if mode[2] == "x"
     x = reshape(x,n2,n3,n1)
     x = permutedims(x,[3;1;2]);
-  elseif mode == "y"
+  elseif mode[2] == "y"
     x = reshape(x,n1,n3,n2)
     x = permutedims(x,[1;3;2]);
-  elseif mode == "z"
+  elseif mode[2] == "z"
     x = reshape(x,n1,n2,n3) #there are n3 slices of dimension n1*n2
   end
 
+else
+  error("for 3D models, the mode of application for project_subspace! needs to be (slice,x) or (slice,y) or (slice,z)")
+
+end
 x = vec(x)
 end
