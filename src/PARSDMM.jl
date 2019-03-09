@@ -56,7 +56,6 @@ l_hat_0,x_0,x_old,r_dual,rhs,s,s_0,Q,prox,log_PARSDMM,l_hat,x_hat,r_pri,d_l_hat,
 d_G_hat,P_sub,Q_offsets,stop,feasibility_initial,set_feas,Ax_out)=PARSDMM_initialize(x,l,y,AtA,TD_OP,set_Prop,P_sub,comp_grid,maxit,rho_ini,gamma_ini,
 x_min_solver,rho_update_frequency,adjust_gamma,adjust_rho,adjust_feasibility_rho,m,parallel,options,zero_ini_guess,feasibility_only)
 
-
 if stop==true #stop if feasibility of input is detected by PARSDMM_initialize
   copy!(x,m)
   if options.Minkowski == true
@@ -77,6 +76,14 @@ if stop==true #stop if feasibility of input is detected by PARSDMM_initialize
   log_PARSDMM.rho             = log_PARSDMM.rho[[1],:]
   return x, log_PARSDMM, l, y
 end
+
+#make sure proper vectors are supplied as initial guess for Minkowski sets.
+if options.Minkowski == true
+  if length(x)==length(m)
+    x = [x ; zeros(TF,length(m)) ]
+  end
+end
+
 counter=2
 
 x_solve_tol_ref=TF(1.0) #scalar required to determine tolerance for x-minimization, initial value doesn't matter
@@ -130,6 +137,7 @@ for i=1:maxit #main loop
   else
     log_PARSDMM.obj[i]          = TF(0.5) .* norm(TD_OP[end]*x .- m)^2
   end
+
   log_PARSDMM.evol_x[i]       = norm(x_old .- x) ./ norm(x);
   log_PARSDMM.rho[i,:]        = rho;
   log_PARSDMM.gamma[i,:]      = gamma;
@@ -208,7 +216,7 @@ for i=1:maxit #main loop
      end #end adjust_feasibility_rho
 
      #enforce max and min values for rho, to prevent the condition number of Q -> inf
-     rho = max.(min.(rho,TF(1e5)),TF(1e-2)) #hardcoded bounds
+     rho = max.(min.(rho,TF(1e4)),TF(1e-2)) #hardcoded bounds
      log_PARSDMM.T_adjust_rho_gamma=log_PARSDMM.T_adjust_rho_gamma+0.0#toq();;
 
      #tic()

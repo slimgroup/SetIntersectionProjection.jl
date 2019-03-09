@@ -79,6 +79,9 @@ include("prox_l2s!.jl")
 #scripts that are required to run examples
 include("constraint_learning_by_observation.jl")
 
+#Minkowski sum related scripts
+include("PARSDMM_precompute_distribute_Minkowski.jl")
+
 #define types
 mutable struct log_type_PARSDMM
       set_feasibility   :: Array{Real,2}
