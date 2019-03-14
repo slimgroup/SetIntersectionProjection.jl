@@ -72,7 +72,7 @@ constraint_c1 = Vector{SetIntersectionProjection.set_definitions}()
 #bounds component 1:
 m_min     = 1500f0*ones(TF,prod(comp_grid.n))
 m_max     = 4500f0.*ones(TF,comp_grid.n)
-m_max[:,1:35] = 1500f0
+m_max[:,1:35] .= 1500f0
 m_max     = vec(m_max)
 set_type  = "bounds"
 TD_OP     = "identity"
@@ -94,8 +94,8 @@ push!(constraint_c1, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_
 constraint_c2 = Vector{SetIntersectionProjection.set_definitions}()
 
 #bounds component 2:
-m_min     = -1500.0
-m_max     = 1500.0
+m_min     = -500.0
+m_max     = 500.0
 set_type  = "bounds"
 TD_OP     = "identity"
 app_mode  = ("matrix","")
@@ -182,7 +182,7 @@ constraint_c1 = Vector{SetIntersectionProjection.set_definitions}()
 #bounds component 1:
 m_min     = 1500f0*ones(TF,prod(comp_grid.n))
 m_max     = 4500f0.*ones(TF,comp_grid.n)
-m_max[:,1:35] = 1500f0
+m_max[:,1:35] .= 1500f0
 m_max     = vec(m_max)
 set_type  = "bounds"
 TD_OP     = "identity"
