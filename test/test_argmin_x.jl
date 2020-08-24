@@ -1,10 +1,10 @@
 @testset "argmin_x" begin
 
 #test argmin_x.jl for CSC sparse matrix format
-A=sprandn(100,100,0.01)+speye(100);
+A=sprandn(100,100,0.01)+sparse(I, 100, 100);
 A=A'*A;
-while rank(full(A))<100
-  A=A+speye(100)
+while rank(Array(A))<100
+  A=A+sparse(I, 100, 100)
 end
 xt=randn(100)
 b=A*xt;
@@ -36,10 +36,10 @@ x_min_solver="CG_normal"
 @test norm(A*x-b)/norm(b) <= 20*eps()
 
 #test argmin_x.jl for CDS sparse matrix format
-A=sprandn(100,100,0.01)+speye(100);
+A=sprandn(100,100,0.01)+sparse(I, 100, 100);
 A=A'*A;
-while rank(full(A))<100
-  A=A+speye(100)
+while rank(Array(A))<100
+  A=A+sparse(I, 100, 100)
 end
 xt=randn(100)
 b=A*xt;

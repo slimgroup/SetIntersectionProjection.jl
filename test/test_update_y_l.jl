@@ -10,45 +10,45 @@ p=2
 i=10
 Blas_active = false
 
-y=Vector{Vector{Float64}}(p)
+y=Vector{Vector{Float64}}(undef, p)
 y[1]=randn(51)
 y[2]=randn(100)
-y_old=Vector{Vector{Float64}}(p)
+y_old=Vector{Vector{Float64}}(undef, p)
 y_old[1]=randn(51)
 y_old[2]=randn(100)
-l_old=Vector{Vector{Float64}}(p)
+l_old=Vector{Vector{Float64}}(undef, p)
 l_old[1]=randn(51)
 l_old[2]=randn(100)
-l=Vector{Vector{Float64}}(p)
+l=Vector{Vector{Float64}}(undef, p)
 l[1]=randn(51)
 l[2]=randn(100)
 
 rho=[1.234;10.23432]
-gamma=Vector{Float64}(p)
+gamma=Vector{Float64}(undef, p)
 gamma[1]=1.0
 gamma[2]=1.345
 
-prox=Vector{Any}(p)
+prox=Vector{Any}(undef, p)
 prox[1] = x -> 1.0.*x
 m=randn(100)
 prox[2] = x -> prox_l2s!(x,rho[2],m)
-TD_OP = Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}}(p)
-TD_OP[1] = speye(51,100)*2.0
-TD_OP[2] = speye(100)
+TD_OP = Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}}(undef, p)
+TD_OP[1] = sparse(1.0*I, 51,100)*2.0
+TD_OP[2] = sparse(1.0*I, 100, 100)
 maxit=39
 log_PSDMM = log_type_PARSDMM(zeros(maxit,p-1),zeros(maxit,p),zeros(maxit,p),zeros(maxit),zeros(maxit),zeros(maxit),zeros(maxit),zeros(maxit,p),
 zeros(maxit,p),zeros(maxit),zeros(maxit),0.00,0.00,0.00,0.00,0.00,0.00,0.00);
 
-P_sub = Vector{Any}(1)
+P_sub = Vector{Any}(undef, 1)
 P_sub[1] = prox[1]
 counter=12
-x_hat=Vector{Vector{Float64}}(p)
+x_hat=Vector{Vector{Float64}}(undef, p)
 x_hat[1]=randn(51)
 x_hat[2]=randn(100)
-r_pri=Vector{Vector{Float64}}(p)
+r_pri=Vector{Vector{Float64}}(undef, p)
 r_pri[1]=randn(51)
 r_pri[2]=randn(100)
-s=Vector{Vector{Float64}}(p)
+s=Vector{Vector{Float64}}(undef, p)
 s[1]=randn(51)
 s[2]=randn(100)
 
@@ -91,44 +91,44 @@ p=2
 i=10
 Blas_active = true
 
-y=Vector{Vector{Float64}}(p)
+y=Vector{Vector{Float64}}(undef, p)
 y[1]=randn(51)
 y[2]=randn(100)
-y_old=Vector{Vector{Float64}}(p)
+y_old=Vector{Vector{Float64}}(undef, p)
 y_old[1]=randn(51)
 y_old[2]=randn(100)
-l_old=Vector{Vector{Float64}}(p)
+l_old=Vector{Vector{Float64}}(undef, p)
 l_old[1]=randn(51)
 l_old[2]=randn(100)
-l=Vector{Vector{Float64}}(p)
+l=Vector{Vector{Float64}}(undef, p)
 l[1]=randn(51)
 l[2]=randn(100)
 
 rho=[1.234;10.23432]
-gamma=Vector{Float64}(p)
+gamma=Vector{Float64}(undef, p)
 gamma[1]=1.0
 gamma[2]=1.345
 
-prox=Vector{Any}(p)
+prox=Vector{Any}(undef, p)
 prox[1] = x -> 1.0.*x
 m=randn(100)
 prox[2] = x -> prox_l2s!(x,rho[2],m)
-TD_OP = Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}}(p)
+TD_OP = Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}}(undef, p)
 
-TD_OP[1] = speye(51,100)*2.0
-TD_OP[2] = speye(100)
+TD_OP[1] = sparse(1.0*I, 51,100)*2.0
+TD_OP[2] = sparse(1.0*I, 100, 100)
 maxit=39
 log_PSDMM = log_type_PARSDMM(zeros(maxit,p-1),zeros(maxit,p),zeros(maxit,p),zeros(maxit),zeros(maxit),zeros(maxit),zeros(maxit),zeros(maxit,p),zeros(maxit,p),zeros(maxit),zeros(maxit),0.00,0.00,0.00,0.00,0.00,0.00,0.00);
-P_sub = Vector{Any}(1)
+P_sub = Vector{Any}(undef, 1)
 P_sub[1] = prox[1]
 counter=12
-x_hat=Vector{Vector{Float64}}(p)
+x_hat=Vector{Vector{Float64}}(undef, p)
 x_hat[1]=randn(51)
 x_hat[2]=randn(100)
-r_pri=Vector{Vector{Float64}}(p)
+r_pri=Vector{Vector{Float64}}(undef, p)
 r_pri[1]=randn(51)
 r_pri[2]=randn(100)
-s=Vector{Vector{Float64}}(p)
+s=Vector{Vector{Float64}}(undef, p)
 s[1]=randn(51)
 s[2]=randn(100)
 

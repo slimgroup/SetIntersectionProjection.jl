@@ -8,70 +8,70 @@ p=2
 i=10
 
 
-y=Vector{Vector{Float64}}(p)
+y=Vector{Vector{Float64}}(undef, p)
 y[1]=randn(51)
 y[2]=randn(100)
-y_0=Vector{Vector{Float64}}(p)
+y_0=Vector{Vector{Float64}}(undef, p)
 y_0[1]=randn(51)
 y_0[2]=randn(100)
-y_old=Vector{Vector{Float64}}(p)
+y_old=Vector{Vector{Float64}}(undef, p)
 y_old[1]=randn(51)
 y_old[2]=randn(100)
-l_old=Vector{Vector{Float64}}(p)
+l_old=Vector{Vector{Float64}}(undef, p)
 l_old[1]=randn(51)
 l_old[2]=randn(100)
-l=Vector{Vector{Float64}}(p)
+l=Vector{Vector{Float64}}(undef, p)
 l[1]=randn(51)
 l[2]=randn(100)
-d_l=Vector{Vector{Float64}}(p)
+d_l=Vector{Vector{Float64}}(undef, p)
 d_l[1]=randn(51)
 d_l[2]=randn(100)
-l_0=Vector{Vector{Float64}}(p)
+l_0=Vector{Vector{Float64}}(undef, p)
 l_0[1]=randn(51)
 l_0[2]=randn(100)
-l_hat=Vector{Vector{Float64}}(p)
+l_hat=Vector{Vector{Float64}}(undef, p)
 l_hat[1]=randn(51)
 l_hat[2]=randn(100)
-l_hat_0=Vector{Vector{Float64}}(p)
+l_hat_0=Vector{Vector{Float64}}(undef, p)
 l_hat_0[1]=randn(51)
 l_hat_0[2]=randn(100)
-d_l_hat=Vector{Vector{Float64}}(p)
+d_l_hat=Vector{Vector{Float64}}(undef, p)
 d_l_hat[1]=randn(51)
 d_l_hat[2]=randn(100)
-d_H_hat=Vector{Vector{Float64}}(p)
+d_H_hat=Vector{Vector{Float64}}(undef, p)
 d_H_hat[1]=randn(51)
 d_H_hat[2]=randn(100)
-d_G_hat=Vector{Vector{Float64}}(p)
+d_G_hat=Vector{Vector{Float64}}(undef, p)
 d_G_hat[1]=randn(51)
 d_G_hat[2]=randn(100)
 
 rho=[1.234;10.23432]
-gamma=Vector{Float64}(p)
+gamma=Vector{Float64}(undef, p)
 gamma[1]=1.0
 gamma[2]=1.345
 
-prox=Vector{Any}(p)
+prox=Vector{Any}(undef, p)
 prox[1] = x -> 1.0.*x
 m=randn(100)
 prox[2] = x -> prox_l2s!(x,rho[2],m)
-TD_OP=Vector{SparseMatrixCSC{Float64,Int64}}(p)
-TD_OP[1] = speye(51,100)*2.0
-TD_OP[2] = speye(100)
+TD_OP=Vector{SparseMatrixCSC{Float64,Int64}}(undef, p)
+TD_OP[1] = sparse(I, 51, 100)*2.0
+TD_OP[2] = sparse(I, 100, 100)
 maxit=39
 log_PSDMM = log_type_PARSDMM(zeros(maxit,p-1),zeros(maxit,p),zeros(maxit,p),zeros(maxit),zeros(maxit),zeros(maxit),zeros(maxit),zeros(maxit,p),zeros(maxit,p),zeros(maxit),zeros(maxit),0.00,0.00,0.00,0.00,0.00,0.00,0.00);
-P_sub = Vector{Any}(1)
+P_sub = Vector{Any}(undef, 1)
 P_sub[1] = prox[1]
 counter=12
-x_hat=Vector{Vector{Float64}}(p)
+x_hat=Vector{Vector{Float64}}(undef, p)
 x_hat[1]=randn(51)
 x_hat[2]=randn(100)
-r_pri=Vector{Vector{Float64}}(p)
+r_pri=Vector{Vector{Float64}}(undef, p)
 r_pri[1]=randn(51)
 r_pri[2]=randn(100)
-s=Vector{Vector{Float64}}(p)
+s=Vector{Vector{Float64}}(undef, p)
 s[1]=randn(51)
 s[2]=randn(100)
-s_0=Vector{Vector{Float64}}(p)
+s_0=Vector{Vector{Float64}}(undef, p)
 s_0[1]=randn(51)
 s_0[2]=randn(100)
 
@@ -125,10 +125,11 @@ for ii = 1:p
 end
 
 [@spawnat pid l_hat_d[:L] = l_old_d[:L] .+ rho_d[:L].* ( -s_d[:L] .+ y_old_d[:L] ) for pid in l_hat_d.pids]
-copy!(l_hat_0_d,l_hat_d)
-copy!(y_0_d,y_d)
-copy!(s_0_d,s_d)
-copy!(l_0_d,l_d)
+
+[@spawnat pid copy!(l_hat_0_d[:L],l_hat_d[:L]) for pid in l_hat_d.pids]
+[@spawnat pid copy!(y_0_d[:L],y_d[:L]) for pid in l_hat_d.pids]
+[@spawnat pid copy!(s_0_d[:L],s_d[:L]) for pid in l_hat_d.pids]
+[@spawnat pid copy!(l_0_d[:L],l_d[:L]) for pid in l_hat_d.pids]
 
 @test isapprox(l_hat_0_d,l_hat_0,rtol=10*eps())
 @test isapprox(l_hat,l_hat_d,rtol=10*eps())
