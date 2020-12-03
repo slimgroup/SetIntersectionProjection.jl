@@ -5,11 +5,10 @@ options=PARSDMM_options()
 options.FL                    = Float64
 options.parallel              = false
 options.zero_ini_guess        = true
-options.linear_inv_prob_flag  = false
 
 x=randn(100,201)
 
-comp_grid=compgrid((1.0, 1.0),(100, 201))
+comp_grid = compgrid((1.0, 1.0),(100, 201))
 x         = vec(x)
 m2        = deepcopy(x)
 x_ini2    = deepcopy(x)
@@ -18,8 +17,8 @@ constraint= Dict()
 #check if input returns if the input satisfies the constraints
   #bound constraints
   constraint["use_bounds"]=true
-  constraint["m_min"]=minimum(vec(x))
-  constraint["m_max"]=maximum(vec(x))
+  constraint["min"]=minimum(vec(x))
+  constraint["max"]=maximum(vec(x))
 
   (P_sub,TD_OP,TD_Prop) = setup_constraints(constraint,comp_grid,options.FL)
   (TD_OP,AtA,l,y) = PARSDMM_precompute_distribute(TD_OP,TD_Prop,comp_grid,options)
@@ -33,8 +32,8 @@ constraint= Dict()
 #add a few convex constraints. The projected model should satisfy these constraints
   #bound constraints
   constraint["use_bounds"]=true
-  constraint["m_min"]=0.5*minimum(vec(x))
-  constraint["m_max"]=0.5*maximum(vec(x))
+  constraint["min"]=0.5*minimum(vec(x))
+  constraint["max"]=0.5*maximum(vec(x))
 
   #transform domain bounds
   (TD_OP, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"D_z",options.FL)
@@ -182,8 +181,8 @@ constraint= Dict()
   #add a few convex constraints which the model already satisfies
     #bound constraints
     constraint["use_bounds"]=false
-    constraint["m_min"]=1.0*minimum(vec(c_l_solution))
-    constraint["m_max"]=1.456*maximum(vec(c_l_solution))
+    constraint["min"]=1.0*minimum(vec(c_l_solution))
+    constraint["max"]=1.456*maximum(vec(c_l_solution))
 
     #transform domain bounds
     (TD_OP, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"D_z",options.FL)
@@ -236,8 +235,8 @@ constraint["TD_nuclear_operator_1"]="identity"
 #add a few convex constraints which the model already satisfies
   #bound constraints
   constraint["use_bounds"]=true
-  constraint["m_min"]=1.0*minimum(x)
-  constraint["m_max"]=0.50*maximum(x)
+  constraint["min"]=1.0*minimum(x)
+  constraint["max"]=0.50*maximum(x)
 
   #transform domain bounds
   (TD_OP, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"D_z",options.FL)

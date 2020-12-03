@@ -252,7 +252,7 @@
   M=randn(23*50,5)
   project_subspace!(x,M,false,("slice","z"))
   x=reshape(x,size(y))
-  [@test isapprox(vec(x[:,:,i]),M*((M'*M)\(M'*vec(y[:,:,i]))),rtol=eps()*10) for i=1:11]
+  [@test isapprox(vec(x[:,:,i]),M*((M'*M)\(M'*vec(y[:,:,i]))),rtol=eps()*100) for i=1:11]
 
   #on tensor input: project every y slice onto the subspace
   x=randn(23,11,50)
@@ -260,7 +260,7 @@
   M=randn(23*50,5)
   x=project_subspace!(x,M,false,("slice","y"))
   x=reshape(x,size(y))
-  [@test isapprox(vec(x[:,i,:]),M*((M'*M)\(M'*vec(y[:,i,:]))),rtol=eps()*10) for i=1:11]
+  [@test isapprox(vec(x[:,i,:]),M*((M'*M)\(M'*vec(y[:,i,:]))),rtol=eps()*100) for i=1:11]
 
   #on tensor input: project every x slice onto the subspace
   x=randn(11,23,50)
@@ -268,7 +268,7 @@
   M=randn(23*50,5)
   x=project_subspace!(x,M,false,("slice","x"))
   x=reshape(x,size(y))
-  [@test isapprox(vec(x[i,:,:]),M*((M'*M)\(M'*vec(y[i,:,:]))),rtol=eps()*10) for i=1:11]
+  [@test isapprox(vec(x[i,:,:]),M*((M'*M)\(M'*vec(y[i,:,:]))),rtol=eps()*100) for i=1:11]
 
 #test projection onto relaxed histogram
   #first test exact histogram projection
