@@ -66,8 +66,12 @@ function get_projector(constraint,comp_grid,special_operator_list::Array{String,
     end
   end
 
-  if constraint.set_type == "histogram"
-    P = x -> project_histogram_relaxed!(x,constraint.min,constraint.max) #min and max should be vector valued
+  if constraint.set_type == "histogram" #1D histogram only
+    if constraint.TD_OP in special_operator_list
+      P = x -> copyto!(x,A'*project_histogram_relaxed!(A*x,constraint.min,constraint.max)) #min and max should be vector valued
+    else
+      P = x -> project_histogram_relaxed!(x,constraint.min,constraint.max) #min and max should be vector valued
+    end
   end
 
   if constraint.set_type == "cardinality"

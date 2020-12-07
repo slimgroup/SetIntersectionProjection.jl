@@ -43,9 +43,11 @@ if length(comp_grid.n)==3 && comp_grid.n[3]>1 #use 3d version
       TD_OP = SparseMatrixCSC{TF}(LinearAlgebra.I,n1*n2*n3,n1*n2*n3)
       AtA_diag = true ; dense = false ; TD_n = (n1,n2,n3) ; banded=true
   elseif TD_type == "DFT"
-      error("currently no 3D DFT implemented, needs to be done soon")
+      TD_OP=joDFT(convert(Int64,n1),convert(Int64,n2),convert(Int64,n3);planned=false,DDT=TF,RDT=Complex{TF})
+      AtA_diag = true ; dense = true ; TD_n = (n1,n2,n3) ; banded=false
     elseif TD_type == "DCT"
-      error("currently no 3D DCT implemented, needs to be done soon")
+      TD_OP=joDCT(convert(Int64,n1),convert(Int64,n2),convert(Int64,n3);planned=false,DDT=TF,RDT=TF)
+      AtA_diag = true ; dense = true ; TD_n = (n1,n2,n3) ; banded=false
   elseif TD_type == "curvelet"
       error("currently no 3D curvelet implemented, needs to be done soon")
     elseif TD_type == "wavelet"
