@@ -28,9 +28,10 @@ Julia software for computing projections onto intersections of convex and non-co
  
 ## Status:
 
-###  June 12 2019
+###  December 2020
 
- - master branch works with Julia 1.1
+ - master branch works with Julia 1.5
+ - see [https://github.com/slimgroup/ConstrainedFWIExamples](https://github.com/slimgroup/ConstrainedFWIExamples) for some more examples of how to use this package as the projector in combination with other software packages that compute function values and gradients for PDE-constrained optimization.
  - The waveform inversion example illustrates how SetIntersectionProjection can work together with other packages in other Julia versions (requires some package installations in Julia 0.6)
  - the V06 branch works with Julia 0.6 and is intended only for the waveform inversion example that uses [WAVEFORM.jl](https://github.com/slimgroup/WAVEFORM.jl)
 
