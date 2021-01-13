@@ -143,13 +143,14 @@ m1 = x[1:length(m)]
 m2 = x[1+length(m):end]
 ms = m1+m2; #total model output
 
-figure();imshow(permutedims(reshape(m,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Original")
+figure(figsize=(10.5,1.75));
+imshow(permutedims(reshape(m,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]);colorbar();title("Original")
 savefig("original_model.png",bbox_inches="tight")
-figure();imshow(permutedims(reshape(m1,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (component 1, positive vertical slope)")
+figure(figsize=(10.5,1.75));imshow(permutedims(reshape(m1,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]);colorbar(); title("Projection (component 1, positive vertical slope)")
 savefig("projected_model_component1.png",bbox_inches="tight")
-figure();imshow(permutedims(reshape(m2,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=-1500,vmax=1500,extent=[0,  xmax, zmax, 0]); title("Projection (component 2, low TV)")
+figure(figsize=(10.5,1.75));imshow(permutedims(reshape(m2,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=-1500,vmax=1500,extent=[0,  xmax, zmax, 0]);colorbar(); title("Projection (component 2, low TV)")
 savefig("projected_model_component2.png",bbox_inches="tight")
-figure();imshow(permutedims(reshape(ms,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (sum of components)")
+figure(figsize=(10.5,1.75));imshow(permutedims(reshape(ms,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]);colorbar(); title("Projection (sum of components)")
 savefig("projected_model_component_sum.png",bbox_inches="tight")
 
 figure();
@@ -248,13 +249,13 @@ m1 = x[1:length(m)]
 m2 = x[1+length(m):end]
 ms = m1+m2;
 
-figure();imshow(permutedims(reshape(m,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Original")
+figure(figsize=(10.5,1.75));imshow(permutedims(reshape(m,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]);colorbar();title("Original")
 savefig("original_model.png",bbox_inches="tight")
-figure();imshow(permutedims(reshape(m1,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (component 1, positive vertical slope)")
+figure(figsize=(10.5,1.75));imshow(permutedims(reshape(m1,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]);colorbar(); title("Projection (component 1, positive vertical slope)")
 savefig("projected_model_component1.png",bbox_inches="tight")
-figure();imshow(permutedims(reshape(m2,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=-1500,vmax=1500,extent=[0,  xmax, zmax, 0]); title("Projection (component 2, negative vertical slope)")
+figure(figsize=(10.5,1.75));imshow(permutedims(reshape(m2,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=-1500,vmax=1500,extent=[0,  xmax, zmax, 0]);colorbar(); title("Projection (component 2, negative vertical slope)")
 savefig("projected_model_component2.png",bbox_inches="tight")
-figure();imshow(permutedims(reshape(ms,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (sum of components)")
+figure(figsize=(10.5,1.75));imshow(permutedims(reshape(ms,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]);colorbar(); title("Projection (sum of components)")
 savefig("projected_model_component_sum.png",bbox_inches="tight")
 
 figure();
