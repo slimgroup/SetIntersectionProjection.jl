@@ -18,10 +18,14 @@ end
 TF=Float32 #Float32
 
 #load escalator video) (Mablab files for compatibility with matlab only solvers for comparison...)
+#load escalator video) (Mablab files for compatibility with matlab only solvers for comparison...)
 if isfile("escalator_data.mat") == true
   file     = matopen("escalator_data.mat")
+  #file = matopen(joinpath(dirname(pathof(SetIntersectionProjection)), "../examples/Data/escalator_data.mat"))
 else
-  error("download escalator video from http://cvxr.com/tfocs/demos/rpca/escalator_data.mat")
+  println("downloading escalator video from http://cvxr.com/tfocs/demos/rpca/escalator_data.mat")
+  run(`wget http://cvxr.com/tfocs/demos/rpca/escalator_data.mat`)
+  #error("download escalator video from http://cvxr.com/tfocs/demos/rpca/escalator_data.mat")
 end
 mtrue    = read(file, "X")
 n1       = convert(Integer,read(file, "m"))
@@ -226,22 +230,3 @@ for i=1:4
 end
 tight_layout()
 savefig("escalator_decomposition_allresults.png")
-
-#play videos
-# figure();
-# for i=1:size(m_est_background,3)
-#   imshow(m_est_background[:,:,i],cmap="gray");title(i)
-#   sleep(1.0)
-# end
-# figure();
-# for i=1:size(m_est_anomaly,3)
-#   imshow(m_est_anomaly[:,:,i],cmap="gray");title(i)
-#   sleep(1.0)
-# end
-
- # file = matopen(joinpath(data_dir,"anomaly_est.mat"), "w")
- # write(file, "anomaly_est", convert(Array{Float64,3},m_est_anomaly))
- # close(file)
- # file = matopen(joinpath(data_dir,"background_est.mat"), "w")
- # write(file, "background_est", convert(Array{Float64,3},m_est_background))
- # close(file)

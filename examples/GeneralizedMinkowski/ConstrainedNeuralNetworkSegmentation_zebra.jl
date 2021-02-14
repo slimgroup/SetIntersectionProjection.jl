@@ -10,11 +10,12 @@ using InvertibleNetworks #(https://github.com/slimgroup/InvertibleNetworks.jl)
 using Flux
 import Flux.Optimise.update!
 
-image = load("images/motorbike_original.jpg")
+image = load("images/zebra2.jpg")
 image = channelview(image)
 image = convert(Array{Float32,3},image)
 image = permutedims(image,[2 3 1])
-image = image[1:4:end,1:4:end,1:3]
+
+image=image[1:2:end,1:2:end,:]
 
 #corrupt image (missing pixels)
 percentage_missing = 0.25
@@ -23,7 +24,13 @@ inds = shuffle(inds)
 inds = inds[1:round(Int,length(inds)*percentage_missing)]
 image[inds,:,:] .= 0
 
-image = repeat(image,outer=[1,1,3,1]) #make RGB image 9 channels for the invertible network
+#corrupt image (missing lines)
+# inds = randperm(size(image,1))
+# inds = inds[1:round(Int,length(inds)*0.10)]
+# image[inds,:,:,:] .= 0
+
+#make image 9 channels
+image=repeat(image,outer=[1,1,3,1])
 
 ################## set up Generalized Minkowski constriants################
 ################## set up Generalized Minkowski constriants################
@@ -32,23 +39,23 @@ image = repeat(image,outer=[1,1,3,1]) #make RGB image 9 channels for the inverti
 #also use cardinality constraint to indicate the minimum and maximum size of the object
 #include bound constraints for the bounding box
 
-#PARSDMM (ADMM-based algorithm that computes the projection) options:
+#PARSDMM options:
 options=PARSDMM_options()
 options.FL=Float32
+#options=default_PARSDMM_options(options,options.FL)
 options.adjust_gamma           = true
 options.adjust_rho             = true
 options.adjust_feasibility_rho = true
 options.Blas_active            = true
 options.maxit                  = 700
 
-#accuracy, these are very conservative choices, to make things faster you can change these values
-options.feas_tol     = 0.001
-options.obj_tol      = 0.001
-options.evol_rel_tol = 0.0001
+options.feas_tol     = 0.001#0.0001
+options.obj_tol      = 0.001#0.0001
+options.evol_rel_tol = 0.0001#0.00001
 set_zero_subnormals(true)
 BLAS.set_num_threads(4)
 
-mutable struct compgrid #set up computational grid
+mutable struct compgrid
   d :: Tuple
   n :: Tuple
 end
@@ -58,17 +65,16 @@ P[1]      = Vector{Any}(undef, 2)
 n         = size(image[:,:,1,1])
 comp_grid = compgrid((1.0,1.0),(n[1], n[2]))
 
-
 for j=1:2 #loop over active output channels (classes)
   if j==1
-    ######## Channel 1 (anomaly) ############################
+######## Channel 1 ############################
 
     #constraints for total model
     constraint_sum = Vector{SetIntersectionProjection.set_definitions}()
 
     #cardinality:
     m_min     = 0
-    m_max     = round(Int,0.6*prod(n[1:2]))
+    m_max     = round(Int,0.25*prod(n[1:2]))
     set_type  = "cardinality"
     TD_OP     = "identity"
     app_mode  = ("matrix","")
@@ -78,7 +84,7 @@ for j=1:2 #loop over active output channels (classes)
     #bounds:
     m_min     = zeros(Float32,n[1],n[2])
     m_max     = ones(Float32,n[1],n[2])
-    m_max[1:10,:] .= 0f0;m_max[end-10:end,:] .= 0f0;m_max[:,1:10] .= 0f0;m_max[:,end-10:end] .= 0f0;
+    m_max[1:20,:] .= 0f0;m_max[end-20:end,:] .= 0f0;m_max[:,1:20] .= 0f0;m_max[:,end-20:end] .= 0f0;
     m_min = vec(m_min)
     m_max = vec(m_max)
     set_type  = "bounds"
@@ -95,15 +101,6 @@ for j=1:2 #loop over active output channels (classes)
     m_max     = 1f0
     set_type  = "bounds"
     TD_OP     = "identity"
-    app_mode  = ("matrix","")
-    custom_TD_OP = ([],false)
-    push!(constraint_c1, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
-
-    #slope constraints component 1(vertical)
-    m_min     = 0.0
-    m_max     = 1e6
-    set_type  = "bounds"
-    TD_OP     = "D_z"
     app_mode  = ("matrix","")
     custom_TD_OP = ([],false)
     push!(constraint_c1, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
@@ -129,16 +126,7 @@ for j=1:2 #loop over active output channels (classes)
     custom_TD_OP = ([],false)
     push!(constraint_c2, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-    #slope constraints component 2(vertical)
-    m_min     = -1e6
-    m_max     = 0.0
-    set_type  = "bounds"
-    TD_OP     = "D_z"
-    app_mode  = ("matrix","")
-    custom_TD_OP = ([],false)
-    push!(constraint_c2, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
-
-    # #slope constraints component 2(horizontal)
+    #slope constraints component 2(horizontal)
     m_min     = -1e6
     m_max     = 0.0
     set_type  = "bounds"
@@ -146,6 +134,7 @@ for j=1:2 #loop over active output channels (classes)
     app_mode  = ("matrix","")
     custom_TD_OP = ([],false)
     push!(constraint_c2, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+
 
     (P_sub_sum,TD_OP_sum,set_Prop_sum) = setup_constraints(constraint_sum,comp_grid,options.FL)
     (P_sub_c1,TD_OP_c1,set_Prop_c1) = setup_constraints(constraint_c1,comp_grid,options.FL)
@@ -171,14 +160,14 @@ for j=1:2 #loop over active output channels (classes)
     P[1][1] = x -> temp_func1(x,AtA,TD_OP,set_Prop,P_sub,comp_grid,options)
 
   elseif j==2
-    ######## Channel 2 (background) ############################
+    ######## Channel 2 ############################
 
-    #constraints for total model
+    #constraints for total model\
     constraint_sum = Vector{SetIntersectionProjection.set_definitions}()
 
     #cardinality:
     m_min     = 0
-    m_max     = round(Int,0.80*prod(n[1:2]))
+    m_max     = round(Int,0.95*prod(n[1:2]))
     set_type  = "cardinality"
     TD_OP     = "identity"
     app_mode  = ("matrix","")
@@ -187,7 +176,7 @@ for j=1:2 #loop over active output channels (classes)
 
     #bounds:
     m_min     = zeros(Float32,n[1],n[2])
-    m_min[1:10,:] .= 1f0;m_min[end-10:end,:] .= 1f0;m_min[:,1:10] .= 1f0;m_min[:,end-10:end] .= 1f0;
+    m_min[1:20,:] .= 1f0;m_min[end-20:end,:] .= 1f0;m_min[:,1:20] .= 1f0;m_min[:,end-20:end] .= 1f0;
     m_max     = ones(Float32,n[1],n[2])
     #m_max[bound_idx_pos] .= 0f0
     #m_min[bound_idx_neg] .= 1f0
@@ -211,15 +200,6 @@ for j=1:2 #loop over active output channels (classes)
     custom_TD_OP = ([],false)
     push!(constraint_c1, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
 
-    #slope constraints component 1(vertical)
-    m_min     = 0.0
-    m_max     = 1e6
-    set_type  = "bounds"
-    TD_OP     = "D_z"
-    app_mode  = ("matrix","")
-    custom_TD_OP = ([],false)
-    push!(constraint_c1, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
-
     #slope constraints component 1(horizontal)
     m_min     = 0.0
     m_max     = 1e6
@@ -237,15 +217,6 @@ for j=1:2 #loop over active output channels (classes)
     m_max     = 1.0
     set_type  = "bounds"
     TD_OP     = "identity"
-    app_mode  = ("matrix","")
-    custom_TD_OP = ([],false)
-    push!(constraint_c2, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
-
-    #slope constraints component 2(vertical)
-    m_min     = -1e6
-    m_max     = 0.0
-    set_type  = "bounds"
-    TD_OP     = "D_z"
     app_mode  = ("matrix","")
     custom_TD_OP = ([],false)
     push!(constraint_c2, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
@@ -288,7 +259,6 @@ end
 ################## End setup Generalized Minkowski constraints ################
 
 #set up neural network
-
 #12 layers with 9 channels each for a reversible hyperbolic network
 architecture = ((0, 9), (0, 9),(0, 9),(0, 9),(0, 9),(0, 9),(0, 9),(0, 9),(0, 9),(0, 9),(0, 9),(0, 9))
 
@@ -387,13 +357,12 @@ maxiter         = 30
 opt             = Flux.ADAM(1f-2)
 active_channels = [1,2]
 flip_dims       = [1,2]
-fval            = train(HN,image,image,P,active_channels,flip_dims,maxiter,opt)
-
+fval = train(HN,image,image,P,active_channels,flip_dims,maxiter,opt)
 
 opt   = Flux.ADAM(1f-3)
 fval2 = train(HN,image,image,P,active_channels,flip_dims,maxiter,opt)
 
-maxiter   = 150
+maxiter   = 160
 flip_dims = []
 fval3     = train(HN,image,image,P,active_channels,flip_dims,maxiter,opt)
 
@@ -403,22 +372,21 @@ fval4   = train(HN,image,image,P,active_channels,flip_dims,maxiter,opt)
 
 fval_total = vcat(fval,fval2,fval3,fval4)
 
-#plot results
-
 figure(figsize=(3,6));semilogy(fval_total);title("Squared distance-to-set");
 xlabel("Iteration number");
-savefig("loss_bike.png")
+savefig("loss_zebra.png")
 
 #Plot data with bounding box
 n=size(image)
 figure(figsize=(5,4))
 imshow(image[:,:,1:3,1])
-plot([10,10],[10,n[1]-9],"r") #up-down left
-plot([n[2]-9,n[2]-9],[10,n[1]-9],"r") #up_down right
-plot([10,n[2]-9],[10,10],"r") #left-right up
-plot([10,n[2]-9],[n[1]-9,n[1]-9],"r") #left-right down
-title("Bike")
-savefig("data_bike.png")
+plot([20,20],[20,n[1]-19],"r") #up-down left
+plot([n[2]-19,n[2]-19],[20,n[1]-19],"r") #up_down right
+plot([20,n[2]-19],[20,20],"r") #left-right up
+plot([20,n[2]-19],[n[1]-19,n[1]-19],"r") #left-right down
+title("Zebra")
+tight_layout()
+savefig("data_zebra.png")
 
 #predict using trained network
 ~, prediction, ~ = HN.forward(deepcopy(image),deepcopy(image))
@@ -435,7 +403,7 @@ vma = 1.0
 figure(figsize=(8,4))
 subplot(1,2,1);imshow(Array(project_channel_1)[3:end-2,3:end-2]);PyPlot.title("Prediction - channel 1");colorbar()
 subplot(1,2,2);imshow(Array(project_channel_2)[3:end-2,3:end-2]);PyPlot.title("prediction - channel 2");colorbar()
-savefig("prediction_bike_channels.png")
+savefig("prediction_zebra_channels.png")
 
 #thresholded prediction
 pred_thres = zeros(Int,size(prediction)[1:2])
@@ -444,7 +412,7 @@ pred_thres[pos_inds] .= 1
 
 figure(figsize=(4,4));
 imshow(Array(pred_thres)[3:end-2,3:end-2],vmin=vmi,vmax=vma);PyPlot.title("Prediction");
-savefig("prediction_bike.png")
+savefig("prediction_zebra.png")
 
 #Plot data+prediction
 figure(figsize=(5,4))
