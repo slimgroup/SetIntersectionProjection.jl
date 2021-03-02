@@ -299,7 +299,7 @@ n_chan_in = size(image,3)
 (nx, ny)  = size(image)[1:2]
 α         = 0.3^2
 batchsize = 1
-HN = H = NetworkHyperbolic(nx, ny,n_chan_in, batchsize, architecture; α)
+HN = H = NetworkHyperbolic(n_chan_in, architecture; α)
 
 #squared distance function to a constraint set
 function Dist2ToSet(input,P,active_channels,example_ind)
