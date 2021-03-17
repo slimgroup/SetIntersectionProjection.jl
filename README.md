@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/166865442.svg)](https://zenodo.org/badge/latestdoi/166865442)
+
 # SetIntersectionProjection
 Julia software for computing:
  - projections onto intersections of convex and non-convex constraint sets [Documentation](https://petersbas.github.io/SetIntersectionProjectionDocs/)
