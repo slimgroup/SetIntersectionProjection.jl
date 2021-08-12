@@ -23,4 +23,5 @@ Interpolations = "0.13"
 JOLI = "0.7"
 Parameters = "0.12"
 SortingAlgorithms = "1"
+DistributedArrays = "0.6"
 
