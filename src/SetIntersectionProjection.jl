@@ -5,7 +5,6 @@ using Distributed
 using LinearAlgebra
 using SparseArrays
 using Printf
-using FFTW
 using Statistics
 
 #other packages
@@ -13,7 +12,7 @@ using Parameters
 using Interpolations
 using DistributedArrays
 using JOLI
-using Wavelets
+using JOLI.FFTW, JOLI.Wavelets
 using SortingAlgorithms
 
 export log_type_PARSDMM, set_properties, PARSDMM_options, set_definitions
