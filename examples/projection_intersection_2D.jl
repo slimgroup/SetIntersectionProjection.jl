@@ -4,12 +4,12 @@
 
 using Distributed
 @everywhere using SetIntersectionProjection
+@everywhere using LinearAlgebra
 using MAT
-using LinearAlgebra
-ENV["MPLBACKEND"]="qt5agg"
+#ENV["MPLBACKEND"]="qt5agg"
 using PyPlot
 
-mutable struct compgrid
+@everywhere mutable struct compgrid
   d :: Tuple
   n :: Tuple
 end

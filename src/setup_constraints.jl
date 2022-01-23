@@ -44,7 +44,7 @@ end
 
 #allocate
 P_sub = Vector{Any}(undef,nr_constraints)
-TD_OP = Vector{Union{Array{TF, 2}, SparseMatrixCSC{TF,TI},JOLI.joAbstractLinearOperator{TF,TF}}}(undef,nr_constraints)
+TD_OP = Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joAbstractLinearOperator{TF,TF}}}(undef,nr_constraints)
 AtA   = Vector{SparseMatrixCSC{TF,TI}}(undef,nr_constraints)
 
 #initialize storage for set properties
@@ -67,7 +67,9 @@ for i = 1:nr_constraints
       end
 
       (A,AtA_diag,dense,TD_n,banded) = get_TD_operator(comp_grid,constraint[i].TD_OP,TF)
-      ~(constraint[i].custom_TD_OP[1] == []) && (A = constraint[i].custom_TD_OP[1])
+      if constraint[i].set_type != "subspace"
+        ~(constraint[i].custom_TD_OP[1] == []) && (A = constraint[i].custom_TD_OP[1])
+      end
 
       P_sub[i] = get_projector(constraint[i],comp_grid,special_operator_list,A,TD_n,TF)
 
