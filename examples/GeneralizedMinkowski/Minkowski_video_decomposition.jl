@@ -25,6 +25,7 @@ if isfile("escalator_data.mat") == true
 else
   println("downloading escalator video from http://cvxr.com/tfocs/demos/rpca/escalator_data.mat")
   run(`wget http://cvxr.com/tfocs/demos/rpca/escalator_data.mat`)
+  file     = matopen("escalator_data.mat")
   #error("download escalator video from http://cvxr.com/tfocs/demos/rpca/escalator_data.mat")
 end
 mtrue    = read(file, "X")
@@ -48,7 +49,7 @@ m_est        = zeros(TF,size(m_evaluation)) #allocate results
 comp_grid_eval  = compgrid((1f0,1f0,1f0),(size(m_evaluation,1),size(m_evaluation,2), size(m_evaluation,3)))
 comp_grid_train = compgrid((1f0,1f0,1f0),(size(m_train,1),size(m_train,2), size(m_train,3)))
 
-#initialize constraint dictionaries
+#initialize constraint structures
 constraint_background = Vector{SetIntersectionProjection.set_definitions}()
 constraint_anomaly    = Vector{SetIntersectionProjection.set_definitions}()
 constraint_sum        = Vector{SetIntersectionProjection.set_definitions}()

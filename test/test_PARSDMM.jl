@@ -85,7 +85,7 @@ x_ini2    = deepcopy(x)
   result = deepcopy(x)
   for i=1:length(TD_OP)-1
     copy!(result,x)
-    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= options.feas_tol
+    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= 1.5*options.feas_tol
   end
 
   #accurate setting
@@ -101,7 +101,7 @@ x_ini2    = deepcopy(x)
   
   for i=1:length(TD_OP)-1
     copy!(result,x)
-    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= options.feas_tol
+    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= 1.5*options.feas_tol
   end
 
   #accurate without BLAS
@@ -117,7 +117,7 @@ x_ini2    = deepcopy(x)
   result = deepcopy(x)
   for i=1:length(TD_OP)-1
     copy!(result,x)
-    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= options.feas_tol
+    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= 1.5*options.feas_tol
   end
 
   #accurate with rho adjustment, without gamma adjustment
@@ -133,7 +133,7 @@ x_ini2    = deepcopy(x)
   result = deepcopy(x)
  for i=1:length(TD_OP)-1
     copy!(result,x)
-    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= options.feas_tol
+    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= 1.5*options.feas_tol
   end
 
   #accurate without rho adjustment, with gamma
@@ -150,7 +150,7 @@ x_ini2    = deepcopy(x)
   result = deepcopy(x)
  for i=1:length(TD_OP)-1
     copy!(result,x)
-    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= options.feas_tol
+    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= 1.5*options.feas_tol
   end
 
   # without rho adjustment, without gamma
@@ -167,7 +167,7 @@ x_ini2    = deepcopy(x)
   result = deepcopy(x)
   for i=1:length(TD_OP)-1
     copy!(result,x)
-    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= options.feas_tol
+    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= 1.5*options.feas_tol
   end
 
   #accurate with rho adjustment, with gamma and without rho based on feasibility
@@ -185,7 +185,7 @@ x_ini2    = deepcopy(x)
   result = deepcopy(x)
   for i=1:length(TD_OP)-1
     copy!(result,x)
-    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= options.feas_tol
+    @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= 1.5*options.feas_tol
   end
 
 
