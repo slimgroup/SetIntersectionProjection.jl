@@ -75,10 +75,11 @@ push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_
 
 
 # Load velocity model
-#get model at:  ftp://slim.eos.ubc.ca/data/SoftwareRelease/WaveformInversion.jl/3DFWI/overthrust_3D_true_model.h5
-n,d,o,m_full = h5open("overthrust_3D_true_model.h5","r") do file
-  read(file, "n", "d", "o", "m")
+if ~isfile("overthrust_3D_true_model.h5")
+  run(`wget ftp://slim.gatech.edu/data/SoftwareRelease/WaveformInversion.jl/3DFWI/overthrust_3D_true_model.h5`)
 end
+n, d, o, m_full = read(h5open("overthrust_3D_true_model.h5","r"), "n", "d", "o", "m")
+
 
 m_full .= 1000.0 ./ sqrt.(m_full);
 

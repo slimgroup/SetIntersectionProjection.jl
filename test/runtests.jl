@@ -1,7 +1,6 @@
 
 using LinearAlgebra
 using Test
-
 using DistributedArrays
 using Distributed
 # # add at least 3 worker processes
@@ -12,7 +11,7 @@ end
 @assert nprocs() > 3
 @assert nworkers() >= 3
 
-@everywhere using DistributedArrays, SparseArrays
+@everywhere using DistributedArrays, SparseArrays, LinearAlgebra, Random
 @everywhere using JOLI
 
 @everywhere using SetIntersectionProjection
@@ -27,8 +26,6 @@ end
 
   include("test_projectors.jl")
   include("test_setup_constraints.jl")
-
-  #still need to port the stuff below to Julia 1.1
 
   include("test_TD_OPs.jl")
   include("test_prox_l2s!.jl")
@@ -46,7 +43,8 @@ end
   include("test_Q_update.jl")
 
   #test full algorithms
-  # include("test_PARSDMM.jl")
+  include("test_PARSDMM.jl")
+  #still need to port the stuff below to the current Julia version
   # include("test_PARSDMM_parallel.jl")
   # include("test_PARSDMM_multilevel.jl")
 

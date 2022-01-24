@@ -1,8 +1,6 @@
-#This script illustate how to set up constraints and project a 3D model onto an intersection
+#This script illustates how to set up constraints and project a 3D model onto an intersection
 # with PARSDMM in serial, parallel or multilevel (serial or parallel)
 # Bas Peters, 2017
-
-#THE DATA FOR THIS SCRIPT IS CURRENTLY NOT AVAILABLE ONLINE
 
 using Distributed
 using LinearAlgebra
@@ -16,12 +14,12 @@ using PyPlot
   n :: Tuple
 end
 
-# Load velocity model
-#get model at:  ftp://slim.eos.ubc.ca/data/SoftwareRelease/WaveformInversion.jl/3DFWI/overthrust_3D_true_model.h5
-#run('wget ftp://slim.eos.ubc.ca/data/SoftwareRelease/WaveformInversion.jl/3DFWI/overthrust_3D_true_model.h5')
-n,d,o,m = h5open("overthrust_3D_true_model.h5","r") do file
-	read(file, "n", "d", "o", "m")
+# Load velocity model - overthrust model
+if ~isfile("overthrust_3D_true_model.h5")
+  run(`wget ftp://slim.gatech.edu/data/SoftwareRelease/WaveformInversion.jl/3DFWI/overthrust_3D_true_model.h5`)
 end
+n, d, o, m_full = read(h5open("overthrust_3D_true_model.h5","r"), "n", "d", "o", "m")
+
 m .= 1000.0 ./ sqrt.(m);
 m = m[50:200,50:200,:];
 

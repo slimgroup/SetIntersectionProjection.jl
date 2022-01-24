@@ -1,12 +1,11 @@
 #This script illustate how to set up constraints and project a 2D model onto an intersection
-# with PARSDMM in serial, parallel or multilevel (seria or parallel)
+# with PARSDMM in serial, parallel or multilevel (serial or parallel)
 # Bas Peters, 2017
 
 using Distributed
 @everywhere using SetIntersectionProjection
 @everywhere using LinearAlgebra
 using MAT
-#ENV["MPLBACKEND"]="qt5agg"
 using PyPlot
 
 @everywhere mutable struct compgrid
