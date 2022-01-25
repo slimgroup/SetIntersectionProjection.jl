@@ -116,10 +116,6 @@ CustomOP_JOLI = joKron(TV, joEye(comp_grid.n[3]-1,DDT=Float32,RDT=Float32))* D
     set_Prop.dense[1]     = false
     set_Prop.banded[1]    = false
 
-    #For now, JOLI operators DO NOT work in combination with rho updating
-    options.adjust_rho             = false
-    options.adjust_feasibility_rho = false
-
     (TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
 
     @time (x_joli,log_PARSDMM) = PARSDMM(vec(m_tensor),AtA,TD_OP,set_Prop,P_sub,comp_grid,options);

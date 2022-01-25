@@ -1,5 +1,6 @@
 @testset "update_y_l" begin
 #test update_y_l.jl
+Random.seed!(123)
 
 TF=Float64
 TI=Int64

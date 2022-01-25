@@ -205,7 +205,7 @@ function PARSDMM_initialize(
                               end
                               for i=2:p
                                 if typeof(AtA[i]) <: joAbstractLinearOperator
-                                    Q = Q + rho[i]*AtA[i]
+                                  Q = Q + rho[i]*AtA[i]
                                 else
                                   Q = Q + rho[i]*joMatrix(AtA[i])
                                 end
