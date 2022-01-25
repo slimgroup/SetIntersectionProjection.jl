@@ -120,7 +120,7 @@ append!(set_Prop.ncvx,set_Prop_sum.ncvx)
 append!(set_Prop.tag,set_Prop_sum.tag)
 
 #if all AtA are banded -> convert to compressed diagonal storage (CDS/DIA) format
-if sum(set_Prop.banded[1:s].=true)==s &&  ~joli_op
+if sum(set_Prop.banded[1:s].==true)==s &&  ~joli_op
   for i=1:s
     
     (AtA[i],set_Prop.AtA_offsets[i]) = mat2CDS(AtA[i])

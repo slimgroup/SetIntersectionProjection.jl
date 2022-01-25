@@ -1,5 +1,7 @@
 @testset "projectors" begin
 
+Random.seed!(123)
+
 #test project_bounds! with scalar bounds
   x = randn(100)
   l = -0.11

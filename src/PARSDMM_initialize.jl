@@ -51,8 +51,8 @@ function PARSDMM_initialize(
                             # push!(set_Prop.AtA_diag,true)
                             # push!(set_Prop.dense,false)
 
-                            p     = length(TD_OP); #number of terms in in the sum of functions of the projeciton problem
-                            pp=p-1;
+                            p  = length(TD_OP); #number of terms in in the sum of functions of the projeciton problem
+                            pp = p-1;
                             if feasibility_only==true; pp=p; end;
 
                             rho     = Vector{TF}(undef,p)
@@ -80,7 +80,7 @@ function PARSDMM_initialize(
                             end
 
                             # detect feasibility of model that needs to be projected
-                            stop=false
+                            stop = false
                             feasibility_initial = zeros(TF,length(P_sub))
                             if options.Minkowski == true
                               m = [m ; zeros(TF,length(m)) ]
@@ -89,15 +89,15 @@ function PARSDMM_initialize(
                               feasibility_initial=distribute(feasibility_initial)
                               #[@spawnat pid m for pid in P_sub.pids]
                               [@spawnat pid compute_relative_feasibility(m,feasibility_initial[:L],TD_OP[:L],P_sub[:L]) for pid in P_sub.pids]
-                              feasibility_initial=convert(Vector{TF},feasibility_initial)
+                              feasibility_initial = convert(Vector{TF},feasibility_initial)
                             else
-                              for ii=1:length(P_sub)
-                                feasibility_initial[ii]=norm(P_sub[ii](TD_OP[ii]*m) .- TD_OP[ii]*m) ./ (norm(TD_OP[ii]*m)+(100*eps(TF)));
+                              for ii = 1:length(P_sub)
+                                feasibility_initial[ii] = norm(P_sub[ii](TD_OP[ii]*m) .- TD_OP[ii]*m) ./ (norm(TD_OP[ii]*m)+(100*eps(TF)));
                               end
                             end
                             if maximum(feasibility_initial)<options.feas_tol #accept input as feasible and return
                                 println("input to PARSDMM is feasible, returning")
-                                stop=true
+                                stop = true
                             end
 
                             # if one of the sets is non-convex, use different lambda and rho update frequency, don't update gamma and set a different fixed gamma
@@ -111,7 +111,7 @@ function PARSDMM_initialize(
                             end
 
                             #allocate arrays of vectors
-                            Ax_out=zeros(TF,N)
+                            Ax_out = zeros(TF,N)
 
                             #if y and l are empty, allocate them and fill with zeros
                             if isempty(l)==true
@@ -180,15 +180,37 @@ function PARSDMM_initialize(
                                 d_G_hat[ii] = zeros(TF,ly)
                             end
 
-                            #assemble total transform domain operator as a matrix
-                            if typeof(AtA[1])==SparseMatrixCSC{TF,TI}
-                              Q = SparseMatrixCSC{TF,TI}
-                              Q= rho[1]*AtA[1];
+                            #assemble total transform domain operator in normal equation form (A^t A)
+                            #note that matrices have already been converted to diagonal storage format if possible for all operators in AtA
+                            
+                            n_sparse_arrays  = 0
+                            n_JOLI_operators = 0
+                            n_CDS_matrices   = 0
+                            for i=1:p; if typeof(AtA[i])==SparseMatrixCSC{TF,TI}; n_sparse_arrays += 1; end; end
+                            for i=1:p; if typeof(AtA[i]) <: joAbstractLinearOperator; n_JOLI_operators += 1; end; end
+                            for i=1:p; if typeof(AtA[i])==Array{TF,2}; n_CDS_matrices += 1; end; end
+
+                            if n_sparse_arrays == 2 #if all arrays in AtA are sparse matrices
+                              Q_offsets = []
+                              Q = rho[1]*AtA[1];
                               for i=2:p
-                                  Q = Q + rho[i]*AtA[i]
+                                  Q .= Q .+ rho[i]*AtA[i]
                               end
-                              Q_offsets=[]
-                            elseif typeof(AtA[1])==Array{TF,2}
+                            elseif n_JOLI_operators >= 1 #at least one operator is a JOLI operator -> wrap all others as a JOLI matrix as well
+                              Q_offsets = []
+                              if typeof(AtA[1]) <: joAbstractLinearOperator
+                                Q = rho[1]*AtA[1]
+                              else
+                                Q = rho[1]*joMatrix(AtA[1])
+                              end
+                              for i=2:p
+                                if typeof(AtA[i]) <: joAbstractLinearOperator
+                                    Q = Q + rho[i]*AtA[i]
+                                else
+                                  Q = Q + rho[i]*joMatrix(AtA[i])
+                                end
+                              end
+                            else #n_CDS_matrices == p should hold #all matrics in AtA are in compressed diagonal storage format
                               all_offsets=zeros(TI,999,99)
                               for i=1:length(AtA) #find all unique offset
                                 all_offsets[1:length(set_Prop.AtA_offsets[i]),i]=set_Prop.AtA_offsets[i]

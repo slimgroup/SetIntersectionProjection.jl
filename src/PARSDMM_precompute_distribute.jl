@@ -26,23 +26,30 @@ if options.feasibility_only==false
 end
 
 
-p     = length(TD_OP);
+p = length(TD_OP);
 
-AtA=Vector{SparseMatrixCSC{TF,TI}}(undef,p)
+joli_op = false
+#determine if any of the operators is a joli operator
 for i=1:p
-  if set_Prop.dense[i]==true
-    if set_Prop.AtA_diag[i]==true
-      AtA[i]=SparseMatrixCSC{TF}(LinearAlgebra.I,N,N)
-    else
-      error("provided a dense non orthogoal transform-domain operator")
-    end
+  if typeof(TD_OP[i]) <: joAbstractLinearOperator
+    joli_op = true
+  end
+end
+
+AtA=Vector{Union{Array{TF, 2},SparseMatrixCSC{TF,TI},JOLI.joAbstractLinearOperator{TF,TF}}}(undef,p)
+for i=1:p
+  if set_Prop.dense[i]==true && set_Prop.AtA_diag[i]==false
+    @warn "provided a dense non orthogoal transform-domain operator, algorithm is not designed for this and will likely be slow."
+  end
+  if set_Prop.AtA_diag[i]==true
+    AtA[i] = SparseMatrixCSC{TF}(LinearAlgebra.I,N,N)
   else
     AtA[i] = TD_OP[i]'*TD_OP[i]
   end
 end
 
 #if all AtA are banded -> convert to CDS (DIA) format
-if sum(set_Prop.banded[1:p].=true)==p
+if sum(set_Prop.banded[1:p].==true)==p  &&  ~joli_op
   for i=1:p
     (AtA[i],set_Prop.AtA_offsets[i])  = mat2CDS(AtA[i])
     set_Prop.AtA_offsets[i]=convert(Vector{TI},set_Prop.AtA_offsets[i])
@@ -52,8 +59,8 @@ if sum(set_Prop.banded[1:p].=true)==p
 end
 
 #allocate arrays of vectors
-y       = Vector{Vector{TF}}(undef,p);
-l       = Vector{Vector{TF}}(undef,p);
+y = Vector{Vector{TF}}(undef,p);
+l = Vector{Vector{TF}}(undef,p);
 
 for ii=1:p #initialize all rho's, gamma's, y's and l's
     y[ii]       = zeros(TF,size(TD_OP[ii],1))

@@ -142,7 +142,7 @@ mutable struct set_definitions
   min               ::Union{Vector,Real}
   max               ::Union{Vector,Real}
   app_mode          ::Tuple{String,String} #("tensor/"matrix"/"slice"/"fiber" , "x","y","z") , x,y,z apply only to slice and fibers of a tensor or matrix
-  custom_TD_OP      ::Tuple{Union{Array{Any},Array{Float64,2},Array{Float32,2}, joAbstractLinearOperator},Bool} #custom matrix for subspace, and boolean to indicate orthogonality
+  custom_TD_OP      ::Tuple{Union{Array{Any},SparseMatrixCSC{Float32,Int64},SparseMatrixCSC{Float64,Int64},Array{Float64,2},Array{Float32,2}, joAbstractLinearOperator},Bool} #custom matrix for subspace, and boolean to indicate orthogonality
 end
 
 end # module

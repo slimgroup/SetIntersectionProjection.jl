@@ -84,11 +84,11 @@ if options.Minkowski == true
   end
 end
 
-counter=2
+counter = 2
 
-x_solve_tol_ref=TF(1.0) #scalar required to determine tolerance for x-minimization, initial value doesn't matter
+x_solve_tol_ref = TF(1.0) #scalar required to determine tolerance for x-minimization, initial value doesn't matter
 
-log_PARSDMM.T_ini=0.0
+log_PARSDMM.T_ini = 0.0
 
 for i=1:maxit #main loop
   #form right hand side for x-minimization
@@ -99,7 +99,7 @@ for i=1:maxit #main loop
   # x-minimization
   #tic()
   copy!(x_old,x);
-  (x,iter,relres,x_solve_tol_ref) = argmin_x(Q,rhs,x,x_min_solver,x_solve_tol_ref,i,log_PARSDMM,Q_offsets,Ax_out)
+  (x,iter,relres,x_solve_tol_ref) = argmin_x(Q,rhs,x,x_solve_tol_ref,i,log_PARSDMM,Q_offsets,Ax_out)
   log_PARSDMM.cg_it[i]     = iter;#cg_log.iters;
   log_PARSDMM.cg_relres[i] = relres;#cg_log[:resnorm][end];
   log_PARSDMM.T_cg         = log_PARSDMM.T_cg+0.0#toq();;
@@ -145,7 +145,7 @@ for i=1:maxit #main loop
 
   # Stopping conditions
   #tic()
-  (stop,adjust_rho,adjust_gamma,adjust_feasibility_rho,ind_ref)=stop_PARSDMM(log_PARSDMM,i,evol_rel_tol,feas_tol,obj_tol,adjust_rho,adjust_gamma,adjust_feasibility_rho,ind_ref,counter);
+  (stop,adjust_rho,adjust_gamma,adjust_feasibility_rho,ind_ref) = stop_PARSDMM(log_PARSDMM,i,evol_rel_tol,feas_tol,obj_tol,adjust_rho,adjust_gamma,adjust_feasibility_rho,ind_ref,counter);
   if stop==true
     (TD_OP,AtA,log_PARSDMM) = output_check_PARSDMM(x,TD_OP,AtA,log_PARSDMM,i,counter)
     return x, log_PARSDMM, l, y
@@ -200,7 +200,7 @@ for i=1:maxit #main loop
 
      #adjust rho to set-feasibility estimates
      if parallel==true
-        rho=convert(Vector{TF},rho); #gather rho
+        rho = convert(Vector{TF},rho); #gather rho
      end
      if adjust_feasibility_rho == true && mod(i,10)==TF(0) #&& norm(rho-log_PARSDMM.rho[i,:])<(10*eps(TF))#only update rho if it is not already updated
          ## adjust rho feasibility
@@ -216,7 +216,7 @@ for i=1:maxit #main loop
 
      #enforce max and min values for rho, to prevent the condition number of Q -> inf
      rho = max.(min.(rho,TF(1e4)),TF(1e-2)) #hardcoded bounds
-     log_PARSDMM.T_adjust_rho_gamma=log_PARSDMM.T_adjust_rho_gamma+0.0#toq();;
+     log_PARSDMM.T_adjust_rho_gamma = log_PARSDMM.T_adjust_rho_gamma+0.0#toq();;
 
      #tic()
      ind_updated = findall(rho .!= log_PARSDMM.rho[i,:]) # locate changed rho index
@@ -225,16 +225,16 @@ for i=1:maxit #main loop
      #re-assemble total transform domain operator as a matrix
      if isempty(findall((in)(ind_updated),p))==false
        if parallel==true && feasibility_only==false
-         prox=convert(Vector{Any},prox); #gather rho
+         prox    = convert(Vector{Any},prox); #gather rho
          prox[p] = input -> prox_l2s!(input,rho[p],m)
-         prox=distribute(prox)
+         prox    = distribute(prox)
        elseif feasibility_only==false
          prox[p] = input -> prox_l2s!(input,rho[p],m)
        end
      end
-     Q=Q_update!(Q,AtA,set_Prop,rho,ind_updated,log_PARSDMM,i,Q_offsets)
+     Q = Q_update!(Q,AtA,set_Prop,rho,ind_updated,log_PARSDMM,i,Q_offsets)
      if parallel==true
-       rho=distribute(rho) #distribute again (gather -> process -> distribute is a ugly hack, fix this later)
+       rho = distribute(rho) #distribute again (gather -> process -> distribute is a ugly hack, fix this later)
      end
      log_PARSDMM.T_Q_upd=log_PARSDMM.T_Q_upd+0.0#toq();;
      if i==maxit
@@ -243,8 +243,6 @@ for i=1:maxit #main loop
      end
 
  end #end main loop
-
- # x=P_sub[1](x); #force bound constraints on final output
 
 return x , log_PARSDMM, l , y
 end #end funtion
