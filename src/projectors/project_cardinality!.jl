@@ -16,7 +16,7 @@ function project_cardinality!(
 
 #alternative
 sort_ind = sortperm( x, by=abs, rev=true)
-x[sort_ind[k+1:end]] .= 0.0
+x[sort_ind[k+1:end]] .= TF(0.0)
   return x
 end
 
@@ -41,12 +41,12 @@ if mode[1] == "fiber"
   if mode[2] == "x"
   Threads.@threads for i=1:size(x,2)
       sort_ind = sortperm( view(x,:,i), by=abs, rev=true)
-  @inbounds x[sort_ind[k+1:end],i] .= 0.0
+  @inbounds x[sort_ind[k+1:end],i] .= TF(0.0)
     end
   elseif mode[2] == "z"
   Threads.@threads for i=1:size(x,1)
       sort_ind = sortperm( view(x,i,:), by=abs, rev=true)
-  @inbounds x[i,sort_ind[k+1:end]] .= 0.0
+  @inbounds x[i,sort_ind[k+1:end]] .= TF(0.0)
     end
   end
 else
@@ -87,7 +87,7 @@ if mode[1] == "fiber"
     Threads.@threads for j=1:n3
           #sort_ind = sortperm( x[:,i], by=abs, rev=true)
           sort_ind = sortperm( view(x,:,i,j), by=abs, rev=true)
-  @inbounds x[sort_ind[k+1:end],i,j] .= 0.0
+  @inbounds x[sort_ind[k+1:end],i,j] .= TF(0.0)
         end
     end
   elseif mode[2] == "z"
@@ -95,7 +95,7 @@ if mode[1] == "fiber"
     for j=1:n2
         #sort_ind = sortperm( x[:,i], by=abs, rev=true)
         sort_ind = sortperm( view(x,i,j,:), by=abs, rev=true)
-  @inbounds x[i,j,sort_ind[k+1:end]] .= 0.0
+  @inbounds x[i,j,sort_ind[k+1:end]] .= TF(0.0)
       end
     end
   elseif mode[2] == "y"
@@ -103,7 +103,7 @@ if mode[1] == "fiber"
     Threads.@threads for j=1:n3
         #sort_ind = sortperm( x[:,i], by=abs, rev=true)
         sort_ind = sortperm( view(x,i,:,j), by=abs, rev=true)
-  @inbounds x[i,sort_ind[k+1:end],j] .= 0.0
+  @inbounds x[i,sort_ind[k+1:end],j] .= TF(0.0)
       end
     end
   end
@@ -124,7 +124,7 @@ elseif mode[1] == "slice" #Slice based projection for 3D tensor
   #project, same for all modes because we permuted and reshaped already
   Threads.@threads for i=1:size(x,2)
     sort_ind = sortperm( view(x,:,i), by=abs, rev=true)
-    @inbounds x[sort_ind[k+1:end],i] .= 0.0
+    @inbounds x[sort_ind[k+1:end],i] .= TF(0.0)
   end
 
   #reverse reshape and permute back
@@ -140,7 +140,7 @@ elseif mode[1] == "slice" #Slice based projection for 3D tensor
 end #if slice/fiber mode
 
 if return_vec==true
-  x=vec(x)
+  x = vec(x)
 end
 return x
 end

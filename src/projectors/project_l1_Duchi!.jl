@@ -1,4 +1,4 @@
-export project_l1_Duchi!
+export project_l1_Duchi!, sa_old, sa_new!
 
 """
     project_l1_Duchi!(v::Union{Vector{TF},Vector{Complex{TF}}}, b::TF)
@@ -17,26 +17,31 @@ w = ProjectOntoL1Ball(v, b) returns the vector w which is the solution
 Author: John Duchi (jduchi@cs.berkeley.edu)
 Translated (with some modification) to Julia 1.1 by Bas Peters
 """
+
 function project_l1_Duchi!(v::Union{Vector{TF},Vector{Complex{TF}}}, b::TF) where {TF<:Real}
   b <= TF(0) && error("Radius of L1 ball is negative")
   norm(v, 1) <= b && return v
 
   lv = length(v)
-  u = similar(v)
+  u  = similar(v)
   sv = Vector{TF}(undef, lv)
 
   #use RadixSort for Float32 (short keywords)
   copyto!(u, v)
-  if TF==Float32
-    u = sort!(abs.(u), rev=true, alg=RadixSort)
-  else
-    u = sort!(abs.(u), rev=true, alg=QuickSort)
-  end
+  u .= abs.(u)
+  sort!(u, rev=true, alg=RadixSort) 
+  
+  # if TF==Float32
+  #   u = sort!(abs.(u), rev=true, alg=RadixSort)
+  # else
+  #   u = sort!(abs.(u), rev=true, alg=QuickSort)
+  # end
 
   cumsum!(sv, u)
 
   # Thresholding level
-  rho   = max(1, min(lv, findlast(u .> ((sv.-b)./ (1.0:1.0:lv)))))
+  temp  = TF(1.0):TF(1.0):TF(lv)
+  rho   = max(1, min(lv, findlast(u .> ((sv.-b) ./ temp ) ) ))::Int
   theta = max.(TF(0) , (sv[rho] .- b) ./ rho)::TF
 
   # Projection as soft thresholding

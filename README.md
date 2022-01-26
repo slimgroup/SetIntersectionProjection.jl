@@ -30,7 +30,7 @@ and
 
  
  ```
- add SetIntersectionProjection.jl
+ add SetIntersectionProjection
  ``` 
 
 - The examples also use the packages:
@@ -47,6 +47,7 @@ and
 
 ###  January 2022
 
+ - improved the l1-ball projection code, in terms of reduced computation times.
  - master branch works with Julia 1.5 & 1.6
  - timings for each part of the PARSDMM algorithm are now available as ``` log_PARSDMM.timing``` after solving a projection problem as ```(x1,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options)```
  - Recently added full support for custom JOLI operators, some examples can be found [here](https://github.com/slimgroup/SetIntersectionProjection.jl/blob/master/examples/ConstraintSetupExamples.jl).
