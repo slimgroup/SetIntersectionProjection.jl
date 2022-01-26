@@ -2,8 +2,8 @@
 #test update_y_l.jl
 Random.seed!(123)
 
-TF=Float64
-TI=Int64
+TF = Float64
+TI = Int64
 
 #without BLAS
 x=randn(100)
@@ -38,7 +38,7 @@ TD_OP[1] = sparse(1.0*I, 51,100)*2.0
 TD_OP[2] = sparse(1.0*I, 100, 100)
 maxit=39
 log_PSDMM = log_type_PARSDMM(zeros(maxit,p-1),zeros(maxit,p),zeros(maxit,p),zeros(maxit),zeros(maxit),zeros(maxit),zeros(maxit),zeros(maxit,p),
-zeros(maxit,p),zeros(maxit),zeros(maxit),0.00,0.00,0.00,0.00,0.00,0.00,0.00);
+zeros(maxit,p),zeros(maxit),zeros(maxit),TimerOutput());
 
 P_sub = Vector{Any}(undef, 1)
 P_sub[1] = prox[1]
@@ -119,7 +119,7 @@ TD_OP = Vector{Union{SparseMatrixCSC{TF,TI},JOLI.joLinearFunction{TF,TF}}}(undef
 TD_OP[1] = sparse(1.0*I, 51,100)*2.0
 TD_OP[2] = sparse(1.0*I, 100, 100)
 maxit=39
-log_PSDMM = log_type_PARSDMM(zeros(maxit,p-1),zeros(maxit,p),zeros(maxit,p),zeros(maxit),zeros(maxit),zeros(maxit),zeros(maxit),zeros(maxit,p),zeros(maxit,p),zeros(maxit),zeros(maxit),0.00,0.00,0.00,0.00,0.00,0.00,0.00);
+log_PSDMM = log_type_PARSDMM(zeros(maxit,p-1),zeros(maxit,p),zeros(maxit,p),zeros(maxit),zeros(maxit),zeros(maxit),zeros(maxit),zeros(maxit,p),zeros(maxit,p),zeros(maxit),zeros(maxit),TimerOutput());
 P_sub = Vector{Any}(undef, 1)
 P_sub[1] = prox[1]
 counter=12

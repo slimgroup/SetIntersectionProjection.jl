@@ -7,12 +7,12 @@ R is a tall matrix N by ndiagonals, corresponding to a square matrix A
 offsets indicate offset of diagonal compared to the main diagonal in A (which is 0)
 """
 function CDS_MVp_MT(
-                        N::Integer,
-                        ndiags::Integer,
-                        R::Array{TF,2},
-                        offset::Vector{TI},
-                        x::Vector{TF},
-                        y::Vector{TF}) where {TF<:Real,TI<:Integer}
+                        N      ::Integer,
+                        ndiags ::Integer,
+                        R      ::Array{TF,2},
+                        offset ::Vector{TI},
+                        x      ::Vector{TF},
+                        y      ::Vector{TF}) where {TF<:Real,TI<:Integer}
 
   for i = 1 : ndiags
       d = offset[i]

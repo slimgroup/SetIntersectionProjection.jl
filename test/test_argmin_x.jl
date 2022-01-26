@@ -16,7 +16,7 @@
   x_solve_tol_ref = 1e-5
   
   log_PARSDMM = log_type_PARSDMM(zeros(maxit,pp),zeros(maxit,p),zeros(maxit,p),zeros(maxit),zeros(maxit),zeros(maxit),
-  zeros(maxit),zeros(maxit,p),zeros(maxit,p),zeros(maxit),zeros(maxit),TF(0),TF(0),TF(0),TF(0),TF(0),TF(0),TF(0));
+  zeros(maxit),zeros(maxit,p),zeros(maxit,p),zeros(maxit),zeros(maxit),TimerOutput());
 
   #test for zero initial guess
     (x,iter,relres)=argmin_x(A,b,zeros(100),x_solve_tol_ref,5,log_PARSDMM)

@@ -1,40 +1,45 @@
 @testset "multilevel_PARSDMM" begin
 
-# if nworkers()==1
-#   addprocs(3)
-# end
+Random.seed!(123)
 
 #test serial multilevel PARSDMM
-    options=PARSDMM_options()
-    default_PARSDMM_options(options,Float64)
-    options.parallel = false
-    options.evol_rel_tol = 10*eps()
-    options.maxit=5000
+    TF = Float32
+    options = PARSDMM_options()
+    default_PARSDMM_options(options,TF)
+    options.parallel     = false
+    options.evol_rel_tol = 100*eps(TF)
+    options.maxit        = 5000
 
-    n_levels=2
-    coarsening_factor=1.87
+    n_levels          = 2
+    coarsening_factor = 1.87
 
-    x=randn(100,201)
-
-    comp_grid=compgrid((1.0, 1.0),(100, 201))
+    x         = randn(TF,100,201)
+    comp_grid = compgrid((1.0, 1.0),(100, 201))
     x         = vec(x)
     m         = deepcopy(x)
 
-    constraint=Dict()
+    constraint = Vector{SetIntersectionProjection.set_definitions}()
 
     #total variation
-    (TV_OP, AtA_diag, dense, TD_n, banded) = get_TD_operator(comp_grid,"TV",options.FL)
-    constraint["use_TD_l1_1"]      = true
-    constraint["TD_l1_operator_1"] = "TV"
-    constraint["TD_l1_sigma_1"]    = 0.4*norm(TV_OP*x,1)
-
-    (TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,constraint_level)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
-
-    (x1,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
-    result=Vector{typeof(x[1])}(length(x1))
-    for i=1:length(TD_OP_levels[1])-1
+    (TD_OP, AtA_diag, dense, TD_n)=get_TD_operator(comp_grid,"TV",options.FL)
+    m_min     = 0.0
+    m_max     = 0.5f0*norm(TD_OP*x,1)
+    set_type  = "l1"
+    TD_OP     = "TV"
+    app_mode  = ("matrix","")
+    custom_TD_OP = ([],false)
+    push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+    
+    #(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+    #(TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
+    (TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+   
+    (x1,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+  
+    result = deepcopy(x1)
+    for i=1:length(TD_OP)-1
       copy!(result,x1)
-      @test norm(P_sub_levels[1][i](TD_OP_levels[1][i]*result)-(TD_OP_levels[1][i]*result))/norm((TD_OP_levels[1][i]*result)) <= options.feas_tol
+      @test norm(P_sub[i](TD_OP[i]*result)-(TD_OP[i]*result))/norm((TD_OP[i]*result)) <= 1.5*options.feas_tol
     end
 
 #test parallel multilevel PARSDMM

@@ -48,7 +48,7 @@ for i=1:p
   end
 end
 
-#if all AtA are banded -> convert to CDS (DIA) format
+#if all AtA are banded and not JOLI operators-> convert to CDS (DIA) format
 if sum(set_Prop.banded[1:p].==true)==p  &&  ~joli_op
   for i=1:p
     (AtA[i],set_Prop.AtA_offsets[i])  = mat2CDS(AtA[i])

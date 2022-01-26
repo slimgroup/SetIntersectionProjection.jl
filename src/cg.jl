@@ -1,12 +1,12 @@
 export cg
 
 
-function cg(A::SparseMatrixCSC{T1,Int},b::Array{T2,1}; kwargs...) where {T1,T2}
-	x = zeros(promote_type(T1,T2),size(A,2)) # pre-allocate
-	return cg(v -> mul!(x, transpose(A), v, 1.0, 0.0),b; kwargs...) # multiply with transpose of A for efficiency
+function cg(A::Union{SparseMatrixCSC{TF,Int},Matrix{TF}},b::Vector{TF}; kwargs...) where {TF<:Real}
+	x = zeros(TF,size(A,2)) # pre-allocate
+	return cg(v -> mul!(x, transpose(A), v, TF(1.0), TF(0.0)),b; kwargs...) # multiply with transpose of A for efficiency
 end
 
-cg(A,b::Vector;kwargs...) = cg(x -> A*x,b;kwargs...)
+cg(A,b::Vector;kwargs...)= cg(x -> A*x,b;kwargs...)
 
 """
 This is a slightly modified version from the Julia Package KrylovMethods
@@ -39,19 +39,21 @@ Output:
   iter    - number of iterations
   resvec  - norm of relative residual at each iteration
 """
-function cg(A::Function,b::Vector; tol::Real=1e-2,maxIter::Integer=100,M::Function=identity,x::Vector=[],out::Integer=0,
-	storeInterm::Bool=false)
+# function cg(A::Function,b::Vector; tol::Real=1e-2,maxIter::Integer=100,M::Function=identity,x::Vector=[],out::Integer=0,
+# 	storeInterm::Bool=false)
+function cg(A::Function,b::Vector{TF}; tol::Real=1e-2,maxIter::Integer=100,M::Function=identity,x::Vector=[],out::Integer=0,
+	storeInterm::Bool=false) where {TF <: Real}
 	n = length(b)
 
 	if norm(b)==0; return zeros(eltype(b),n),-9,0.0,0,[0.0]; end
 	if isempty(x)
-		x = zeros(eltype(b),n)
+		x = zeros(TF,n)#x = zeros(eltype(b),n)
 		r = copy(b)
 	else
-		r = b - A(x)
+		r = b .- A(x)::Vector{TF}
 	end
-	z = M(r)
-	p = copy(z)
+	z = M(r)::Vector{TF}
+	p = copy(z)::Vector{TF}
 
     if storeInterm
         X = zeros(n,maxIter)	# allocate space for intermediates
@@ -65,7 +67,7 @@ function cg(A::Function,b::Vector; tol::Real=1e-2,maxIter::Integer=100,M::Functi
 		println(@sprintf("%4s\t%7s","iter","relres"))
 	end
 
-	resvec = zeros(maxIter)
+	resvec = zeros(TF,maxIter)
 	iter   = 1 # makes iter available outside the loop
 	flag   = -1
 
@@ -74,14 +76,16 @@ function cg(A::Function,b::Vector; tol::Real=1e-2,maxIter::Integer=100,M::Functi
 		return x,flag,resvec[iter],iter,resvec[1:iter]
 	end
 
-	TF=typeof(x[1])
- 	alpha = TF
+	#TF    = typeof(x[1])
+ 	alpha = TF(0)
+	beta  = TF(0)
 	lastIter = 0
 	for iter=1:maxIter
 		lastIter = iter
-		Ap = A(p)
+
+		Ap 	  = A(p)::Vector{TF}
 		gamma = dot(r,z)
-		alpha = gamma/dot(p,Ap)
+		alpha = gamma / dot(p,Ap)
 		if alpha==Inf || alpha<0
 			flag = -2; break
 		end
@@ -90,7 +94,7 @@ function cg(A::Function,b::Vector; tol::Real=1e-2,maxIter::Integer=100,M::Functi
 		if storeInterm; X[:,iter] = x; end
 		BLAS.axpy!(n,-alpha,Ap,1,r,1) # r -= alpha*Ap
 
-		resvec[iter]  = norm(r)/nr0
+		resvec[iter] = norm(r)/nr0
 		if out==2
 			println(iter,resvec[iter])
 		end
@@ -98,11 +102,11 @@ function cg(A::Function,b::Vector; tol::Real=1e-2,maxIter::Integer=100,M::Functi
 			flag = 0; break
 		end
 
-		z    = M(r)
-		beta = dot(z,r)/gamma
+		z    = M(r)::Vector{TF}
+		beta = dot(z,r) / gamma
 		# the following two lines are equivalent to p = z + beta*p
-		p = BLAS.scal!(n,beta,p,1)
-		p = BLAS.axpy!(n,TF(1.0),z,1,p,1)
+		p = BLAS.scal!(n,beta,p,1)::Vector{TF}
+		p = BLAS.axpy!(n,TF(1.0),z,1,p,1)::Vector{TF}
 	end
 
 	if out>=0

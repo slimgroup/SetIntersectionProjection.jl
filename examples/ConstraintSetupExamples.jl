@@ -96,7 +96,7 @@ D  = joMatrix(D)
 TV = joMatrix(TV)
 CustomOP_JOLI = joKron(TV, joEye(comp_grid.n[3]-1,DDT=Float32,RDT=Float32))* D
 
-##Solve using JOLI##
+## Solve using JOLI ##
 
     #initialize constraints
     constraint = Vector{SetIntersectionProjection.set_definitions}()
@@ -107,21 +107,21 @@ CustomOP_JOLI = joKron(TV, joEye(comp_grid.n[3]-1,DDT=Float32,RDT=Float32))* D
     TD_OP     = "identity"
     app_mode  = ("matrix","")
     custom_TD_OP = (CustomOP_JOLI,false)
-    push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+    push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP));
 
-    (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
+    (P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL);
 
     #set properties of custom operator
     set_Prop.AtA_diag[1]  = false
     set_Prop.dense[1]     = false
-    set_Prop.banded[1]    = false
+    set_Prop.banded[1]    = true
 
-    (TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
+    (TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options);
 
     @time (x_joli,log_PARSDMM) = PARSDMM(vec(m_tensor),AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
     @time (x_joli,log_PARSDMM) = PARSDMM(vec(m_tensor),AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 
-##solve using explicit sparse array ##
+## solve using explicit sparse array ##
     constraint = Vector{SetIntersectionProjection.set_definitions}()
 
     m_min     = 0.0
@@ -154,10 +154,12 @@ for i=1:comp_grid.n[3]
     pause(0.025)
 end
 
+###############################################################################
+######## (anisotropic) total-variation on every subtracted time-slice #########
 
-# #every time-slice should have a small TV like this: || TV(slice_2 -slice_1) ||_1 <= sigma, || TV(slice_3 -slice_1) ||_1 <= sigma, ...
+# every  time-slice should have a small TV like this: || TV(slice_2 -slice_1) ||_1 <= sigma, || TV(slice_3 -slice_1) ||_1 <= sigma, ...
 
-# #initialize constraints
+#initialize constraints
 # constraint = Vector{SetIntersectionProjection.set_definitions}()
 
 # slice_ref = copy(m_tensor[:,:,1])

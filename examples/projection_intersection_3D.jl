@@ -6,7 +6,6 @@ using Distributed
 using LinearAlgebra
 @everywhere using SetIntersectionProjection
 using HDF5
-ENV["MPLBACKEND"]="qt5agg"
 using PyPlot
 
 @everywhere mutable struct compgrid
@@ -18,7 +17,7 @@ end
 if ~isfile("overthrust_3D_true_model.h5")
   run(`wget ftp://slim.gatech.edu/data/SoftwareRelease/WaveformInversion.jl/3DFWI/overthrust_3D_true_model.h5`)
 end
-n, d, o, m_full = read(h5open("overthrust_3D_true_model.h5","r"), "n", "d", "o", "m")
+n, d, o, m = read(h5open("overthrust_3D_true_model.h5","r"), "n", "d", "o", "m")
 
 m .= 1000.0 ./ sqrt.(m);
 m = m[50:200,50:200,:];

@@ -20,7 +20,7 @@ function argmin_x(
   iter    = 0
 
   if typeof(Q)==Array{TF,2} #set up multi-threaded matrix-vector product in compressed diagonal storage format
-    Af1(in) =  (fill!(Ax_out,0); CDS_MVp_MT(size(Q,1),size(Q,2),Q,Q_offsets,in,Ax_out); return Ax_out)
+    Af1(in) =  (fill!(Ax_out,TF(0)); CDS_MVp_MT(size(Q,1),size(Q,2),Q,Q_offsets,in,Ax_out); return Ax_out)
 
     #determine what relative residual CG needs to reach
     if i<3 #i is the PARSDMM iteration counter

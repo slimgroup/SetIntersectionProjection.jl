@@ -7,7 +7,7 @@ rho=0.0
 prox_l2s!(x,rho,m)
 @test x==m
 
-rho=1e10
+rho = 1e10
 y=deepcopy(x)
 prox_l2s!(x,rho,m)
 @test isapprox(x,y,rtol=1e-14)

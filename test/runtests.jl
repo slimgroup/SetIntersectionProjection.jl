@@ -11,9 +11,8 @@ end
 @assert nprocs() > 3
 @assert nworkers() >= 3
 
-@everywhere using DistributedArrays, SparseArrays, LinearAlgebra, Random
+@everywhere using DistributedArrays, SparseArrays, LinearAlgebra, Random, TimerOutputs
 @everywhere using JOLI
-
 @everywhere using SetIntersectionProjection
 
 @everywhere mutable struct compgrid
@@ -44,8 +43,7 @@ end
 
   #test full algorithms
   include("test_PARSDMM.jl")
-  #still need to port the stuff below to the current Julia version
-  # include("test_PARSDMM_parallel.jl")
-  # include("test_PARSDMM_multilevel.jl")
+  #include("test_PARSDMM_parallel.jl")
+  #include("test_PARSDMM_multilevel.jl")
 
 end

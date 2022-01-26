@@ -36,7 +36,7 @@ function project_l1_Duchi!(v::Union{Vector{TF},Vector{Complex{TF}}}, b::TF) wher
   cumsum!(sv, u)
 
   # Thresholding level
-  rho = max(1, min(lv, findlast(u .> ((sv.-b)./ (1.0:1.0:lv)))))
+  rho   = max(1, min(lv, findlast(u .> ((sv.-b)./ (1.0:1.0:lv)))))
   theta = max.(TF(0) , (sv[rho] .- b) ./ rho)::TF
 
   # Projection as soft thresholding

@@ -14,6 +14,7 @@ using DistributedArrays
 using JOLI
 using JOLI.FFTW, JOLI.Wavelets
 using SortingAlgorithms
+using TimerOutputs
 
 export log_type_PARSDMM, set_properties, PARSDMM_options, set_definitions
 
@@ -95,13 +96,14 @@ mutable struct log_type_PARSDMM
       gamma             :: Array{Real,2}
       cg_it             :: Vector{Integer}
       cg_relres         :: Vector{Real}
-      T_cg              :: Real
-      T_stop            :: Real
-      T_ini             :: Real
-      T_rhs             :: Real
-      T_adjust_rho_gamma:: Real
-      T_y_l_upd         :: Real
-      T_Q_upd           :: Real
+      timing            :: TimerOutput
+      # T_cg              :: Real
+      # T_stop            :: Real
+      # T_ini             :: Real
+      # T_rhs             :: Real
+      # T_adjust_rho_gamma:: Real
+      # T_y_l_upd         :: Real
+      # T_Q_upd           :: Real
 end
 
 @with_kw mutable struct PARSDMM_options
