@@ -15,7 +15,7 @@ function CDS_MVp_MT(
                         y      ::Vector{TF}) where {TF<:Real,TI<:Integer}
 
   for i = 1 : ndiags
-      d = offset[i]
+      d  = offset[i]
       r0 = max(1, 1-d)
       r1 = min(N, N-d)
       c0 = max(1, 1+d)

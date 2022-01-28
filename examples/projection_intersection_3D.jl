@@ -3,7 +3,7 @@
 # Bas Peters, 2017
 
 using Distributed
-using LinearAlgebra
+@everywhere using LinearAlgebra
 @everywhere using SetIntersectionProjection
 using HDF5
 using PyPlot
@@ -17,7 +17,7 @@ end
 if ~isfile("overthrust_3D_true_model.h5")
   run(`wget ftp://slim.gatech.edu/data/SoftwareRelease/WaveformInversion.jl/3DFWI/overthrust_3D_true_model.h5`)
 end
-n, d, o, m = read(h5open("overthrust_3D_true_model.h5","r"), "n", "d", "o", "m")
+n, d, o, m = read(h5open("overthrust_3D_true_model.h5","r"), "n", "d", "o", "m");
 
 m .= 1000.0 ./ sqrt.(m);
 m = m[50:200,50:200,:];
@@ -36,7 +36,7 @@ options.Blas_active            = true
 options.maxit                  = 500
 
 set_zero_subnormals(true)
-BLAS.set_num_threads(4)
+@everywhere BLAS.set_num_threads(4)
 
 #select working precision
 if options.FL==Float64
@@ -68,7 +68,7 @@ set_type  = "bounds"
 TD_OP     = "identity"
 app_mode  = ("matrix","")
 custom_TD_OP = ([],false)
-push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP));
 
 #slope constraints (vertical)
 m_min     = 0.0
@@ -77,11 +77,11 @@ set_type  = "bounds"
 TD_OP     = "D_z"
 app_mode  = ("matrix","")
 custom_TD_OP = ([],false)
-push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP));
 
 options.parallel       = false
-(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
+(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL);
+(TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options);
 
 println("")
 println("PARSDMM serial (bounds and bounds on D_z):")
@@ -133,12 +133,12 @@ println("PARSDMM multilevel-serial (bounds and bounds on D_z):")
 println("")
 println("PARSDMM parallel (bounds and bounds on D_z):")
 options.parallel       = true
-(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
+(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL);
+(TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options);
 
-@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options)
-@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options)
-@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options)
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 
 #use multilevel-parallel (2-levels)
 options.parallel  = true

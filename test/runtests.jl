@@ -43,7 +43,7 @@ end
 
   #test full algorithms
   include("test_PARSDMM.jl")
-  #include("test_PARSDMM_parallel.jl")
+  include("test_PARSDMM_parallel.jl")
   #include("test_PARSDMM_multilevel.jl")
 
 end

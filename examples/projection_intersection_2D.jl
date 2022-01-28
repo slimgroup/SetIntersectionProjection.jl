@@ -36,14 +36,14 @@ elseif options.FL==Float32
 end
 
 #load image to project
-file = matopen(joinpath(dirname(pathof(SetIntersectionProjection)), "../examples/Data/compass_velocity.mat"))
-m    = read(file, "Data");close(file)
-m    = m[1:341,200:600]
-m    = permutedims(m,[2,1])
+file = matopen(joinpath(dirname(pathof(SetIntersectionProjection)), "../examples/Data/compass_velocity.mat"));
+m    = read(file, "Data");close(file);
+m    = m[1:341,200:600];
+m    = permutedims(m,[2,1]);
 
 #set up computational grid (25 and 6 m are the original distances between grid points)
 comp_grid = compgrid((TF(25.0), TF(6.0)),(size(m,1), size(m,2)))
-m         = convert(Vector{TF},vec(m))
+m         = convert(Vector{TF},vec(m));
 
 #define axis limits and colorbar limits
 xmax = comp_grid.d[1]*comp_grid.n[1]
@@ -55,13 +55,13 @@ vma  = 4500
 constraint = Vector{SetIntersectionProjection.set_definitions}()
 
 #bounds:
-m_min     = 1500.0
+m_min     = 1480.0
 m_max     = 4500.0
 set_type  = "bounds"
 TD_OP     = "identity"
 app_mode  = ("matrix","")
 custom_TD_OP = ([],false)
-push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP));
 
 #slope constraints (vertical)
 m_min     = 0.0
@@ -70,11 +70,11 @@ set_type  = "bounds"
 TD_OP     = "D_z"
 app_mode  = ("matrix","")
 custom_TD_OP = ([],false)
-push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP))
+push!(constraint, set_definitions(set_type,TD_OP,m_min,m_max,app_mode,custom_TD_OP));
 
 options.parallel       = false
-(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
+(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL);
+(TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options);
 
 println("")
 println("PARSDMM serial (bounds and bounds on D_z):")
@@ -103,14 +103,17 @@ tight_layout()
 #tight_layout(pad=0.0, w_pad=0.0, h_pad=1.0)
 savefig("PARSDMM_logs.png",bbox_inches="tight")
 
+#print timings in terminal
+log_PARSDMM.timing
+
 println("")
 println("PARSDMM parallel (bounds and bounds on D_z):")
 options.parallel       = true
-(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL)
-(TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options)
+(P_sub,TD_OP,set_Prop) = setup_constraints(constraint,comp_grid,options.FL);
+(TD_OP,AtA,l,y)        = PARSDMM_precompute_distribute(TD_OP,set_Prop,comp_grid,options);
 
 @time (x2,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
-#@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+@time (x2,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 #@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 
 #plot
@@ -118,6 +121,9 @@ figure();
 subplot(2,1,1);imshow(permutedims(reshape(m,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
 subplot(2,1,2);imshow(permutedims(reshape(x2,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (bounds and bounds on D_z)")
 savefig("projected_model_ParallelPARSDMM.png",bbox_inches="tight")
+
+#print timings in terminal
+log_PARSDMM.timing
 
 # #use multilevel-serial (2-levels)
 # options.parallel = false

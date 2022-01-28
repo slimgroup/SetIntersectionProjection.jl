@@ -85,16 +85,20 @@ function cg(A::Function,b::Vector{TF}; tol::Real=1e-2,maxIter::Integer=100,M::Fu
 
 		Ap 	  = A(p)::Vector{TF}
 		gamma = dot(r,z)
+		#gamma = BLAS.dot(n, r,1,z,1)#
 		alpha = gamma / dot(p,Ap)
+		#alpha = gamma / BLAS.dot(n, p,1,Ap,1)#dot(p,Ap)
+
 		if alpha==Inf || alpha<0
 			flag = -2; break
 		end
 
 		BLAS.axpy!(n,alpha,p,1,x,1) # x = alpha*p+x
-		if storeInterm; X[:,iter] = x; end
+		#if storeInterm; X[:,iter] = x; end
 		BLAS.axpy!(n,-alpha,Ap,1,r,1) # r -= alpha*Ap
 
-		resvec[iter] = norm(r)/nr0
+		#resvec[iter] = BLAS.nrm2(n, r, 1) / nr0#
+		resvec[iter]  = norm(r)/nr0
 		if out==2
 			println(iter,resvec[iter])
 		end
@@ -103,10 +107,12 @@ function cg(A::Function,b::Vector{TF}; tol::Real=1e-2,maxIter::Integer=100,M::Fu
 		end
 
 		z    = M(r)::Vector{TF}
-		beta = dot(z,r) / gamma
+		#beta = BLAS.dot(n, z,1,r,1) / gamma
+		beta  = dot(z,r) / gamma
 		# the following two lines are equivalent to p = z + beta*p
-		p = BLAS.scal!(n,beta,p,1)::Vector{TF}
-		p = BLAS.axpy!(n,TF(1.0),z,1,p,1)::Vector{TF}
+		#p = BLAS.scal!(n,beta,p,1)::Vector{TF}
+		#p = BLAS.axpy!(n,TF(1.0),z,1,p,1)::Vector{TF}
+		p  = BLAS.axpby!(TF(1.0), z, beta, p)::Vector{TF} # Overwrite Y with X*a + Y*b, where a and b are scalars. Return Y
 	end
 
 	if out>=0

@@ -1,4 +1,4 @@
-export project_l1_Duchi!, sa_old, sa_new!
+export project_l1_Duchi!
 
 """
     project_l1_Duchi!(v::Union{Vector{TF},Vector{Complex{TF}}}, b::TF)
@@ -29,7 +29,13 @@ function project_l1_Duchi!(v::Union{Vector{TF},Vector{Complex{TF}}}, b::TF) wher
   #use RadixSort for Float32 (short keywords)
   copyto!(u, v)
   u .= abs.(u)
-  sort!(u, rev=true, alg=RadixSort) 
+  u  = convert(Vector{TF},u)
+  if TF==Float32
+    sort!(u, rev=true, alg=RadixSort) 
+  else
+    u = sort!(u, rev=true, alg=QuickSort)
+  end
+  
   
   # if TF==Float32
   #   u = sort!(abs.(u), rev=true, alg=RadixSort)

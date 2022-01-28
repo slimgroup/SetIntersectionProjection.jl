@@ -95,57 +95,58 @@ x_solve_tol_ref = TF(1.0) #scalar required to determine tolerance for x-minimiza
 end #end initialization timer
 
 for i=1:maxit #main loop
+
   #form right hand side for x-minimization
   @timeit to "form rhs for linear system" begin
-  rhs               = rhs_compose(rhs,l,y,rho,TD_OP,p,Blas_active,parallel)
+  rhs = rhs_compose(rhs,l,y,rho,TD_OP,p,Blas_active,parallel)
   end #end timer for rhs
 
   # x-minimization
   @timeit to "argmin x" begin
   copy!(x_old,x);
   (x,iter,relres,x_solve_tol_ref) = argmin_x(Q,rhs,x,x_solve_tol_ref,i,log_PARSDMM,Q_offsets,Ax_out)
-  log_PARSDMM.cg_it[i]     = iter;#cg_log.iters;
-  log_PARSDMM.cg_relres[i] = relres;#cg_log[:resnorm][end];
+  log_PARSDMM.cg_it[i]            = iter
+  log_PARSDMM.cg_relres[i]        = relres
   end #end timer for argmin x 
 
   # y-minimization & l-update
   @timeit to "argmin y and l update" begin
   if parallel==true
-    [ @spawnat pid update_y_l_parallel(x,i,Blas_active,
-      y[:L],y_old[:L],l[:L],l_old[:L],rho[:L],gamma[:L],prox[:L],TD_OP[:L],P_sub[:L],
-      x_hat[:L],r_pri[:L],s[:L],set_feas[:L],feasibility_only) for pid in y.pids]
 
-    # [@spawnat pid update_y_l_parallel_exp(x,i,Blas_active,
-    #   y[:L][1],y_old[:L][1],l[:L][1],l_old[:L][1],rho[:L][1],gamma[:L][1],prox[:L][1],TD_OP[:L][1],P_sub[:L],
-    #   x_hat[:L][1],r_pri[:L][1],s[:L][1],set_feas[:L]) for pid in y.pids]
-      #logging distributed quantities
-      @sync for ii=1:p
-        @async log_PARSDMM.r_pri[i,ii]=@fetchfrom r_pri.pids[ii] norm(r_pri[:L][1])
+    #using spawnat
+      [ @sync @spawnat pid update_y_l_parallel(x,i,Blas_active,
+        y[:L],y_old[:L],l[:L],l_old[:L],rho[:L],gamma[:L],prox[:L],TD_OP[:L],P_sub[:L],
+        x_hat[:L],r_pri[:L],s[:L],set_feas[:L],feasibility_only) for pid in y.pids]
+    
+    #logging distributed quantities
+    for ii=1:p
+      log_PARSDMM.r_pri[i,ii] = norm(r_pri[ii])
+      #log_PARSDMM.r_dual[i,ii] = norm( rho[ii]*(TD_OP[ii]'*(y[ii]-y_old[ii])) )
+    end
+    if mod(i,10)==0 #log every 10 it, or whatever number is suitable
+      for ii=1:pp
+        log_PARSDMM.set_feasibility[counter,ii] = set_feas[ii]
       end
-      if mod(i,10)==0 #log every 10 it, or whatever number is suitable
-        for ii=1:pp
-          log_PARSDMM.set_feasibility[counter,ii]=@fetchfrom set_feas.pids[ii] set_feas[:L][1]
-        end
-        counter+=1
-      end
-  else
-    (y,l,r_pri,s,log_PARSDMM,counter,y_old,l_old)=update_y_l(x,p,i,Blas_active,y,y_old,l,l_old,rho,gamma,prox,TD_OP,log_PARSDMM,P_sub,counter,x_hat,r_pri,s,feasibility_only);
+      counter+=1
+    end
+  else #not distributed 
+    (y,l,r_pri,s,log_PARSDMM,counter,y_old,l_old) = update_y_l(x,p,i,Blas_active,y,y_old,l,l_old,rho,gamma,prox,TD_OP,log_PARSDMM,P_sub,counter,x_hat,r_pri,s,feasibility_only);
     log_PARSDMM.r_dual_total[i] = sum(log_PARSDMM.r_dual[i,:]);
   end
 
   #some more logging
-  log_PARSDMM.r_pri_total[i]  = sum(log_PARSDMM.r_pri[i,:]);
+  log_PARSDMM.r_pri_total[i] = sum(log_PARSDMM.r_pri[i,:]);
   if options.Minkowski == false
-    log_PARSDMM.obj[i]          = TF(0.5) .* norm(x .- m)^2
+    log_PARSDMM.obj[i] = TF(0.5) .* norm(x .- m)^2
   else
-    log_PARSDMM.obj[i]          = TF(0.5) .* norm(TD_OP[end]*x .- m)^2
+    log_PARSDMM.obj[i] = TF(0.5) .* norm(TD_OP[end]*x .- m)^2
   end
 
-  log_PARSDMM.evol_x[i]       = norm(x_old .- x) ./ norm(x);
-  log_PARSDMM.rho[i,:]        = rho;
-  log_PARSDMM.gamma[i,:]      = gamma;
+  log_PARSDMM.evol_x[i]  = norm(x_old .- x) ./ norm(x);
+  log_PARSDMM.rho[i,:]   = rho;
+  log_PARSDMM.gamma[i,:] = gamma;
 
-   end #end timer for argmin y and l-update
+  end #end timer for argmin y and l-update
 
   # Stopping conditions
   @timeit to "stopping conditions check" begin
@@ -160,7 +161,7 @@ for i=1:maxit #main loop
 
   # adjust penalty parameters rho and relaxation parameters gamma
   @timeit to "adjust rho and gamma" begin
-  if i==1
+  if i==1 #only at the first iteration
     if parallel==true
       [@spawnat pid l_hat[:L][1] = l_old[:L][1] .+ rho[:L][1] .* ( -s[:L][1] .+ y_old[:L][1] ) for pid in l_hat.pids]
       [@spawnat pid copy!(l_hat_0[:L][1],l_hat[:L][1] ) for pid in l_hat.pids]
@@ -178,76 +179,77 @@ for i=1:maxit #main loop
     end
   end
 
-     if (adjust_rho == true || adjust_gamma == true) && mod(i,rho_update_frequency)==TF(0)
-       if parallel==true
-         [ @spawnat pid adapt_rho_gamma_parallel(gamma[:L],rho[:L],adjust_gamma,adjust_rho,y[:L],
-         y_old[:L],s[:L],s_0[:L],l[:L],l_hat_0[:L],l_0[:L],l_old[:L],y_0[:L],l_hat[:L],d_l_hat[:L],d_H_hat[:L],d_l[:L],d_G_hat[:L]) for pid in y.pids]
-         #[ @spawnat pid adapt_rho_gamma_parallel_exp(gamma[:L][1],rho[:L][1],adjust_gamma,adjust_rho,y[:L][1],
-         #y_old[:L][1],s[:L][1],s_0[:L][1],l[:L][1],l_hat_0[:L][1],l_0[:L][1],l_old[:L][1],y_0[:L][1],l_hat[:L][1],d_l_hat[:L][1],d_H_hat[:L][1],d_l[:L][1],d_G_hat[:L][1]) for pid in y.pids]
-       else
-         (rho,gamma,l_hat,d_l_hat,d_H_hat,d_l,d_G_hat)=adapt_rho_gamma(i,gamma,rho,adjust_gamma,adjust_rho,y,y_old,s,s_0,l,l_hat_0,l_0,l_old,y_0,p,l_hat,d_l_hat,d_H_hat,d_l,d_G_hat);
-       end
-         if i>1
-           if parallel==true
-             [@spawnat pid copy!(l_hat_0[:L][1],l_hat[:L][1] ) for pid in l_hat.pids]
-             [@spawnat pid copy!(y_0[:L][1] , y[:L][1] ) for pid in y.pids]
-             [@spawnat pid copy!(s_0[:L][1] , s[:L][1] ) for pid in s.pids]
-             [@spawnat pid copy!(l_0[:L][1] , l[:L][1] ) for pid in l.pids]
-           else
-             for ii=1:p
-               copy!(l_hat_0[ii],l_hat[ii])
-               copy!(y_0[ii],y[ii])
-               copy!(s_0[ii],s[ii])
-               copy!(l_0[ii],l[ii])
-             end
-           end #end if parallel
-         end
-     end #end adjust rho and gamma
+  if (adjust_rho == true || adjust_gamma == true) && mod(i,rho_update_frequency)==0#TF(0)
+    if parallel==true
+      #using spawnat
+      [@sync @spawnat pid adapt_rho_gamma_parallel(gamma[:L],rho[:L],adjust_gamma,adjust_rho,y[:L],
+      y_old[:L],s[:L],s_0[:L],l[:L],l_hat_0[:L],l_0[:L],l_old[:L],y_0[:L],l_hat[:L],d_l_hat[:L],d_H_hat[:L],d_l[:L],d_G_hat[:L]) for pid in y.pids]
+ 
+    else
+      (rho,gamma,l_hat,d_l_hat,d_H_hat,d_l,d_G_hat) = adapt_rho_gamma(i,gamma,rho,adjust_gamma,adjust_rho,y,y_old,s,s_0,l,l_hat_0,l_0,l_old,y_0,p,l_hat,d_l_hat,d_H_hat,d_l,d_G_hat);
+    end
 
-     #adjust rho to set-feasibility estimates
-     if parallel==true
-        rho = convert(Vector{TF},rho); #gather rho
-     end
-     if adjust_feasibility_rho == true && mod(i,10)==TF(0) #&& norm(rho-log_PARSDMM.rho[i,:])<(10*eps(TF))#only update rho if it is not already updated
-         ## adjust rho feasibility
-         #if primal residual for a set is much larger than for the other sets
-         #and the feasibility error is also much larger, increase rho to lower
-         #primal residual and (hopefully) feasibility error
-        (max_set_feas,max_set_feas_ind) = findmax(log_PARSDMM.set_feasibility[counter-1,:])
-        sort_feas = sort(log_PARSDMM.set_feasibility[counter-1,:]);
-        if i>10
-          rho[max_set_feas_ind] = TF(2.0) .* rho[max_set_feas_ind]
+    if i>1 #after the first iteration
+      if parallel==true
+        [@spawnat pid copy!(l_hat_0[:L][1],l_hat[:L][1] ) for pid in l_hat.pids]
+        [@spawnat pid copy!(y_0[:L][1] , y[:L][1] ) for pid in y.pids]
+        [@spawnat pid copy!(s_0[:L][1] , s[:L][1] ) for pid in s.pids]
+        [@spawnat pid copy!(l_0[:L][1] , l[:L][1] ) for pid in l.pids]
+      else
+        for ii=1:p
+          copy!(l_hat_0[ii],l_hat[ii])
+          copy!(y_0[ii],y[ii])
+          copy!(s_0[ii],s[ii])
+          copy!(l_0[ii],l[ii])
         end
-     end #end adjust_feasibility_rho
+      end #end if parallel
+    end
+  end #end adjust rho and gamma
 
-     #enforce max and min values for rho, to prevent the condition number of Q -> inf
-     rho = max.(min.(rho,TF(1e4)),TF(1e-2)) #hardcoded bounds
-     end #end timer for rho and gamma update
+  #adjust rho to set-feasibility estimates
+  if parallel==true
+    rho = convert(Vector{TF},rho); #gather rho
+  end
+  if adjust_feasibility_rho == true && mod(i,10)==TF(0) #&& norm(rho-log_PARSDMM.rho[i,:])<(10*eps(TF))#only update rho if it is not already updated
+    ## adjust rho feasibility
+    #if primal residual for a set is much larger than for the other sets
+    #and the feasibility error is also much larger, increase rho to lower
+    #primal residual and (hopefully) feasibility error
+    (max_set_feas,max_set_feas_ind) = findmax(log_PARSDMM.set_feasibility[counter-1,:])
+    sort_feas = sort(log_PARSDMM.set_feasibility[counter-1,:]);
+    if i>10
+      rho[max_set_feas_ind] = TF(2.0) .* rho[max_set_feas_ind]
+    end
+  end #end adjust_feasibility_rho
 
-     @timeit to "Q-update" begin
-     ind_updated = findall(rho .!= log_PARSDMM.rho[i,:]) # locate changed rho index
-     ind_updated = convert(Array{TI,1},ind_updated)
+  #enforce max and min values for rho, to prevent the condition number of Q -> inf
+  rho = max.(min.(rho,TF(1e4)),TF(1e-2)) #hardcoded bounds
+  end #end timer for rho and gamma update
 
-     #re-assemble total transform domain operator as a matrix
-     if isempty(findall((in)(ind_updated),p))==false
-       if parallel==true && feasibility_only==false
-         prox    = convert(Vector{Any},prox); #gather rho
-         prox[p] = input -> prox_l2s!(input,rho[p],m)
-         prox    = distribute(prox)
-       elseif feasibility_only==false
-         prox[p] = input -> prox_l2s!(input,rho[p],m)
-       end
-     end
-     Q = Q_update!(Q,AtA,set_Prop,rho,ind_updated,log_PARSDMM,i,Q_offsets)
-     if parallel==true
-       rho = distribute(rho) #distribute again (gather -> process -> distribute is a ugly hack, fix this later)
-     end
-    end #end Q-update timer
+  @timeit to "Q-update" begin
+  ind_updated = findall(rho .!= log_PARSDMM.rho[i,:]) # locate changed rho index
+  ind_updated = convert(Array{TI,1},ind_updated)
 
-     if i==maxit
-       println("PARSDMM reached maxit")
-       (TD_OP,AtA,log_PARSDMM) = output_check_PARSDMM(x,TD_OP,AtA,log_PARSDMM,i,counter)
-     end
+  #re-assemble total transform domain operator as a matrix
+  if isempty(findall((in)(ind_updated),p))==false
+    if parallel==true && feasibility_only==false
+      prox    = convert(Vector{Any},prox); #gather rho
+      prox[p] = input -> prox_l2s!(input,rho[p],m)
+      prox    = distribute(prox)
+    elseif feasibility_only==false
+      prox[p] = input -> prox_l2s!(input,rho[p],m)
+    end
+  end
+  Q = Q_update!(Q,AtA,set_Prop,rho,ind_updated,log_PARSDMM,i,Q_offsets)
+  if parallel==true
+    rho = distribute(rho) #distribute again (gather -> process -> distribute is a ugly hack, fix this later)
+  end
+end #end Q-update timer
+
+  if i==maxit
+    println("PARSDMM reached maxit")
+    (TD_OP,AtA,log_PARSDMM) = output_check_PARSDMM(x,TD_OP,AtA,log_PARSDMM,i,counter)
+  end
 
  end #end main loop
 
@@ -258,7 +260,7 @@ end #end funtion
 # output checks
 function output_check_PARSDMM(x,TD_OP,AtA,log_PARSDMM,i,counter)
   if isreal(x)==false
-      println("warning: Result of PARSDMM is not real")
+      @warn "Result of PARSDMM is not real"
   end
   log_PARSDMM.obj             = log_PARSDMM.obj[1:i]
   log_PARSDMM.evol_x          = log_PARSDMM.evol_x[1:i]
