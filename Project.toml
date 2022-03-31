@@ -1,7 +1,7 @@
 name = "SetIntersectionProjection"
 uuid = "335f7d24-6316-57dd-9c3a-df470f2b739e"
 authors = ["Bas Peters <1.bas.peters@gmail.com>"]
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
