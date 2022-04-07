@@ -114,7 +114,7 @@ options.parallel       = true
 
 @time (x2,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 @time (x2,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
-#@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
+@time (x,log_PARSDMM) = PARSDMM(m,AtA,TD_OP,set_Prop,P_sub,comp_grid,options);
 
 #plot
 figure();
@@ -125,27 +125,30 @@ savefig("projected_model_ParallelPARSDMM.png",bbox_inches="tight")
 #print timings in terminal
 log_PARSDMM.timing
 
-# #use multilevel-serial (2-levels)
-# options.parallel = false
+#use multilevel-serial (2-levels)
+options.parallel = false
 
-# #2 levels, the gird point spacing at level 2 is 3X that of the original (level 1) grid
-# n_levels          = 2
-# coarsening_factor = 3
+#2 levels, the gird point spacing at level 2 is 3X that of the original (level 1) grid
+n_levels          = 2
+coarsening_factor = 3
 
-# #set up all required quantities for each level
-# #(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
-# (TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+#set up all required quantities for each level
+#(m_levels,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+(TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels)=setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
 
-# println("")
-# println("PARSDMM multilevel-serial (bounds and bounds on D_z):")
-# @time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
-# @time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
-# @time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+println("")
+println("PARSDMM multilevel-serial (bounds and bounds on D_z):")
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
 
-# figure();
-# subplot(2,1,1);imshow(permutedims(reshape(m,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
-# subplot(2,1,2);imshow(permutedims(reshape(x,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (bounds and bounds on D_z)")
-# savefig("projected_model_MultilevelSerialPARSDMM.png",bbox_inches="tight")
+figure();
+subplot(2,1,1);imshow(permutedims(reshape(m,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project")
+subplot(2,1,2);imshow(permutedims(reshape(x,(comp_grid.n[1],comp_grid.n[2])),[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("Projection (bounds and bounds on D_z)")
+savefig("projected_model_MultilevelSerialPARSDMM.png",bbox_inches="tight")
+
+#print timings in terminal, note that for the multi-level version, the timing is only for the final level on the original grid
+log_PARSDMM.timing
 
 # #now use multi-level with parallel PARSDMM
 # options.parallel=true

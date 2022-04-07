@@ -1,4 +1,4 @@
-export CDS_MVp, CDS_MVp2, CDS_MVp3, CDS_MVp4
+export CDS_MVp
 
 """
 compute single-thread matrix vector product with vector x, output is vector y: y=A*x
@@ -19,9 +19,9 @@ function CDS_MVp(
       r0 = max(1, 1-d)
       r1 = min(N, N-d)
       c0 = max(1, 1+d)
-       for r = r0 : r1
-         c = r - r0 + c0 #original
-       @inbounds y[r] = y[r] + R[r,i] * x[c]#original
+      for r = r0 : r1
+        c = r - r0 + c0 #original
+        @inbounds y[r] = y[r] + R[r,i] * x[c]#original
       end
   end
   return y
@@ -51,7 +51,7 @@ end
 # return y
 # end
 
-# function CDS_MVp(
+# function CDS_MVp2(
 #   N      ::Integer,
 #   ndiags ::Integer,
 #   R      ::Array{TF,2},

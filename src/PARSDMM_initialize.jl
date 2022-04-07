@@ -86,10 +86,13 @@ function PARSDMM_initialize(
     m = [m ; zeros(TF,length(m)) ]
   end
   if parallel
-    #f_compute_rel_feas = (feasibility_initial,TD_OP,P_sub) -> compute_relative_feasibility(m,feasibility_initial,TD_OP,P_sub) 
-    #[@spawnat pid f_compute_rel_feas for pid in 2:nworkers()]
-    #feasibility_initial = pmap(f_compute_rel_feas, feasibility_initial,TD_OP,P_sub; distributed=true, batch_size=1, on_error=nothing, retry_delays=[], retry_check=nothing)
-    feasibility_initial = pmap((feasibility_initial,TD_OP,P_sub) -> compute_relative_feasibility(m,feasibility_initial,TD_OP,P_sub) , feasibility_initial,TD_OP,P_sub; distributed=true, batch_size=1, on_error=nothing, retry_delays=[], retry_check=nothing)
+    feasibility_initial = distribute(feasibility_initial)
+    [@sync @spawnat pid m for pid in P_sub.pids]
+    [@sync @spawnat pid compute_relative_feasibility(m,feasibility_initial[:L],TD_OP[:L],P_sub[:L]) for pid in P_sub.pids]
+    feasibility_initial = convert(Vector{TF},feasibility_initial)
+
+    #using pmap
+    #feasibility_initial = pmap((feasibility_initial,TD_OP,P_sub) -> compute_relative_feasibility(m,feasibility_initial,TD_OP,P_sub) , feasibility_initial,TD_OP,P_sub; distributed=true, batch_size=1, on_error=nothing, retry_delays=[], retry_check=nothing)
   else
     for ii = 1:length(P_sub)
       feasibility_initial[ii] = norm(P_sub[ii](TD_OP[ii]*m) .- TD_OP[ii]*m) ./ (norm(TD_OP[ii]*m)+(100*eps(TF)));

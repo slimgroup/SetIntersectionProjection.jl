@@ -104,7 +104,7 @@ for i=1:maxit #main loop
   # x-minimization
   @timeit to "argmin x" begin
   copy!(x_old,x);
-  (x,iter,relres,x_solve_tol_ref) = argmin_x(Q,rhs,x,x_solve_tol_ref,i,log_PARSDMM,Q_offsets,Ax_out)
+  (x,iter,relres,x_solve_tol_ref) = argmin_x(Q,rhs,x,x_solve_tol_ref,i,log_PARSDMM,Q_offsets,Ax_out,comp_grid)
   log_PARSDMM.cg_it[i]            = iter
   log_PARSDMM.cg_relres[i]        = relres
   end #end timer for argmin x 

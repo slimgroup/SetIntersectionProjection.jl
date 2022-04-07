@@ -15,6 +15,9 @@ using JOLI
 using JOLI.FFTW, JOLI.Wavelets
 using SortingAlgorithms
 using TimerOutputs
+# using Flux
+# using NNlib
+# using CUDA
 
 export log_type_PARSDMM, set_properties, PARSDMM_options, set_definitions
 
@@ -39,6 +42,7 @@ include("CDS_MVp.jl")
 include("CDS_MVp_MT.jl")
 include("CDS_MVp_MT_subfunc.jl")
 include("CDS_scaled_add!.jl")
+include("CDS2stencil.jl")
 
 #scripts for parallelism
 include("update_y_l_parallel.jl")
@@ -53,7 +57,7 @@ include("setup_multi_level_PARSDMM.jl")
 include("constraint2coarse.jl")
 include("interpolate_y_l.jl")
 
-#scripts for setting up constraints, projetors, linear operators
+#scripts for setting up constraints, projectors, linear operators
 include("default_PARSDMM_options.jl")
 include("convert_options!.jl")
 include("get_discrete_Grad.jl");
@@ -97,13 +101,6 @@ mutable struct log_type_PARSDMM
       cg_it             :: Vector{Integer}
       cg_relres         :: Vector{Real}
       timing            :: TimerOutput
-      # T_cg              :: Real
-      # T_stop            :: Real
-      # T_ini             :: Real
-      # T_rhs             :: Real
-      # T_adjust_rho_gamma:: Real
-      # T_y_l_upd         :: Real
-      # T_Q_upd           :: Real
 end
 
 @with_kw mutable struct PARSDMM_options

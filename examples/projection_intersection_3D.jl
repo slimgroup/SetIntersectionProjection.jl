@@ -102,13 +102,13 @@ subplot(3, 3, 8);plot(log_PARSDMM.gamma)              ;title("gamma")
 subplot(3, 3, 9);semilogy(log_PARSDMM.evol_x)         ;title("x evolution")
 
 #plot
-m_plot = reshape(m,comp_grid.n)
+m_plot = reshape(m,comp_grid.n);
 figure();
 subplot(3,1,1);imshow(m_plot[:,:,Int64(round(comp_grid.n[3]/2))],cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, ymax, 0]); title("model to project x-y slice")
 subplot(3,1,2);imshow(permutedims(m_plot[:,Int64(round(comp_grid.n[2]/2)),:],[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("model to project x-z slice")
 subplot(3,1,3);imshow(permutedims(m_plot[Int64(round(comp_grid.n[1]/2)),:,:],[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  ymax, zmax, 0]); title("model to project y-z slice")
 
-x_plot = reshape(x,comp_grid.n)
+x_plot = reshape(x,comp_grid.n);
 figure();
 subplot(3,1,1);imshow(x_plot[:,:,Int64(round(comp_grid.n[3]/2))],cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, ymax, 0]); title("projected model x-y slice")
 subplot(3,1,2);imshow(permutedims(x_plot[:,Int64(round(comp_grid.n[2]/2)),:],[2,1]),cmap="jet",vmin=vmi,vmax=vma,extent=[0,  xmax, zmax, 0]); title("projected model x-z slice")
@@ -121,13 +121,13 @@ n_levels          = 2
 coarsening_factor = 3
 
 #set up all required quantities for each level
-(TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels) = setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+(TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels) = setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options);
 
 println("")
 println("PARSDMM multilevel-serial (bounds and bounds on D_z):")
-@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options)
-@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options)
-@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options)
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
+@time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
 
 #parallel single level
 println("")
@@ -147,7 +147,7 @@ n_levels          = 2
 coarsening_factor = 3
 
 #set up all required quantities for each level
-(TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels) = setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options)
+(TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels) = setup_multi_level_PARSDMM(m,n_levels,coarsening_factor,comp_grid,constraint,options);
 
 println("PARSDMM multilevel-parallel (bounds and bounds on D_z):")
 @time (x,log_PARSDMM) = PARSDMM_multi_level(m,TD_OP_levels,AtA_levels,P_sub_levels,set_Prop_levels,comp_grid_levels,options);
