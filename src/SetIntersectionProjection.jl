@@ -42,7 +42,7 @@ include("CDS_MVp.jl")
 include("CDS_MVp_MT.jl")
 include("CDS_MVp_MT_subfunc.jl")
 include("CDS_scaled_add!.jl")
-include("CDS2stencil.jl")
+#include("CDS2stencil.jl")
 
 #scripts for parallelism
 include("update_y_l_parallel.jl")
