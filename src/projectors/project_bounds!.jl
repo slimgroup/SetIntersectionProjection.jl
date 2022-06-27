@@ -24,6 +24,17 @@ function project_bounds!(x::Vector{TF},LB::Vector{TF},UB::Vector{TF}) where {TF<
     return x
 end
 
+function project_bounds!(x::Vector{TFC},LB::Vector{TF},UB::Vector{TF}) where {TF<:Real, TFC<:Complex}
+  """
+  Computes the projection of x onto the set of constraints LB <= x <= UB
+  x is a COMPLEX vector and the bounds are BINARY vectors"""
+  @assert unique(LB)== [0.0]
+  @assert length(unique(UB))==2
+
+  x .= x .* UB
+  return x
+end
+
 function project_bounds!(x::Array{TF,2},LB::Vector{TF},UB::Vector{TF},mode::Tuple{String,String}) where {TF<:Real}
   """
   Computes the projection of x onto the set of constraints LB <= x <= UB
