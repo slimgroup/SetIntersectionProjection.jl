@@ -62,8 +62,8 @@ function cg(A::Function,b::Vector{TF}; tol::Real=1e-2,maxIter::Integer=100,M::Fu
 
 
 	if out==2
-		println("=== cg ===")
-		println(@sprintf("%4s\t%7s","iter","relres"))
+		constr_log("=== cg ===")
+		constr_log(@sprintf("%4s\t%7s","iter","relres"))
 	end
 
 	resvec = zeros(TF,maxIter)
@@ -99,7 +99,7 @@ function cg(A::Function,b::Vector{TF}; tol::Real=1e-2,maxIter::Integer=100,M::Fu
 		#resvec[iter] = BLAS.nrm2(n, r, 1) / nr0#
 		resvec[iter]  = norm(r)/nr0
 		if out==2
-			println(iter,resvec[iter])
+			constr_log(iter,resvec[iter])
 		end
 		if resvec[iter] <= tol
 			flag = 0; break
@@ -116,12 +116,12 @@ function cg(A::Function,b::Vector{TF}; tol::Real=1e-2,maxIter::Integer=100,M::Fu
 
 	if out>=0
 		if flag==-1
-			println("cg iterated maxIter (=%d) times but reached only residual norm %1.2e instead of tol=%1.2e.",
+			constr_log("cg iterated maxIter (=%d) times but reached only residual norm %1.2e instead of tol=%1.2e.",
 																								maxIter,resvec[lastIter],tol)
 		elseif flag==-2
-			println("Matrix A in cg has to be positive definite.")
+			constr_log("Matrix A in cg has to be positive definite.")
 		elseif flag==0 && out>=1
-			println("cg achieved desired tolerance at iteration %d. Residual norm is %1.2e.",lastIter,resvec[lastIter])
+			constr_log("cg achieved desired tolerance at iteration %d. Residual norm is %1.2e.",lastIter,resvec[lastIter])
 		end
 	end
     return x,flag,resvec[lastIter],lastIter,resvec[1:lastIter]
@@ -194,12 +194,12 @@ end
 #
 # 	if out>=0
 # 		if flag==-1
-# 			println("cg iterated maxIter (=%d) times but reached only residual norm %1.2e instead of tol=%1.2e.",
+# 			constr_log("cg iterated maxIter (=%d) times but reached only residual norm %1.2e instead of tol=%1.2e.",
 # 																								maxIter,resvec[lastIter],tol)
 # 		elseif flag==-2
-# 			println("Matrix A in cg has to be positive definite.")
+# 			constr_log("Matrix A in cg has to be positive definite.")
 # 		elseif flag==0 && out>=1
-# 			println("cg achieved desired tolerance at iteration %d. Residual norm is %1.2e.",lastIter,resvec[lastIter])
+# 			constr_log("cg achieved desired tolerance at iteration %d. Residual norm is %1.2e.",lastIter,resvec[lastIter])
 # 		end
 # 	end
 

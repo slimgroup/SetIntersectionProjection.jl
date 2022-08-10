@@ -247,7 +247,7 @@ for i=1:maxit #main loop
 end #end Q-update timer
 
   if i==maxit
-    println("PARSDMM reached maxit")
+    constr_log("PARSDMM reached maxit")
     (TD_OP,AtA,log_PARSDMM) = output_check_PARSDMM(x,TD_OP,AtA,log_PARSDMM,i,counter)
   end
 

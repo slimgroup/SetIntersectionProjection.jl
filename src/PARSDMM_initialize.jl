@@ -99,14 +99,14 @@ function PARSDMM_initialize(
     end
   end
   if maximum(feasibility_initial)<options.feas_tol #accept input as feasible and return
-      println("input to PARSDMM is feasible, returning")
+      constr_log("input to PARSDMM is feasible, returning")
       stop = true
   end
 
   # if one of the sets is non-convex, use different lambda and rho update frequency, don't update gamma and set a different fixed gamma
   for ii=1:pp
       if set_Prop.ncvx[ii] == true
-          println("non-convex set(s) involved, using special settings")
+          constr_log("non-convex set(s) involved, using special settings")
           rho_update_frequency  = 3;
           adjust_gamma          = false
           gamma_ini             = TF(0.75)

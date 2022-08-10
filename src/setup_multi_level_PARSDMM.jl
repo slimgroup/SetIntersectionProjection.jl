@@ -87,7 +87,7 @@ for i=2:n_levels
   constraint_level = constraint2coarse(constraint_level,comp_grid_levels[i],coarsening_factor)
 
   #set up constraints on new level
-  println(TF)
+  constr_log(TF)
   (P_sub_l,TD_OP_l,set_Prop_l)  = setup_constraints(constraint_level,comp_grid_levels[i],TF)
   (TD_OP_l,AtA_l,dummy1,dummy2) = PARSDMM_precompute_distribute(TD_OP_l,set_Prop_l,comp_grid_levels[i],options)
 

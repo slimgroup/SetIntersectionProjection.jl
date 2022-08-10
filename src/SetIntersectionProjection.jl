@@ -21,6 +21,9 @@ using TimerOutputs
 
 export log_type_PARSDMM, set_properties, PARSDMM_options, set_definitions
 
+const _verbose = false
+constr_log(msg...) = _verbose ? nothing : println(msg...)
+
 #main scripts
 include("PARSDMM.jl")
 include("PARSDMM_multi_level.jl")
