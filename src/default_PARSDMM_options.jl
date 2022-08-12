@@ -3,7 +3,7 @@ export default_PARSDMM_options
 """
 Returns a set of default options for the PARSDMM solver
 """
-function default_PARSDMM_options(options,TF)
+function default_PARSDMM_options(options,TF; verbose=false)
 
   if     TF == Float64
     TI = Int64
@@ -28,5 +28,7 @@ function default_PARSDMM_options(options,TF)
   options.parallel              = false       #comput proximal mappings, multiplier updates, rho and gamma updates in parallel
   options.zero_ini_guess        = true        #zero initial guess for primal, auxilliary, and multipliers
   Minkowski                     = false       #the intersection of sets includes a Minkowski set
+
+  _verbose = verbose
   return options
 end

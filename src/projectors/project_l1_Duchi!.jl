@@ -26,7 +26,7 @@ function project_l1_Duchi!(v::Union{Vector{TF},Vector{Complex{TF}}}, b::TF) wher
   u  = similar(v)
   sv = Vector{TF}(undef, lv)
 
-  #use RadixSort for Float32 (short keywords)
+  # use RadixSort for Float32 (short keywords)
   copyto!(u, v)
   u .= abs.(u)
   u  = convert(Vector{TF},u)
@@ -35,19 +35,14 @@ function project_l1_Duchi!(v::Union{Vector{TF},Vector{Complex{TF}}}, b::TF) wher
   else
     u = sort!(u, rev=true, alg=QuickSort)
   end
-  
-  
-  # if TF==Float32
-  #   u = sort!(abs.(u), rev=true, alg=RadixSort)
-  # else
-  #   u = sort!(abs.(u), rev=true, alg=QuickSort)
-  # end
-
   cumsum!(sv, u)
 
   # Thresholding level
-  temp  = TF(1.0):TF(1.0):TF(lv)
-  rho   = max(1, min(lv, findlast(u .> ((sv.-b) ./ temp ) ) ))::Int
+  rho = 0
+  while u[rho+1] > ((sv[rho+1] - b)/(rho+1)) && (rho+1) < lv
+    rho += 1
+  end
+  rho = max(1, rho)
   theta = max.(TF(0) , (sv[rho] .- b) ./ rho)::TF
 
   # Projection as soft thresholding
